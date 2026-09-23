@@ -56,7 +56,6 @@ class CreateProductsTable extends Migration
             $table->string('attributes')->nullable();
             $table->string('video_provider')->nullable();
             $table->string('video_url')->nullable();
-            $table->string('external_url')->nullable();
             $table->string('images')->nullable();
             $table->timestamps();
         });

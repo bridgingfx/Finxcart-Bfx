@@ -486,6 +486,7 @@ class InstallController extends Controller
                 // No bundled database dump: build a fresh database from the
                 // migration chain instead so installation can still complete.
                 Artisan::call('migrate', ['--force' => true]);
+                Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\EssentialDataSeeder', '--force' => true]);
             }
             return redirect('step5');
         } catch (\Exception $exception) {
@@ -504,6 +505,7 @@ class InstallController extends Controller
             } else {
                 // No bundled database dump: rebuild from the migration chain.
                 Artisan::call('migrate', ['--force' => true]);
+                Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\EssentialDataSeeder', '--force' => true]);
             }
             return redirect('step5');
         } catch (\Exception $exception) {

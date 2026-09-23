@@ -26,7 +26,6 @@ class CreateAdminWalletsTable extends Migration
             $table->id();
             $table->float('balance')->nullable();
             $table->integer('admin_id')->nullable();
-            $table->float('inhouse_earning')->nullable();
             $table->float('withdrawn')->nullable();
             $table->timestamps();
         });
