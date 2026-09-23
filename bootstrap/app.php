@@ -62,8 +62,11 @@ $app->singleton(
 |
 */
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: *');
-header('Access-Control-Allow-Headers: *');
+/*
+| CORS is handled per-route-group by \Illuminate\Http\Middleware\HandleCors
+| (registered on the `api` middleware group) using config/cors.php. Do not
+| re-add global Access-Control-Allow-* headers here: they would apply to
+| every response, including the admin panel, and bypass the CORS config.
+*/
 
 return $app;
