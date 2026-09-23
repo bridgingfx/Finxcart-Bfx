@@ -31,11 +31,11 @@ return new class extends Migration
         $hasVerificationFreelancers = Schema::hasTable('vendor_verifications')
             && DB::table('vendor_verifications')->where('seller_type', 'freelancer')->exists();
 
-        if (!$hasSellerFreelancers && Schema::hasColumn('sellers', 'seller_type')) {
+        if (!$hasSellerFreelancers && Schema::hasColumn('sellers', 'seller_type') && in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement("ALTER TABLE sellers MODIFY COLUMN seller_type ENUM('company','individual') DEFAULT NULL");
         }
 
-        if (!$hasVerificationFreelancers && Schema::hasColumn('vendor_verifications', 'seller_type')) {
+        if (!$hasVerificationFreelancers && Schema::hasColumn('vendor_verifications', 'seller_type') && in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement("ALTER TABLE vendor_verifications MODIFY COLUMN seller_type ENUM('company','individual') DEFAULT NULL");
         }
     }
@@ -96,6 +96,13 @@ return new class extends Migration
 
     private function enumContains(string $table, string $column, string $value): bool
     {
+        // information_schema is MySQL-specific; on other drivers the ENUM
+        // value set cannot be inspected, so report it as present to skip the
+        // MySQL-only MODIFY statements (SQLite stores enums as VARCHAR).
+        if (!in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            return true;
+        }
+
         $columnInfo = DB::selectOne(
             'SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1',
             [$table, $column]

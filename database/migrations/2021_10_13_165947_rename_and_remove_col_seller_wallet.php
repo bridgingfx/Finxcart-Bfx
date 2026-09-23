@@ -15,6 +15,9 @@ class RenameAndRemoveColSellerWallet extends Migration
     {
         Schema::table('seller_wallets', function (Blueprint $table) {
             $table->dropColumn('total_earning');
+        });
+
+        Schema::table('seller_wallets', function (Blueprint $table) {
             $table->renameColumn('balance', 'total_earning');
         });
     }

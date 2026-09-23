@@ -57,10 +57,25 @@ trait  Processor
             $config = DB::table('addon_settings')->where('key_name', $key)
                 ->where('settings_type', $settings_type)->first();
         } catch (Exception $exception) {
-            return new Setting();
+            // Table missing (e.g. before installation): callers expect null
+            // here, not an empty model (see the object|null signature).
+            return null;
         }
 
-        return (isset($config)) ? $config : null;
+        if (!isset($config)) {
+            return null;
+        }
+
+        // All gateway controllers only initialize their credentials when the
+        // mode is live or test; anything else leaves their typed
+        // $config_values property uninitialized and crashes route
+        // registration. Normalize to null so the "config usable" invariant
+        // (non-null => mode is live/test) always holds.
+        if (!in_array($config->mode ?? null, ['live', 'test'], true)) {
+            return null;
+        }
+
+        return $config;
     }
 
     public function file_uploader(string $dir, string $format, $image = null, $old_image = null)

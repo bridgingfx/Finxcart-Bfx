@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Superseded by 2025_10_16_213707 (which now creates the same schema).
+        // Guarded so the migration chain doesn't fail on "table already exists".
+        if (Schema::hasTable('vendor_tiers')) {
+            return;
+        }
         Schema::create('vendor_tiers', function (Blueprint $table) {
             $table->id();
             // --- UPDATED: Use seller_id constrained to the 'sellers' table ---
