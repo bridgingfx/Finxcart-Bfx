@@ -13,8 +13,13 @@ class ColumnUpdateOrderTransaction extends Migration
      */
     public function up()
     {
+        // Split into two statements: SQLite cannot combine dropColumn with
+        // other operations in a single table modification.
         Schema::table('order_transactions', function (Blueprint $table) {
             $table->dropColumn('id');
+        });
+
+        Schema::table('order_transactions', function (Blueprint $table) {
             $table->string('transaction_id')->nullable();
         });
     }

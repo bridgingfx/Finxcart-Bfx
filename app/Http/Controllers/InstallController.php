@@ -480,7 +480,13 @@ class InstallController extends Controller
     {
         try {
             $sql_path = base_path('installation/backup/database.sql');
-            DB::unprepared(file_get_contents($sql_path));
+            if (File::exists($sql_path)) {
+                DB::unprepared(file_get_contents($sql_path));
+            } else {
+                // No bundled database dump: build a fresh database from the
+                // migration chain instead so installation can still complete.
+                Artisan::call('migrate', ['--force' => true]);
+            }
             return redirect('step5');
         } catch (\Exception $exception) {
             session()->flash('error', 'Your database is not clean, do you want to clean database then import?');
@@ -493,7 +499,12 @@ class InstallController extends Controller
         try {
             Artisan::call('db:wipe');
             $sql_path = base_path('installation/backup/database.sql');
-            DB::unprepared(file_get_contents($sql_path));
+            if (File::exists($sql_path)) {
+                DB::unprepared(file_get_contents($sql_path));
+            } else {
+                // No bundled database dump: rebuild from the migration chain.
+                Artisan::call('migrate', ['--force' => true]);
+            }
             return redirect('step5');
         } catch (\Exception $exception) {
             session()->flash('error', 'Check your database permission!');

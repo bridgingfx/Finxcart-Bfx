@@ -23,7 +23,10 @@ class DeliveryManController extends Controller
     private $shippingMethod;
     public function __construct()
     {
-        $this->shippingMethod = getWebConfig(name: 'shipping_method');
+        // NOTE: previously this eagerly loaded the shipping method config
+        // from the database here, which crashed `artisan route:list` and any
+        // other boot without a live database connection. The value was never
+        // used in this controller, so the query was removed.
     }
 
     public function list(Request $request)

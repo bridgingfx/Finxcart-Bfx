@@ -23,7 +23,7 @@ class PaytmController extends Controller
 
     private PaymentRequest $payment;
     private $user;
-    private mixed $config_values;
+    private mixed $config_values = null;
 
     public function __construct(PaymentRequest $payment, User $user)
     {
@@ -44,10 +44,10 @@ class PaytmController extends Controller
 
             $config = array(
                 'PAYTM_ENVIRONMENT' => ($config->mode == 'test') ? 'TEST' : 'PROD',
-                'PAYTM_MERCHANT_KEY' => env('PAYTM_MERCHANT_KEY', $this->config_values->merchant_key),
-                'PAYTM_MERCHANT_MID' => env('PAYTM_MERCHANT_MID', $this->config_values->merchant_id),
-                'PAYTM_MERCHANT_WEBSITE' => env('PAYTM_MERCHANT_WEBSITE', $this->config_values->merchant_website_link),
-                'PAYTM_REFUND_URL' => env('PAYTM_REFUND_URL', $this->config_values->refund_url ?? ''),
+                'PAYTM_MERCHANT_KEY' => env('PAYTM_MERCHANT_KEY', $this->config_values?->merchant_key),
+                'PAYTM_MERCHANT_MID' => env('PAYTM_MERCHANT_MID', $this->config_values?->merchant_id),
+                'PAYTM_MERCHANT_WEBSITE' => env('PAYTM_MERCHANT_WEBSITE', $this->config_values?->merchant_website_link),
+                'PAYTM_REFUND_URL' => env('PAYTM_REFUND_URL', $this->config_values?->refund_url ?? ''),
                 'PAYTM_STATUS_QUERY_URL' => env('PAYTM_STATUS_QUERY_URL', $PAYTM_STATUS_QUERY_NEW_URL),
                 'PAYTM_STATUS_QUERY_NEW_URL' => env('PAYTM_STATUS_QUERY_NEW_URL', $PAYTM_STATUS_QUERY_NEW_URL),
                 'PAYTM_TXN_URL' => env('PAYTM_TXN_URL', $PAYTM_TXN_URL),

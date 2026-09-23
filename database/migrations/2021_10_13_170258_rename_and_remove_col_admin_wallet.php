@@ -15,6 +15,9 @@ class RenameAndRemoveColAdminWallet extends Migration
     {
         Schema::table('admin_wallets', function (Blueprint $table) {
             $table->dropColumn('inhouse_sell');
+        });
+
+        Schema::table('admin_wallets', function (Blueprint $table) {
             $table->renameColumn('balance', 'inhouse_earning');
         });
     }

@@ -15,7 +15,10 @@ if (token) {
 window.axios.defaults.withCredentials = true;
 
 // Laravel Echo & Pusher
-import Echo from 'laravel-echo';
+// NOTE: laravel-echo ships modern syntax (??) that this project's webpack 4
+// setup cannot parse from node_modules, so a pre-transpiled ES5 copy is
+// vendored at ./vendor/laravel-echo.js (built from laravel-echo 2.2.4).
+import Echo from './vendor/laravel-echo';
 window.Pusher = require('pusher-js');
 
 window.Echo = new Echo({
