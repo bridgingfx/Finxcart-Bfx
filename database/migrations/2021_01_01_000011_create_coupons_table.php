@@ -33,6 +33,7 @@ class CreateCouponsTable extends Migration
             $table->float('max_discount')->nullable();
             $table->float('discount')->nullable();
             $table->string('discount_type')->nullable();
+            $table->boolean('status')->default(1);
             $table->timestamps();
         });
     }

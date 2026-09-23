@@ -58,7 +58,7 @@ class CustomerAuthController extends Controller
             Toastr::error(translate('ReCAPTCHA_Failed'));
             return redirect()->back();
         }
-        $loginOptions = json_decode($this->loginSetupRepo->getFirstWhere(params: ['key' => 'login_options'])?->value ?? [], true);
+        $loginOptions = json_decode($this->loginSetupRepo->getFirstWhere(params: ['key' => 'login_options'])?->value ?? '{}', true);
         session()->forget('tempCustomerInfo');
         if (isset($loginOptions['otp_login']) && $loginOptions['otp_login'] && $request['login_type'] == 'otp-login') {
             return $this->loginByOTP(request: $request);

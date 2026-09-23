@@ -547,12 +547,12 @@ trait CacheManagerTrait
             'facebook' => 0,
             'apple' => 0,
         ];
-        foreach (getWebConfig(name: 'social_login') as $key => $singleItem) {
+        foreach ((getWebConfig(name: 'social_login') ?? []) as $key => $singleItem) {
             if (isset($singleItem['client_id']) && $singleItem['client_id'] && isset($singleItem['client_secret']) && $singleItem['client_secret']) {
                 $configStatus[$singleItem['login_medium']] = 1;
             }
         }
-        foreach (getWebConfig(name: 'apple_login') as $key => $singleItem) {
+        foreach ((getWebConfig(name: 'apple_login') ?? []) as $key => $singleItem) {
             if (
                 isset($singleItem['client_id']) && $singleItem['client_id'] &&
                 isset($singleItem['team_id']) && $singleItem['team_id'] &&

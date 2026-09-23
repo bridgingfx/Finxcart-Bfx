@@ -24,6 +24,7 @@ class CreateSellerWalletHistoriesTable extends Migration
     {
         Schema::create('seller_wallet_histories', function (Blueprint $table) {
             $table->id();
+            $table->integer('seller_id')->nullable();
             $table->float('amount')->nullable();
             $table->string('product_id')->nullable();
             $table->string('customer_id')->nullable();
