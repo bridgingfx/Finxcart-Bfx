@@ -110,6 +110,48 @@ jobs:
             fi
           fi
           "$PHP_BIN" -v
+          cleanup() {
+            "$PHP_BIN" artisan up || true
+          }
+          trap cleanup EXIT
+
+          touch .env
+          "$PHP_BIN" -r '
+          $path = ".env";
+          $quote = function ($value) {
+              $value = (string) $value;
+              if (preg_match("/^[A-Za-z0-9_.,:\/@+\-]*$/", $value)) {
+                  return $value;
+              }
+              return "\"" . str_replace(["\\", "\"", "\n", "\r"], ["\\\\", "\\\"", "", ""], $value) . "\"";
+          };
+          $updates = [
+              "APP_ENV" => "production",
+              "APP_DEBUG" => "false",
+              "APP_URL" => "https://staging.finxcart.com",
+              "DB_CONNECTION" => "mysql",
+              "DB_HOST" => getenv("STAGING_DB_HOST"),
+              "DB_PORT" => "3306",
+              "DB_DATABASE" => getenv("STAGING_DB_DATABASE"),
+              "DB_USERNAME" => getenv("STAGING_DB_USER"),
+              "DB_PASSWORD" => getenv("STAGING_DB_PASSWORD"),
+          ];
+          $lines = file_exists($path) ? file($path, FILE_IGNORE_NEW_LINES) : [];
+          $seen = [];
+          foreach ($lines as &$line) {
+              if (preg_match("/^([A-Z0-9_]+)=/", $line, $matches) && array_key_exists($matches[1], $updates)) {
+                  $line = $matches[1] . "=" . $quote($updates[$matches[1]]);
+                  $seen[$matches[1]] = true;
+              }
+          }
+          unset($line);
+          foreach ($updates as $key => $value) {
+              if (!isset($seen[$key])) {
+                  $lines[] = $key . "=" . $quote($value);
+              }
+          }
+          file_put_contents($path, implode(PHP_EOL, $lines) . PHP_EOL);
+          '
 
           "$PHP_BIN" artisan down || true
 
@@ -130,4 +172,5 @@ jobs:
           "$PHP_BIN" artisan view:cache
 
           "$PHP_BIN" artisan up || true
+          trap - EXIT
           EOF
