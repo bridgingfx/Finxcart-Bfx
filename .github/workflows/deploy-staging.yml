@@ -176,7 +176,7 @@ jobs:
           rm -f /tmp/finxcart-update-env.php
 
           echo "Testing MySQL connection for staging database..."
-          mysql --protocol=TCP -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" -e "SELECT 1;"
+          mysql -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" -e "SELECT 1;"
 
           "$PHP_BIN" artisan down || true
 
