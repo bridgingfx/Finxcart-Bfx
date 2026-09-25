@@ -187,6 +187,7 @@ jobs:
           PHP
           "$PHP_BIN" /tmp/finxcart-update-env.php
           rm -f /tmp/finxcart-update-env.php
+          rm -f bootstrap/cache/config.php
 
           if ! grep -q '^APP_KEY=base64:' .env; then
             "$PHP_BIN" artisan key:generate --force
