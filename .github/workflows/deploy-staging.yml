@@ -88,10 +88,29 @@ jobs:
           IMPORT_DB: ${{ github.event_name == 'workflow_dispatch' && inputs.import_db == 'true' }}
           REMOTE_DB_DUMP: ${{ inputs.remote_db_dump }}
         run: |
+          STAGING_PATH_B64="$(printf '%s' "${{ secrets.STAGING_PATH }}" | base64 -w 0)"
+          PHP_BIN_B64="$(printf '%s' "${{ secrets.CPANEL_PHP_BIN }}" | base64 -w 0)"
+          REMOTE_DB_DUMP_B64="$(printf '%s' "$REMOTE_DB_DUMP" | base64 -w 0)"
+          STAGING_DB_HOST_B64="$(printf '%s' "${{ secrets.STAGING_DB_HOST }}" | base64 -w 0)"
+          STAGING_DB_USER_B64="$(printf '%s' "${{ secrets.STAGING_DB_USER }}" | base64 -w 0)"
+          STAGING_DB_PASSWORD_B64="$(printf '%s' "${{ secrets.STAGING_DB_PASSWORD }}" | base64 -w 0)"
+          STAGING_DB_DATABASE_B64="$(printf '%s' "${{ secrets.STAGING_DB_DATABASE }}" | base64 -w 0)"
+
           ssh -i ~/.ssh/cpanel_key -p "${{ secrets.CPANEL_PORT }}" \
             "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" \
-            "STAGING_PATH='${{ secrets.STAGING_PATH }}' PHP_BIN='${{ secrets.CPANEL_PHP_BIN }}' IMPORT_DB='$IMPORT_DB' REMOTE_DB_DUMP='$REMOTE_DB_DUMP' STAGING_DB_HOST='${{ secrets.STAGING_DB_HOST }}' STAGING_DB_USER='${{ secrets.STAGING_DB_USER }}' STAGING_DB_PASSWORD='${{ secrets.STAGING_DB_PASSWORD }}' STAGING_DB_DATABASE='${{ secrets.STAGING_DB_DATABASE }}' bash -s" << 'EOF'
+            "STAGING_PATH_B64='$STAGING_PATH_B64' PHP_BIN_B64='$PHP_BIN_B64' IMPORT_DB='$IMPORT_DB' REMOTE_DB_DUMP_B64='$REMOTE_DB_DUMP_B64' STAGING_DB_HOST_B64='$STAGING_DB_HOST_B64' STAGING_DB_USER_B64='$STAGING_DB_USER_B64' STAGING_DB_PASSWORD_B64='$STAGING_DB_PASSWORD_B64' STAGING_DB_DATABASE_B64='$STAGING_DB_DATABASE_B64' bash -s" << 'EOF'
           set -e
+          decode_b64() {
+            printf '%s' "$1" | base64 -d
+          }
+          STAGING_PATH="$(decode_b64 "$STAGING_PATH_B64")"
+          PHP_BIN="$(decode_b64 "$PHP_BIN_B64")"
+          REMOTE_DB_DUMP="$(decode_b64 "$REMOTE_DB_DUMP_B64")"
+          STAGING_DB_HOST="$(decode_b64 "$STAGING_DB_HOST_B64")"
+          STAGING_DB_USER="$(decode_b64 "$STAGING_DB_USER_B64")"
+          STAGING_DB_PASSWORD="$(decode_b64 "$STAGING_DB_PASSWORD_B64")"
+          STAGING_DB_DATABASE="$(decode_b64 "$STAGING_DB_DATABASE_B64")"
+
           cd "$STAGING_PATH"
           if [ -n "$PHP_BIN" ] && [ ! -x "$PHP_BIN" ]; then
             echo "Configured CPANEL_PHP_BIN is not executable. Trying auto-detect..."
@@ -116,7 +135,8 @@ jobs:
           trap cleanup EXIT
 
           touch .env
-          "$PHP_BIN" -r '
+          cat > /tmp/finxcart-update-env.php <<'PHP'
+          <?php
           $path = ".env";
           $quote = function ($value) {
               $value = (string) $value;
@@ -151,7 +171,12 @@ jobs:
               }
           }
           file_put_contents($path, implode(PHP_EOL, $lines) . PHP_EOL);
-          '
+          PHP
+          "$PHP_BIN" /tmp/finxcart-update-env.php
+          rm -f /tmp/finxcart-update-env.php
+
+          echo "Testing MySQL connection for staging database..."
+          mysql --protocol=TCP -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" -e "SELECT 1;"
 
           "$PHP_BIN" artisan down || true
 
