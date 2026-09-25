@@ -87,14 +87,20 @@ jobs:
         env:
           IMPORT_DB: ${{ github.event_name == 'workflow_dispatch' && inputs.import_db == 'true' }}
           REMOTE_DB_DUMP: ${{ inputs.remote_db_dump }}
+          CPANEL_PHP_BIN_SECRET: ${{ secrets.CPANEL_PHP_BIN }}
+          STAGING_PATH_SECRET: ${{ secrets.STAGING_PATH }}
+          STAGING_DB_HOST_SECRET: ${{ secrets.STAGING_DB_HOST }}
+          STAGING_DB_USER_SECRET: ${{ secrets.STAGING_DB_USER }}
+          STAGING_DB_PASSWORD_SECRET: ${{ secrets.STAGING_DB_PASSWORD }}
+          STAGING_DB_DATABASE_SECRET: ${{ secrets.STAGING_DB_DATABASE }}
         run: |
-          STAGING_PATH_B64="$(printf '%s' "${{ secrets.STAGING_PATH }}" | base64 -w 0)"
-          PHP_BIN_B64="$(printf '%s' "${{ secrets.CPANEL_PHP_BIN }}" | base64 -w 0)"
+          STAGING_PATH_B64="$(printf '%s' "$STAGING_PATH_SECRET" | base64 -w 0)"
+          PHP_BIN_B64="$(printf '%s' "$CPANEL_PHP_BIN_SECRET" | base64 -w 0)"
           REMOTE_DB_DUMP_B64="$(printf '%s' "$REMOTE_DB_DUMP" | base64 -w 0)"
-          STAGING_DB_HOST_B64="$(printf '%s' "${{ secrets.STAGING_DB_HOST }}" | base64 -w 0)"
-          STAGING_DB_USER_B64="$(printf '%s' "${{ secrets.STAGING_DB_USER }}" | base64 -w 0)"
-          STAGING_DB_PASSWORD_B64="$(printf '%s' "${{ secrets.STAGING_DB_PASSWORD }}" | base64 -w 0)"
-          STAGING_DB_DATABASE_B64="$(printf '%s' "${{ secrets.STAGING_DB_DATABASE }}" | base64 -w 0)"
+          STAGING_DB_HOST_B64="$(printf '%s' "$STAGING_DB_HOST_SECRET" | base64 -w 0)"
+          STAGING_DB_USER_B64="$(printf '%s' "$STAGING_DB_USER_SECRET" | base64 -w 0)"
+          STAGING_DB_PASSWORD_B64="$(printf '%s' "$STAGING_DB_PASSWORD_SECRET" | base64 -w 0)"
+          STAGING_DB_DATABASE_B64="$(printf '%s' "$STAGING_DB_DATABASE_SECRET" | base64 -w 0)"
 
           ssh -i ~/.ssh/cpanel_key -p "${{ secrets.CPANEL_PORT }}" \
             "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" \
