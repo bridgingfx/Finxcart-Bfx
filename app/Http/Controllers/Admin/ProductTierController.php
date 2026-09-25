@@ -33,7 +33,7 @@ class ProductTierController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:product_tiers,name',
+            'name' => 'required|string|max:255|unique:admin_product_tiers,name',
             'target_category' => 'required|string|max:150',
             'ideal_product_types' => 'required|string',
             'monthly_fee_usd' => 'nullable|numeric|min:0|regex:/^\d+(\.\d+)?$/',
@@ -124,7 +124,7 @@ class ProductTierController extends Controller
         $tier = ProductTier::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:product_tiers,name,' . $tier->id,
+            'name' => 'required|string|max:255|unique:admin_product_tiers,name,' . $tier->id,
             'target_category' => 'required|string|max:150',
             'ideal_product_types' => 'required|string',
             'monthly_fee_usd' => 'nullable|numeric|min:0|regex:/^\d+(\.\d+)?$/',

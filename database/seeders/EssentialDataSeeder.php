@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\BusinessSetting;
 use App\Models\Currency;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Seeds the minimum data the application needs to boot and render pages on a
