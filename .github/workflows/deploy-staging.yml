@@ -89,10 +89,10 @@ jobs:
           REMOTE_DB_DUMP: ${{ inputs.remote_db_dump }}
         run: |
           ssh -i ~/.ssh/cpanel_key -p "${{ secrets.CPANEL_PORT }}" \
-            "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" << EOF
+            "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" \
+            "STAGING_PATH='${{ secrets.STAGING_PATH }}' PHP_BIN='${{ secrets.CPANEL_PHP_BIN }}' IMPORT_DB='$IMPORT_DB' REMOTE_DB_DUMP='$REMOTE_DB_DUMP' STAGING_DB_HOST='${{ secrets.STAGING_DB_HOST }}' STAGING_DB_USER='${{ secrets.STAGING_DB_USER }}' STAGING_DB_PASSWORD='${{ secrets.STAGING_DB_PASSWORD }}' STAGING_DB_DATABASE='${{ secrets.STAGING_DB_DATABASE }}' bash -s" << 'EOF'
           set -e
-          cd "${{ secrets.STAGING_PATH }}"
-          PHP_BIN="${{ secrets.CPANEL_PHP_BIN }}"
+          cd "$STAGING_PATH"
           if [ -z "$PHP_BIN" ]; then
             PHP_BIN=php
           fi
@@ -106,7 +106,7 @@ jobs:
           $PHP_BIN artisan storage:link || true
 
           if [ "$IMPORT_DB" = "true" ]; then
-            mysql -h"${{ secrets.STAGING_DB_HOST }}" -u"${{ secrets.STAGING_DB_USER }}" -p'${{ secrets.STAGING_DB_PASSWORD }}' "${{ secrets.STAGING_DB_DATABASE }}" < "$REMOTE_DB_DUMP"
+            mysql -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" < "$REMOTE_DB_DUMP"
           fi
 
           $PHP_BIN artisan migrate --force
