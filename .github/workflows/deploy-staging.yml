@@ -120,6 +120,7 @@ jobs:
           STAGING_DB_USER="$(decode_b64 "$STAGING_DB_USER_B64")"
           STAGING_DB_PASSWORD="$(decode_b64 "$STAGING_DB_PASSWORD_B64")"
           STAGING_DB_DATABASE="$(decode_b64 "$STAGING_DB_DATABASE_B64")"
+          export STAGING_DB_HOST STAGING_DB_USER STAGING_DB_PASSWORD STAGING_DB_DATABASE
 
           cd "$STAGING_PATH"
           if [ -n "$PHP_BIN" ] && [ ! -x "$PHP_BIN" ]; then
@@ -144,7 +145,9 @@ jobs:
           }
           trap cleanup EXIT
 
-          touch .env
+          if [ ! -f .env ] || ! grep -q '^APP_KEY=' .env; then
+            cp .env.example .env
+          fi
           cat > /tmp/finxcart-update-env.php <<'PHP'
           <?php
           $path = ".env";
@@ -184,6 +187,10 @@ jobs:
           PHP
           "$PHP_BIN" /tmp/finxcart-update-env.php
           rm -f /tmp/finxcart-update-env.php
+
+          if ! grep -q '^APP_KEY=base64:' .env; then
+            "$PHP_BIN" artisan key:generate --force
+          fi
 
           echo "Testing MySQL connection for staging database..."
           mysql -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" -e "SELECT 1;"
