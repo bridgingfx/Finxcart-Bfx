@@ -13,6 +13,9 @@ class BlogDatabaseSeeder extends Seeder
     {
         $this->call([
             DailyContentArticleSeeder::class,
+            SellerGuideProductPhotographySeeder::class,
+            SellerGuidePricingStrategiesSeeder::class,
+            SellerGuideCustomerTrustSeeder::class,
         ]);
     }
 }
