@@ -79,7 +79,8 @@ jobs:
 
       - name: Upload archive
         run: |
-          scp -i ~/.ssh/cpanel_key -P "${{ secrets.CPANEL_PORT }}" \
+          scp -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
+            -i ~/.ssh/cpanel_key -P "${{ secrets.CPANEL_PORT }}" \
             /tmp/finxcart-staging.tar.gz \
             "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:${{ secrets.STAGING_PATH }}/finxcart-staging.tar.gz"
 
@@ -102,7 +103,10 @@ jobs:
           STAGING_DB_PASSWORD_B64="$(printf '%s' "$STAGING_DB_PASSWORD_SECRET" | base64 -w 0)"
           STAGING_DB_DATABASE_B64="$(printf '%s' "$STAGING_DB_DATABASE_SECRET" | base64 -w 0)"
 
-          ssh -i ~/.ssh/cpanel_key -p "${{ secrets.CPANEL_PORT }}" \
+          for attempt in 1 2 3; do
+            echo "Starting cPanel deploy SSH attempt $attempt..."
+            ssh -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
+            -i ~/.ssh/cpanel_key -p "${{ secrets.CPANEL_PORT }}" \
             "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" \
             "STAGING_PATH_B64='$STAGING_PATH_B64' PHP_BIN_B64='$PHP_BIN_B64' IMPORT_DB='$IMPORT_DB' REMOTE_DB_DUMP_B64='$REMOTE_DB_DUMP_B64' STAGING_DB_HOST_B64='$STAGING_DB_HOST_B64' STAGING_DB_USER_B64='$STAGING_DB_USER_B64' STAGING_DB_PASSWORD_B64='$STAGING_DB_PASSWORD_B64' STAGING_DB_DATABASE_B64='$STAGING_DB_DATABASE_B64' bash -s" << 'EOF'
           set -e
@@ -205,3 +209,13 @@ jobs:
           "$PHP_BIN" artisan up || true
           trap - EXIT
           EOF
+            status=$?
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+            echo "cPanel deploy SSH attempt $attempt failed with $status. Retrying in 20 seconds..."
+            sleep 20
+          done
