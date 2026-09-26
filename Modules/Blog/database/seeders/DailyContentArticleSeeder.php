@@ -69,7 +69,9 @@ class DailyContentArticleSeeder extends Seeder
             );
         }
 
-        BlogSeo::updateOrInsert(
+        // NOTE: must be an instance call — BlogSeo defines its own instance
+        // updateOrInsert(); the static form never reaches the row.
+        (new BlogSeo)->updateOrInsert(
             ['blog_id' => $blog->id],
             [
                 'title' => self::TITLE,

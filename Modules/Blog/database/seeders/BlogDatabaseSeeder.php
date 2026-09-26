@@ -16,6 +16,7 @@ class BlogDatabaseSeeder extends Seeder
             SellerGuideProductPhotographySeeder::class,
             SellerGuidePricingStrategiesSeeder::class,
             SellerGuideCustomerTrustSeeder::class,
+            MarketplaceProfitPlaybookSeeder::class,
         ]);
     }
 }
