@@ -18,6 +18,7 @@ class BlogDatabaseSeeder extends Seeder
             SellerGuideCustomerTrustSeeder::class,
             MarketplaceProfitPlaybookSeeder::class,
             SellerCentralMultichannelSeeder::class,
+            Q4HolidaySellerChecklistSeeder::class,
         ]);
     }
 }
