@@ -20,6 +20,7 @@ class BlogDatabaseSeeder extends Seeder
             SellerCentralMultichannelSeeder::class,
             Q4HolidaySellerChecklistSeeder::class,
             ReturnsMarginPlaybookSeeder::class,
+            AiShoppingAgentsSeeder::class,
         ]);
     }
 }
