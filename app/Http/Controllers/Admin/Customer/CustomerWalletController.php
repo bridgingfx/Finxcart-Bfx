@@ -81,7 +81,7 @@ class CustomerWalletController extends BaseController
 
     public function getListView(Request $request): View
     {
-        $customerStatus = $this->businessSettingRepo->getFirstWhere(params: ['type' => 'wallet_status'])['value'];
+        $customerStatus = $this->businessSettingRepo->getFirstWhere(params: ['type' => 'wallet_status'])['value'] ?? null;
         $filters = [
             'to' => $request['to'],
             'from' => $request['from'],

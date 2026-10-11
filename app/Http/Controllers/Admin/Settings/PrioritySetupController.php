@@ -33,17 +33,17 @@ class PrioritySetupController extends BaseController
 
     public function getView(): View
     {
-        $brandPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'brand_list_priority'])['value']);
-        $categoryPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'category_list_priority'])['value']);
-        $vendorProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_product_list_priority'])['value']);
-        $featureProductPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'featured_product_priority'])['value']);
-        $newArrivalProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'new_arrival_product_list_priority'])['value']);
-        $categoryWiseProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'category_wise_product_list_priority'])['value']);
-        $bestSellingProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'best_selling_product_list_priority'])['value']);
-        $topRatedProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'top_rated_product_list_priority'])['value']);
-        $searchedProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'searched_product_list_priority'])['value']);
-        $topVendorPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'top_vendor_list_priority'])['value']);
-        $vendorListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_list_priority'])['value']);
+        $brandPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'brand_list_priority'])['value'] ?? 'null');
+        $categoryPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'category_list_priority'])['value'] ?? 'null');
+        $vendorProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_product_list_priority'])['value'] ?? 'null');
+        $featureProductPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'featured_product_priority'])['value'] ?? 'null');
+        $newArrivalProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'new_arrival_product_list_priority'])['value'] ?? 'null');
+        $categoryWiseProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'category_wise_product_list_priority'])['value'] ?? 'null');
+        $bestSellingProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'best_selling_product_list_priority'])['value'] ?? 'null');
+        $topRatedProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'top_rated_product_list_priority'])['value'] ?? 'null');
+        $searchedProductListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'searched_product_list_priority'])['value'] ?? 'null');
+        $topVendorPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'top_vendor_list_priority'])['value'] ?? 'null');
+        $vendorListPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_list_priority'])['value'] ?? 'null');
         return view('admin-views.business-settings.priority-setup.index', compact('featureProductPriority', 'topVendorPriority', 'brandPriority', 'categoryPriority', 'vendorListPriority', 'searchedProductListPriority', 'vendorProductListPriority', 'bestSellingProductListPriority', 'topRatedProductListPriority', 'categoryWiseProductListPriority', 'newArrivalProductListPriority'));
     }
 

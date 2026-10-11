@@ -37,27 +37,27 @@ class VendorRegistrationSettingController extends BaseController
 
     public function getView(): View
     {
-        $vendorRegistrationHeader = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_header'])['value']);
+        $vendorRegistrationHeader = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_header'])['value'] ?? 'null');
         return view(VendorRegistrationSetting::INDEX[VIEW], compact('vendorRegistrationHeader'));
     }
 
     public function getSellWithUsView(Request $request): View
     {
         $vendorRegistrationReasons = $this->vendorRegistrationReasonRepo->getListWhere(orderBy: ['id' => 'desc'], searchValue: $request->searchValue, dataLimit: 10);
-        $sellWithUs = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_sell_with_us'])['value']);
+        $sellWithUs = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_sell_with_us'])['value'] ?? 'null');
         return view(VendorRegistrationSetting::WITH_US[VIEW], compact('sellWithUs', 'vendorRegistrationReasons'));
     }
 
     public function getBusinessProcessView(): View
     {
-        $businessProcess = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'business_process_main_section'])['value']);
-        $businessProcessStep = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'business_process_step'])['value']);
+        $businessProcess = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'business_process_main_section'])['value'] ?? 'null');
+        $businessProcessStep = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'business_process_step'])['value'] ?? 'null');
         return view(VendorRegistrationSetting::BUSINESS_PROCESS[VIEW], compact('businessProcess', 'businessProcessStep'));
     }
 
     public function getDownloadAppView(): View
     {
-        $downloadVendorApp = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'download_vendor_app'])['value']);
+        $downloadVendorApp = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'download_vendor_app'])['value'] ?? 'null');
         return view(VendorRegistrationSetting::DOWNLOAD_APP[VIEW], compact('downloadVendorApp'));
     }
 
@@ -73,7 +73,7 @@ class VendorRegistrationSettingController extends BaseController
 
     public function updateHeaderSection(VendorRegistrationHeaderRequest $request): RedirectResponse
     {
-        $vendorRegistrationHeader = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_header'])['value']);
+        $vendorRegistrationHeader = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_header'])['value'] ?? 'null');
         $this->businessSettingRepo->updateOrInsert(type: 'vendor_registration_header',
             value: $this->vendorRegistrationSettingService->getHeaderAndSellWithUsUpdateData(request: $request, image: $vendorRegistrationHeader->image ?? null));
         ToastMagic::success(translate('updated_successfully'));
@@ -82,7 +82,7 @@ class VendorRegistrationSettingController extends BaseController
 
     public function updateSellWithUsSection(Request $request): RedirectResponse
     {
-        $sellWithUs = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_sell_with_us'])['value']);
+        $sellWithUs = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'vendor_registration_sell_with_us'])['value'] ?? 'null');
         $this->businessSettingRepo->updateOrInsert(type: 'vendor_registration_sell_with_us',
             value: $this->vendorRegistrationSettingService->getHeaderAndSellWithUsUpdateData(request: $request, image: $sellWithUs->image ?? null));
         ToastMagic::success(translate('updated_successfully'));
@@ -94,7 +94,7 @@ class VendorRegistrationSettingController extends BaseController
         $this->businessSettingRepo->updateOrInsert(
             type: 'business_process_main_section',
             value: $this->vendorRegistrationSettingService->getBusinessProcessUpdateData(request: $request));
-        $businessProcessStep = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'business_process_step'])['value']);
+        $businessProcessStep = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'business_process_step'])['value'] ?? 'null');
         $this->businessSettingRepo->updateOrInsert(type: 'business_process_step',
             value: $this->vendorRegistrationSettingService->getBusinessProcessStepUpdateData(request: $request, businessProcessStep: $businessProcessStep));
         ToastMagic::success(translate('updated_successfully'));
@@ -103,7 +103,7 @@ class VendorRegistrationSettingController extends BaseController
 
     public function updateDownloadAppSection(Request $request): RedirectResponse
     {
-        $downloadVendorApp = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'download_vendor_app'])['value']);
+        $downloadVendorApp = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'download_vendor_app'])['value'] ?? 'null');
         $this->businessSettingRepo->updateOrInsert(type: 'download_vendor_app',
             value: $this->vendorRegistrationSettingService->getDownloadVendorAppUpdateData(request: $request, image: $downloadVendorApp?->image ?? null));
         ToastMagic::success(translate('updated_successfully'));

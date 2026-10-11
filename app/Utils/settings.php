@@ -21,6 +21,18 @@ if (!function_exists('getWebConfig')) {
             $data = $settings?->firstWhere('type', $name);
             $config = isset($data) ? setWebConfigCache($name, $data) : $config;
         }
+        // Safe defaults for critical keys so a missing setting (fresh install)
+        // degrades gracefully instead of crashing pages with 500s.
+        if ($config === null) {
+            $config = match ($name) {
+                'pagination_limit' => 10,
+                'recaptcha' => ['status' => 0],
+                'stock_limit' => 10,
+                'decimal_point_settings' => '2',
+                'business_mode' => 'multi_vendor',
+                default => null,
+            };
+        }
         return $config;
     }
 }

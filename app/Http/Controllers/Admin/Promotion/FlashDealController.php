@@ -53,7 +53,7 @@ class FlashDealController extends BaseController
             withCount: ['products' => 'products'],
             dataLimit: getWebConfig('pagination_limit')
         );
-        $flashDealPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'flash_deal_priority'])['value']);
+        $flashDealPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'flash_deal_priority'])['value'] ?? 'null');
         return view(FlashDeal::LIST[VIEW], compact('flashDeals', 'flashDealPriority'));
     }
 

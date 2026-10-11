@@ -37,7 +37,7 @@ class FeaturedDealController extends BaseController
             withCount: ['products'=>'products'],
             dataLimit: getWebConfig('pagination_limit')
         );
-        $featureDealPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'feature_deal_priority'])['value']);
+        $featureDealPriority = json_decode($this->businessSettingRepo->getFirstWhere(params: ['type' => 'feature_deal_priority'])['value'] ?? 'null');
         return view(FeatureDeal::LIST[VIEW], compact('flashDeals','featureDealPriority'));
     }
 
