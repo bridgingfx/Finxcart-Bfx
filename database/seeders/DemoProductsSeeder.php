@@ -45,7 +45,7 @@ class DemoProductsSeeder extends Seeder
             'min_qty'                  => 1,
             'images'                   => json_encode([]),
             'color_image'              => json_encode([]),
-            'thumbnail'                => '2025-05-21-682dd03902b35.webp', // existing product image on disk
+            'thumbnail'                => '', // set per-product below
             'thumbnail_storage_type'   => 'public',
             'colors'                   => json_encode([]),
             'attributes'               => json_encode([]),
@@ -83,7 +83,8 @@ class DemoProductsSeeder extends Seeder
                 'discount_type'  => 'percent',
                 'current_stock'  => 50,
                 'featured_status'=> 1,
-                'details'        => '<p>High-quality wireless headphones with active noise cancellation and 30-hour battery life. Foldable, lightweight design with premium drivers for studio-quality sound.</p>',
+                'thumbnail'      => 'product/headphones.webp',
+                'details'        => '<p>Flagship wireless over-ear headphones with hybrid active noise cancellation, 40mm custom drivers and 30-hour battery life. Memory-foam earcups, foldable design and multipoint Bluetooth 5.3 for seamless switching between devices.</p>',
             ],
             [
                 'name'           => 'Smart LED Desk Lamp',
@@ -98,7 +99,8 @@ class DemoProductsSeeder extends Seeder
                 'current_stock'  => 120,
                 'free_shipping'  => 1,
                 'shipping_cost'  => 0,
-                'details'        => '<p>USB-C powered smart desk lamp with adjustable brightness (10 levels) and colour temperature. Touch control, memory function, and eye-care mode included.</p>',
+                'thumbnail'      => 'product/desk-lamp.webp',
+                'details'        => '<p>Architect-style smart desk lamp with 10-step dimming, 5 colour temperatures (2700K–6000K) and USB-C power. Touch-sensitive controls, 60-minute auto-off timer and flicker-free eye-care lighting certified for long work sessions.</p>',
             ],
             [
                 'name'           => 'Ergonomic Office Chair',
@@ -113,7 +115,8 @@ class DemoProductsSeeder extends Seeder
                 'shipping_cost'  => 20,
                 'featured_status'=> 1,
                 'refundable'     => 0,
-                'details'        => '<p>Lumbar support, adjustable armrests, tilt-lock mechanism, and breathable mesh back. Designed for long work sessions with maximum comfort.</p>',
+                'thumbnail'      => 'product/office-chair.webp',
+                'details'        => '<p>Full-mesh ergonomic task chair with dynamic lumbar support, 4D adjustable armrests, synchro-tilt mechanism and height-adjustable headrest. BIFMA-certified frame rated for 150kg, designed for 8+ hour workdays.</p>',
             ],
             [
                 'name'           => 'Portable Bluetooth Speaker',
@@ -126,7 +129,8 @@ class DemoProductsSeeder extends Seeder
                 'current_stock'  => 75,
                 'free_shipping'  => 1,
                 'shipping_cost'  => 0,
-                'details'        => '<p>360-degree surround sound, IPX7 waterproof rating, 12-hour playtime. Pair two together for stereo mode. Ideal for outdoor use, camping, and beach trips.</p>',
+                'thumbnail'      => 'product/speaker.webp',
+                'details'        => '<p>Compact Bluetooth 5.3 speaker with 360° immersive sound, deep-bass passive radiators and IPX7 waterproofing. 12-hour battery, TWS stereo pairing and built-in microphone for hands-free calls — built for outdoors.</p>',
             ],
             [
                 'name'                 => 'Web App Development Guide (E-Book)',
@@ -148,7 +152,8 @@ class DemoProductsSeeder extends Seeder
                 'free_shipping'        => 1,
                 'shipping_cost'        => 0,
                 'refundable'           => 0,
-                'details'              => '<p>300-page comprehensive guide covering Laravel 10, React, REST APIs, deployment strategies, and AWS cloud architecture. Instant download after purchase.</p>',
+                'thumbnail'            => 'product/ebook-guide.webp',
+                'details'              => '<p>320-page hands-on guide to building production web apps: Laravel 10 + React, REST API design, authentication, testing, CI/CD and AWS deployment. Includes complete starter repo and lifetime updates. Instant download after purchase.</p>',
             ],
             [
                 'name'           => 'Mechanical Gaming Keyboard',
@@ -161,7 +166,8 @@ class DemoProductsSeeder extends Seeder
                 'discount_type'  => 'flat',
                 'current_stock'  => 35,
                 'featured_status'=> 1,
-                'details'        => '<p>TKL layout with Cherry MX Blue switches, per-key RGB backlighting, and USB-C detachable cable. N-key rollover, anti-ghosting, aluminium top plate.</p>',
+                'thumbnail'      => 'product/keyboard.webp',
+                'details'        => '<p>Tenkeyless mechanical keyboard with hot-swappable Cherry MX Blue switches, per-key RGB, PBT double-shot keycaps and CNC aluminium frame. Detachable USB-C, N-key rollover and 4000Hz polling for competitive play.</p>',
             ],
         ];
 
