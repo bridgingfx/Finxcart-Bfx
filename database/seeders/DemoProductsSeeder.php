@@ -31,15 +31,20 @@ class DemoProductsSeeder extends Seeder
         // Remove existing demo products for clean re-seed
         DB::table('products')->where('user_id', $sellerId)->delete();
 
+        // Resolve categories by name (works on any DB, not just production IDs)
+        $catId = DB::table('categories')->where('name', 'Test Category')->value('id')
+            ?? DB::table('categories')->insertGetId(['name' => 'Electronics', 'slug' => 'electronics', 'position' => 0, 'created_at' => $now, 'updated_at' => $now]);
+        $digitalCatId = DB::table('categories')->where('name', 'Digital Products')->value('id')
+            ?? DB::table('categories')->insertGetId(['name' => 'Digital Products', 'slug' => 'digital-products', 'position' => 1, 'created_at' => $now, 'updated_at' => $now]);
+
         $base = [
             'added_by'                 => 'seller',
             'user_id'                  => $sellerId,
-            'category_id'              => 342,
-            'sub_category_id'          => 355, // Trending Services (under Home)
+            'category_id'              => $catId,
+            'sub_category_id'          => null,
             'sub_sub_category_id'      => null,
             'category_ids'             => json_encode([
-                ['id' => '342', 'position' => 0],
-                ['id' => '355', 'position' => 1],
+                ['id' => (string)$catId, 'position' => 0],
             ]),
             'unit'                     => 'pcs',
             'min_qty'                  => 1,
@@ -139,12 +144,11 @@ class DemoProductsSeeder extends Seeder
                 'meta_title'           => 'Web App Development Guide E-Book',
                 'product_type'         => 'digital',
                 'digital_product_type' => 'ready_product',
-                'category_id'          => 343,  // Marketplace
-                'sub_category_id'      => 382,  // Trading Platforms
+                'category_id'          => $digitalCatId,
+                'sub_category_id'      => null,
                 'sub_sub_category_id'  => null,
                 'category_ids'         => json_encode([
-                    ['id' => '343', 'position' => 0],
-                    ['id' => '382', 'position' => 1],
+                    ['id' => (string)$digitalCatId, 'position' => 0],
                 ]),
                 'unit_price'           => 19.99,
                 'purchase_price'       => 0,
