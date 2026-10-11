@@ -21,6 +21,7 @@ class BlogDatabaseSeeder extends Seeder
             Q4HolidaySellerChecklistSeeder::class,
             ReturnsMarginPlaybookSeeder::class,
             AiShoppingAgentsSeeder::class,
+            PeakFeeSeasonSeeder::class,
         ]);
     }
 }
