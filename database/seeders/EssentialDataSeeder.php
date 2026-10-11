@@ -34,7 +34,7 @@ class EssentialDataSeeder extends Seeder
             'system_default_currency' => (string) $usd->id,
             'currency_model' => 'multi_currency',
             'business_mode' => 'multi_vendor',
-            'language' => json_encode([['code' => 'en', 'default' => true, 'direction' => 'ltr', 'status' => 1]]),
+            'language' => json_encode([['code' => 'en', 'name' => 'English', 'default' => true, 'direction' => 'ltr', 'status' => 1]]),
             'decimal_point_settings' => '2',
             // Mirrors InstallController defaults so fresh installs render without null-config crashes
             'temporary_close' => json_encode(['status' => 0]),

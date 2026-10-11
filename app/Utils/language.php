@@ -144,8 +144,8 @@ if (!function_exists('getLanguageName')) {
     {
         $values = getWebConfig('language');
         foreach ($values as $value) {
-            if ($value['code'] == $key) {
-                $key = $value['name'];
+            if (($value['code'] ?? null) == $key) {
+                $key = $value['name'] ?? $key;
             }
         }
         return $key;
