@@ -67,7 +67,7 @@ class BusinessSettingsController extends BaseController
     {
         $web = $this->businessSettingRepo->getListWhere(dataLimit: 'all');
         $settings = $this->getSettings($web, 'colors');
-        $data = json_decode($settings['value'], true);
+        $data = json_decode($settings['value'] ?? 'null', true);
 
         $systemDefaultCurrency = $this->getSettings(object: $web, type: 'system_default_currency')->value ?? '';
         $systemCurrency = $this->currencyRepo->getFirstWhere(params: ['id' => $systemDefaultCurrency]);
