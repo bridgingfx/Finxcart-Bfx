@@ -18,7 +18,7 @@
                             @csrf
                             @php($language = getWebConfig(name:'pnc_language'))
                             @php($defaultLanguage = 'en')
-                            @php($defaultLanguage = $language[0])
+                            @php($defaultLanguage = $language[0] ?? 'en')
                             <ul class="nav nav-tabs w-fit-content mb-4">
                                 @foreach($language as $lang)
                                     <li class="nav-item text-capitalize">
@@ -101,7 +101,7 @@
                             @csrf
                             @php($language = getWebConfig(name:'pnc_language'))
                             @php($defaultLanguage = 'en')
-                            @php($defaultLanguage = $language[0])
+                            @php($defaultLanguage = $language[0] ?? 'en')
                             <div class="position-relative nav--tab-wrapper mb-4">
                                 <ul class="nav nav-pills nav--tab lang_tab" id="pills-tab" role="tablist">
                                     @foreach($language as $lang)

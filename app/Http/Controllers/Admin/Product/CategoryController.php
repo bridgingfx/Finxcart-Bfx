@@ -50,8 +50,8 @@ class CategoryController extends BaseController
     public function getAddView(Request $request): View
     {
         $categories = $this->categoryRepo->getListWhere(orderBy: ['id' => 'desc'], searchValue: $request->get('searchValue'), filters: ['position' => 0], dataLimit: getWebConfig(name: 'pagination_limit'));
-        $languages = getWebConfig(name: 'pnc_language') ?? null;
-        $defaultLanguage = $languages[0];
+        $languages = getWebConfig(name: 'pnc_language') ?? ['en'];
+        $defaultLanguage = $languages[0] ?? 'en';
         return view(Category::LIST[VIEW], [
             'categories' => $categories,
             'languages' => $languages,
@@ -62,8 +62,8 @@ class CategoryController extends BaseController
     public function getUpdateView(string|int $id): View|RedirectResponse
     {
         $category = $this->categoryRepo->getFirstWhere(params: ['id' => $id], relations: ['translations']);
-        $languages = getWebConfig(name: 'pnc_language') ?? null;
-        $defaultLanguage = $languages[0];
+        $languages = getWebConfig(name: 'pnc_language') ?? ['en'];
+        $defaultLanguage = $languages[0] ?? 'en';
         return view(Category::UPDATE[VIEW], [
             'category' => $category,
             'languages' => $languages,

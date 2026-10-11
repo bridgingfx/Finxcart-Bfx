@@ -55,7 +55,7 @@
                         <div class="d-block flex-grow-1 w-max-md-100">
                             @php($languages = getWebConfig(name:'pnc_language'))
                             @php($defaultLanguage = 'en')
-                            @php($defaultLanguage = $languages[0])
+                            @php($defaultLanguage = $languages[0] ?? 'en')
                             <div class="row align-items-baseline g-2">
                                 <div class="col-md-8">
                                     <div class="position-relative nav--tab-wrapper mb-2">

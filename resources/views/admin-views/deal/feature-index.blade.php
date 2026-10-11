@@ -28,7 +28,7 @@
                             @php($language = getWebConfig(name:'pnc_language'))
                             @php($defaultLanguage = 'en')
 
-                            @php($defaultLanguage = $language[0])
+                            @php($defaultLanguage = $language[0] ?? 'en')
                             <div class="position-relative nav--tab-wrapper mb-4">
                                 <ul class="nav nav-pills nav--tab lang_tab" id="pills-tab" role="tablist">
                                     @foreach($language as $lang)

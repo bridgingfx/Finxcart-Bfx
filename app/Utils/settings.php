@@ -30,6 +30,8 @@ if (!function_exists('getWebConfig')) {
                 'stock_limit' => 10,
                 'decimal_point_settings' => '2',
                 'business_mode' => 'multi_vendor',
+                'pnc_language' => ['en'],
+                'language' => [['code' => 'en', 'name' => 'English', 'default' => true, 'direction' => 'ltr', 'status' => 1]],
                 default => null,
             };
         }
