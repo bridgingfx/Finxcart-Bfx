@@ -52,7 +52,7 @@ class LoginController extends Controller
 
     public function login(LoginRequest $request): RedirectResponse
     {
-        $recaptcha = getWebConfig(name: 'recaptcha');
+        $recaptcha = getWebConfig(name: 'recaptcha') ?? ['status' => 0];
         if (isset($recaptcha) && $recaptcha['status'] == 1) {
             $request->validate([
                 'g-recaptcha-response' => [

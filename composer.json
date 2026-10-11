@@ -19,6 +19,7 @@
         "ext-mysqli": "*",
         "ext-openssl": "*",
         "ext-zip": "*",
+        "amirami/localizator": "^0.12@alpha",
         "aws/aws-sdk-php": "^3.209",
         "aws/aws-sdk-php-laravel": "^3.11",
         "barryvdh/laravel-dompdf": "^2.0",
@@ -61,7 +62,6 @@
         "xendit/xendit-php": "^4.1"
     },
     "require-dev": {
-        "amirami/localizator": "^0.12@alpha",
         "barryvdh/laravel-debugbar": "^3.14",
         "fakerphp/faker": "^1.9.1",
         "laravel/pint": "^1.0",

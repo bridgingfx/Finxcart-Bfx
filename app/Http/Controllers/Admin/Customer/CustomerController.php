@@ -112,7 +112,7 @@ class CustomerController extends BaseController
             whereBetween: 'created_at',
             whereBetweenFilters: $joiningStartDate && $joiningEndDate ? [$joiningStartDate, $joiningEndDate] : [],
             takeItem: $takeItem,
-            dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT),
+            dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT) ?? 10,
             appends: $request->all(),
         );
         $totalCustomers = $this->customerRepo->getListWhereBetween(filters: ['avoid_walking_customer' => 1], dataLimit: 'all')->count();
@@ -244,7 +244,7 @@ class CustomerController extends BaseController
             whereBetween: 'created_at',
             whereBetweenFilters: $startDate && $endDate ? [$startDate, $endDate] : [],
             takeItem: $takeItem,
-            dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT),
+            dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT) ?? 10,
             appends: $request->all(),
         );
         $totalSubscribers = $this->subscriptionRepo->getListWhere(dataLimit: 'all')->count();
