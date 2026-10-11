@@ -54,6 +54,7 @@
                             src="{{ dynamicAsset(path: 'public/assets/back-end/img/admin-wallet.png') }}" alt="">
                         {{ translate('admin_wallet') }}
                     </h4>
+                    <p class="text-muted small mb-0">Lifetime totals — not affected by the statistics period selector.</p>
 
                     <div class="row g-2" id="order_stats">
                         @include('admin-views.partials._dashboard-wallet-stats', ['data' => $data])

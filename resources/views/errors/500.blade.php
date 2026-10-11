@@ -1,22 +1,18 @@
 @extends('errors::minimal')
 
-@section('title', __('Not Found'))
+@section('title', translate('something_went_wrong'))
 
 @section('message')
-    <div class="container">
-        <div class="row justify-content-center align-items-center vh-100">
-            <div class="col-12">
-                <div class="text-primary text-center">
-                    <img src="{{dynamicAsset(path: "public/assets/front-end/png/500.png")}}" alt="" class="img-fluid">
-                </div>
-
-                <p class="text-center h4 lead py-2">
-                    {{ translate('We_are_sorry_server_is_not_responding') }}
-                    <br>
-                    {{translate('Try_after_sometime')}}
-                </p>
-            </div>
+    <div class="fx-empty">
+        <p class="fx-error-code" aria-hidden="true">500</p>
+        <p class="fx-empty__title">{{ translate('something_went_wrong') }}</p>
+        <p class="fx-empty__body">
+            {{ translate('We_are_sorry_server_is_not_responding') }}.
+            {{ translate('Try_after_sometime') }}
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <a class="fx-btn" href="javascript:location.reload()">{{ translate('try_again') }}</a>
+            <a class="fx-btn fx-btn-outline" href="{{ route('home') }}">{{ translate('back_to_home') }}</a>
         </div>
     </div>
-
 @endsection

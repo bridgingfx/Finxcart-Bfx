@@ -37,7 +37,7 @@
                 </a>
             </div>
             <div class="table-responsive datatable-custom">
-                <table class="table table-hover table-borderless table-thead-bordered table-align-middle card-table">
+                <table class="table table-hover table-borderless table-thead-bordered table-align-middle card-table fx-rtable">
                     <thead class="thead-light thead-50 text-capitalize table-nowrap">
                     <tr>
                         <th>{{ translate('SL') }}</th>
@@ -53,8 +53,8 @@
                     @foreach($services as $key => $service)
                         @php($cover = $service->images->first() ?? null)
                         <tr>
-                            <td>{{ $key + 1 }}</td>
-                            <td>
+                            <td data-label="{{ translate('SL') }}">{{ $key + 1 }}</td>
+                            <td data-label="{{ translate('service') }}">
                                 <div class="d-flex align-items-center gap-10">
                                     @if($cover)
                                         <img class="fl-service-thumb" alt="" src="{{ getStorageImages(path: $cover->image_full_url, type: 'backend-profile') }}">
@@ -64,13 +64,13 @@
                                     <span class="fl-service-title">{{ $service->title }}</span>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('category') }}">
                                 <div class="fl-service-title fw-normal">{{ $service->category?->defaultname }}</div>
                                 <div class="fl-service-meta">{{ $service->specialization?->defaultname }}</div>
                             </td>
-                            <td class="fl-service-price">{{ $service->price !== null ? webCurrencyConverter($service->price) : '-' }}</td>
-                            <td>{{ $service->delivery_time_days ? $service->delivery_time_days . ' ' . translate('days') : '-' }}</td>
-                            <td>
+                            <td data-label="{{ translate('price') }}" class="fl-service-price">{{ $service->price !== null ? webCurrencyConverter($service->price) : '-' }}</td>
+                            <td data-label="{{ translate('delivery_time_days') }}">{{ $service->delivery_time_days ? $service->delivery_time_days . ' ' . translate('days') : '-' }}</td>
+                            <td data-label="{{ translate('status') }}">
                                 <form action="{{ route('freelancer.services.status-update', [$service->id]) }}" method="post" novalidate>
                                     @csrf
                                     <label class="switcher mx-auto">
@@ -80,7 +80,7 @@
                                     </label>
                                 </form>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('action') }}">
                                 <div class="d-flex justify-content-center gap-2">
                                     <a class="btn btn-outline-info btn-sm square-btn"
                                        href="{{ route('freelancer.services.view', [$service->id]) }}"

@@ -147,7 +147,7 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table id="datatable"
-                           class="table __table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
+                           class="table __table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 fxv-rc">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th>{{translate('SL')}}</th>
@@ -169,20 +169,20 @@
                             @php($commissionExpense = $transaction->admin_commission ?? 0)
                             @php($totalExpense = $couponExpense + $freeDeliveryExpense + $commissionExpense)
                             <tr>
-                                <td>{{ $expense_transactions_table->firstItem()+$key }}</td>
-                                <td>{{ $transaction->orderTransaction->transaction_id }}</td>
-                                <td>{{ date_format($transaction->updated_at, 'd F Y, h:i:s a') }}</td>
-                                <td>
+                                <td data-label="{{translate('SL')}}">{{ $expense_transactions_table->firstItem()+$key }}</td>
+                                <td data-label="{{translate('XID')}}">{{ $transaction->orderTransaction->transaction_id }}</td>
+                                <td data-label="{{translate('transaction_Date')}}">{{ date_format($transaction->updated_at, 'd F Y, h:i:s a') }}</td>
+                                <td data-label="{{translate('order_ID')}}">
                                     <a class="title-color"
                                        href="{{route('vendor.orders.details',['id'=>$transaction->id])}}">
                                         {{$transaction->id}}
                                     </a>
                                 </td>
-                                <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $couponExpense), currencyCode: getCurrencyCode()) }}</td>
-                                <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $freeDeliveryExpense), currencyCode: getCurrencyCode()) }}</td>
-                                <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $commissionExpense), currencyCode: getCurrencyCode()) }}</td>
-                                <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $totalExpense), currencyCode: getCurrencyCode()) }}</td>
-                                <td>
+                                <td data-label="{{translate('coupon_Discount')}}">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $couponExpense), currencyCode: getCurrencyCode()) }}</td>
+                                <td data-label="{{translate('free_Delivery')}}">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $freeDeliveryExpense), currencyCode: getCurrencyCode()) }}</td>
+                                <td data-label="{{translate('platform_commission')}}">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $commissionExpense), currencyCode: getCurrencyCode()) }}</td>
+                                <td data-label="{{translate('expense_Amount')}}">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $totalExpense), currencyCode: getCurrencyCode()) }}</td>
+                                <td data-label="{{translate('expense_Type')}}">
                                     {{ $transaction->coupon_discount_bearer == 'seller'?(isset($transaction->coupon->coupon_type) ? ($transaction->coupon->coupon_type == 'free_delivery' ? 'Free Delivery Promotion':ucwords(str_replace('_', ' ', $transaction->coupon->coupon_type))) : ''):'' }}
                                     @if($transaction->free_delivery_bearer == 'seller')
                                         <br>
@@ -193,7 +193,7 @@
                                         {{translate('platform_commission')}}
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{translate('action')}}" class="fxv-rc__actions">
                                     <div class="d-flex justify-content-center">
                                         <a href="{{ route('vendor.transaction.pdf-order-wise-expense-transaction', ['id'=>$transaction->id]) }}"
                                            class="btn btn-outline-success square-btn btn-sm">

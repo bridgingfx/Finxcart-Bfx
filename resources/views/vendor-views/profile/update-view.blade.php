@@ -138,7 +138,7 @@
                 <form action="{{ route('vendor.profile.update',[$vendor->id]) }}" method="post"
                       enctype="multipart/form-data" id="update-profile-form" novalidate>
                 @csrf
-                    <div class="card mb-3 mb-lg-5" id="general-div">
+                    <div class="card mb-3 mb-lg-5 fxv-form-card" id="general-div">
                         <div class="profile-cover">
                             @php($banner = dynamicAsset(path: 'public/assets/back-end/img/media/admin-profile-bg.png'))
                             <div class="profile-cover-img-wrapper profile-bg" style="background-image: url({{ $banner }})"></div>
@@ -249,7 +249,7 @@
                         </div>
                     </div>
                 </form>
-                <div id="password-div" class="card mb-3 mb-lg-5">
+                <div id="password-div" class="card mb-3 mb-lg-5 fxv-form-card">
                     <div class="card-header">
                         <div class="d-flex align-items-center gap-3">
                             <div><img src="{{ dynamicAsset(path: 'public/assets/back-end/img/icons/password-lock.svg') }}" alt=""></div>

@@ -154,7 +154,7 @@
                 </div>
                 <div class="table-responsive">
                     <table id="datatable"
-                           class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table">
+                           class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table fxv-rc">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th class="text-capitalize">{{translate('SL')}}</th>
@@ -173,18 +173,18 @@
                         <tbody>
                         @foreach($orders as $key=>$order)
                             <tr>
-                                <td>
+                                <td data-label="{{translate('SL')}}">
                                     {{$orders->firstItem()+$key}}
                                 </td>
-                                <td>
+                                <td data-label="{{translate('order_ID')}}">
                                     <a class="title-color hover-c1"
                                        href="{{route('vendor.orders.details',$order['id'])}}">{{ $order->parent_order_id ? $order->parent_order_id.'-'.$order->child_number : $order['id'] }} {!! $order->order_type == 'POS' ? '<span class="text--primary">(POS)</span>' : '' !!}</a>
                                 </td>
-                                <td>
+                                <td data-label="{{translate('order_Date')}}">
                                     <div>{{date('d M Y',strtotime($order['created_at']))}}</div>
                                     <div>{{date('H:i A',strtotime($order['created_at']))}}</div>
                                 </td>
-                                <td>
+                                <td data-label="{{translate('customer_info')}}">
                                     @if($order->is_guest)
                                         <strong class="title-name">{{translate('guest_customer')}}</strong>
                                     @elseif($order->customer_id == 0)
@@ -204,7 +204,7 @@
                                         @endif
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{translate('total_amount')}}">
                                     <div>
                                         @php($orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(order: $order))
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount:  $orderTotalPriceSummary['totalAmount']), currencyCode: getCurrencyCode()) }}
@@ -217,7 +217,7 @@
                                     @endif
                                 </td>
                                 @if($status == 'all')
-                                    <td class="text-capitalize">
+                                    <td class="text-capitalize" data-label="{{translate('order_Status')}}">
                                         @if($order->order_status=='pending')
                                             <label
                                                 class="badge badge-soft-primary">{{$order['order_status']}}</label>
@@ -240,11 +240,11 @@
                                         @endif
                                     </td>
                                 @else
-                                    <td class="text-capitalize">
+                                    <td class="text-capitalize" data-label="{{translate('payment_method')}}">
                                         {{str_replace('_',' ',$order['payment_method'])}}
                                     </td>
                                 @endif
-                                <td>
+                                <td class="fxv-rc__actions">
                                     <div class="d-flex justify-content-center gap-2">
                                         <a class="btn btn-outline--primary btn-sm square-btn"
                                            title="{{translate('view')}}"

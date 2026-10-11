@@ -532,7 +532,7 @@ class CartManager
         }
 
         $choices = [];
-        foreach (json_decode($product->choice_options) as $key => $choice) {
+        foreach (json_decode($product->choice_options) ?? [] as $key => $choice) {
             $choices[$choice->name] = $request[$choice->name];
             $variations[$choice->title] = $request[$choice->name];
             if ($string != null) {
@@ -712,7 +712,7 @@ class CartManager
             'in_cart_key' => $cart['id'],
             'cart' => $cart,
             'message' => translate('successfully_added') . '!',
-            'product_variant_type' => count(json_decode($product['variation'], true)) > 0 ? 'multi_variant' : 'single_variant',
+            'product_variant_type' => count(json_decode($product['variation'], true) ?? []) > 0 ? 'multi_variant' : 'single_variant',
         ];
     }
 
@@ -810,7 +810,7 @@ class CartManager
             'in_cart_key' => $cart['id'],
             'cart' => $cart,
             'message' => translate('successfully_added') . '!',
-            'product_variant_type' => count(json_decode($product['variation'], true)) > 0 ? 'multi_variant' : 'single_variant',
+            'product_variant_type' => count(json_decode($product['variation'], true) ?? []) > 0 ? 'multi_variant' : 'single_variant',
         ];
     }
 
@@ -821,6 +821,17 @@ class CartManager
         $product = Product::with(['digitalVariation', 'clearanceSale' => function ($query) {
             return $query->active();
         }])->where(['id' => $request['id']])->first();
+
+        // FinXCart business model: event and provider-directory listings are
+        // informational (external actions: book tickets / open account /
+        // contact provider) and must never enter the cart/checkout pipeline.
+        // transactionType() is the single source of truth (App\Enums\TransactionType).
+        if ($product && !$product->transactionType()->isPurchasable()) {
+            return [
+                'status' => 0,
+                'message' => translate('this_listing_cannot_be_added_to_cart'),
+            ];
+        }
 
         $shippingMethod = getWebConfig(name: 'shipping_method');
         $adminShipping = ShippingType::where('seller_id', 0)->first();

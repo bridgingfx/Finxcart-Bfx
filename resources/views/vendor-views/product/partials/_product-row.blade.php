@@ -1,7 +1,7 @@
 {{-- Variables: $product, $type, $rowIdx --}}
-<tr>
-    <th scope="row">{{ $rowIdx }}</th>
-    <td>
+<tr class="fxv-rc-row">
+    <th scope="row" data-label="{{ translate('SL') }}">{{ $rowIdx }}</th>
+    <td data-label="{{ translate('product_name') }}">
         <a href="{{ route('vendor.products.view', [$product['id']]) }}"
            class="media align-items-center gap-2">
             <img src="{{ getStorageImages(path:$product->thumbnail_full_url,type:'backend-product')}}"
@@ -18,18 +18,18 @@
             </div>
         </a>
     </td>
-    <td>
+    <td data-label="{{ translate('Assigned_Tier') }}">
         @if($product->vendorTier && $product->vendorTier->tier)
             <span class="badge badge-soft-info">{{ $product->vendorTier->tier->name }}</span>
         @else
             <span class="badge badge-soft-danger">{{ translate('No_Tier') }}</span>
         @endif
     </td>
-    <td class="text-center">{{ translate($product['product_type']) }}</td>
-    <td class="text-center">
+    <td data-label="{{ translate('product_type') }}" class="text-center">{{ translate($product['product_type']) }}</td>
+    <td data-label="{{ translate('unit_price') }}" class="text-center">
         {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['unit_price']), currencyCode: getCurrencyCode()) }}
     </td>
-    <td class="text-center">
+    <td data-label="{{ translate('verify_status') }}" class="text-center">
         @if($product->request_status == 0)
             <label class="badge badge-soft-warning">{{translate('pending')}}</label>
         @elseif($product->request_status == 1)
@@ -41,7 +41,7 @@
         @endif
     </td>
     @if($type != 'new-request')
-        <td class="text-center">
+        <td data-label="{{ translate('show_as_featured') }}" class="text-center">
             <form action="{{ route('vendor.products.featured-status') }}" method="post"
                   id="product-featured{{ $product['id'] }}-form"
                   class="admin-product-status-form" novalidate>
@@ -64,7 +64,7 @@
                 </label>
             </form>
         </td>
-        <td class="text-center">
+        <td data-label="{{ translate('active_status') }}" class="text-center">
             <form action="{{ route('vendor.products.status-update') }}" method="post"
                   id="product-status{{ $product['id'] }}-form"
                   class="admin-product-status-form" novalidate>
@@ -88,7 +88,7 @@
             </form>
         </td>
     @endif
-    <td>
+    <td data-label="{{ translate('action') }}" class="fxv-rc__actions">
         <div class="d-flex justify-content-center gap-2">
             @if($type != 'new-request')
                 <a class="btn btn-outline-info btn-sm square-btn"

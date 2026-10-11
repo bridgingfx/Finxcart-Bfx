@@ -90,7 +90,7 @@
                 </form>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle fxa-rc">
                         <thead class="thead-light">
                         <tr>
                             <th>#</th>
@@ -109,21 +109,21 @@
                             @php($payoutDocumentLink = $payoutDocument ? storageLink('vendor-verifications', $payoutDocument, getWebConfig(name: 'storage_connection_type') ?? 'public') : null)
                             @php($manualPayoutKyc = (getWebConfig('kyc_method') ?? 'manual') === 'manual')
                             <tr>
-                                <td>{{ $vendors->firstItem() + $key }}</td>
-                                <td>
+                                <td data-label="#">{{ $vendors->firstItem() + $key }}</td>
+                                <td data-label="{{ translate('vendor') }}">
                                     <div class="fw-semibold">{{ trim($vendor->f_name . ' ' . $vendor->l_name) }}</div>
                                     <small class="text-muted">{{ $vendor->email }}</small>
                                     <div class="small text-muted">{{ $vendor->shop?->name }}</div>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('company_verification') }}">
                                     <span class="badge badge-success">{{ translate('approved') }}</span>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('payout_KYC') }}">
                                     <span class="badge badge-{{ $payoutStatus === 'approved' ? 'success' : ($payoutStatus === 'rejected' ? 'danger' : 'warning') }}">
                                         {{ ucfirst(str_replace('_', ' ', $payoutStatus)) }}
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('document') }}">
                                     @if($payoutDocumentLink)
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary doc-preview-btn"
@@ -145,10 +145,10 @@
                                         <span class="text-muted">{{ translate('not_available') }}</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('seller_type') }}">
                                     <span class="badge badge-soft-info text-capitalize">{{ $vendor->seller_type }}</span>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end" data-label="{{ translate('action') }}">
                                     @if($payoutStatus !== 'approved')
                                         @if(!$manualPayoutKyc || $payoutDocumentLink)
                                             <form action="{{ route('admin.vendors.payout-kyc.approve', $vendor->id) }}" method="POST" class="d-inline kyc-action-form" novalidate>

@@ -17,7 +17,7 @@
     @if($hasBankInfo)
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card fxv-form-card border-0 shadow-sm">
                 <div class="card-header d-flex align-items-center justify-content-between py-3" style="background: linear-gradient(135deg,#1a8754 0%,#20c997 100%);">
                     <h5 class="mb-0 text-white d-flex align-items-center gap-2">
                         <i class="tio-checkmark-circle-outlined"></i>

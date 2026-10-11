@@ -2635,6 +2635,14 @@ return [
 	"new_status" => "New Status",
 	"system" => "System",
 	"completeness" => "Completeness",
+	"fixed_scope_service" => "Fixed-scope service",
+	"custom_service" => "Custom service",
+	"delivered_per_listing_terms" => "Delivered per the listing terms",
+	"quote_before_purchase" => "Quoted before purchase",
+	"by_quote" => "By quote",
+	"service_type" => "Service type",
+	"pricing" => "Pricing",
+	"contact_provider" => "Contact provider",
 ];
 
 

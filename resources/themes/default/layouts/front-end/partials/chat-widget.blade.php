@@ -67,8 +67,8 @@
     }
     #chat-toggle {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        bottom: 84px; /* single help launcher: sits above the back-to-top button */
+        right: 16px;
         background: #007bff;
         color: white;
         width: 60px;
@@ -81,21 +81,58 @@
         cursor: pointer;
         box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         z-index: 1001;
+        border: 0;
+    }
+    #chat-toggle:focus-visible { outline: 3px solid rgba(0,123,255,.5); outline-offset: 2px; }
+
+    /* ── Launcher consolidation (single help launcher) ──
+       WhatsApp now lives INSIDE this launcher, so the standalone
+       floating WhatsApp button is hidden to avoid stacked floats. */
+    .floating-btn-grp .wa-widget-send-button { display: none !important; }
+    #chat-widget { bottom: 152px; right: 16px; }
+    #chat-close {
+        border: 0; background: none; color: white; font-size: 20px; line-height: 1;
+        cursor: pointer; padding: 4px 8px; float: right;
+    }
+    #chat-close:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+    #chat-whatsapp {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 10px; background: #e9f7ef; color: #1d7a3a; font-size: 14px;
+        font-weight: 600; text-decoration: none; border-top: 1px solid #d4edda;
+    }
+    #chat-whatsapp:hover { background: #d9f0e2; }
+
+    @media (max-width: 1023.98px) {
+        /* clear of the mobile bottom nav + safe area */
+        #chat-toggle { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); right: 16px; }
+        #chat-widget { bottom: calc(144px + env(safe-area-inset-bottom, 0px)); right: 16px; max-width: calc(100vw - 32px); }
+        /* back-to-top stacks above the launcher instead of under the nav */
+        .u-go-to { bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important; right: 16px !important; }
     }
 </style>
 
-<div id="chat-toggle">
+@php($fxChatWhatsapp = getWebConfig(name: 'whatsapp'))
+
+<div id="chat-toggle" role="button" tabindex="0" aria-label="{{ translate('chat_with_support') }}">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
 </div>
 
-<div id="chat-widget">
-    <div id="chat-header">{{ translate('chat_with_support') }}</div>
+<div id="chat-widget" role="dialog" aria-label="{{ translate('chat_with_support') }}">
+    <div id="chat-header">
+        <button type="button" id="chat-close" aria-label="{{ translate('close') }}">&times;</button>
+        {{ translate('chat_with_support') }}
+    </div>
     <div id="chat-messages">
         </div>
     <form id="chat-form" novalidate>
         <input type="text" id="chat-input" placeholder="{{ translate('Type your message...') }}" autocomplete="off" required>
         <button type="submit">{{ translate('Send') }}</button>
     </form>
+    @if(isset($fxChatWhatsapp['status']) && $fxChatWhatsapp['status'] == 1 && !empty($fxChatWhatsapp['phone']))
+        <a id="chat-whatsapp" href="https://wa.me/{{ $fxChatWhatsapp['phone'] }}?text=Hello%20there!" target="_blank" rel="noopener">
+            {{ translate('Chat_with_us_on_WhatsApp') }}
+        </a>
+    @endif
 </div>
 
 <script type="module">
@@ -113,13 +150,26 @@
     let threadId = null;
 
     // --- Toggle Chat ---
-    chatToggle.addEventListener('click', () => {
+    function openChat() {
         chatWidget.style.display = 'flex';
         chatToggle.style.display = 'none';
         // Start the chat only when the user opens it
         if (!threadId) {
             startChatSession();
         }
+    }
+    function closeChat() {
+        chatWidget.style.display = 'none';
+        chatToggle.style.display = 'flex';
+        chatToggle.focus();
+    }
+    chatToggle.addEventListener('click', openChat);
+    chatToggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChat(); }
+    });
+    document.getElementById('chat-close').addEventListener('click', closeChat);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && chatWidget.style.display === 'flex') closeChat();
     });
 
     // --- Append Message to UI ---

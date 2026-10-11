@@ -101,7 +101,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive fxa-scroll-x">
                 <table id="datatable"
                        style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};"
                        class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">

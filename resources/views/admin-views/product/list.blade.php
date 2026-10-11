@@ -177,8 +177,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="datatable"
-                               class="table table-hover table-borderless table-thead-bordered align-middle">
+                        <table id="datatable" class="table table-hover table-borderless table-thead-bordered align-middle fxa-rc">
                             <thead class="text-capitalize">
                             <tr>
                                 <th>{{ translate('SL') }}</th>
@@ -201,8 +200,8 @@
                             <tbody>
                             @foreach($products as $key => $product)
                                 <tr>
-                                    <th scope="row">{{ $products->firstItem()+$key}}</th>
-                                    <td>
+                                    <th scope="row" data-label="{{ translate('SL') }}">{{ $products->firstItem()+$key}}</th>
+                                    <td data-label="{{ translate('product Name') }}">
                                         <a href="{{ route('admin.products.view',['addedBy'=>($product['added_by']=='seller'?'vendor' : 'in-house'),'id'=>$product['id']]) }}"
                                            class="media align-items-center gap-2">
                                             <img loading="lazy"
@@ -223,7 +222,7 @@
 
                                     {{-- --- NEW COLUMN DATA (Only show for vendor products) --- --}}
                                     @if($type == 'seller')
-                                        <td>
+                                        <td data-label="{{ translate('Vendor_Name') }}">
                                             @if($product->seller && $product->seller->shop)
                                                 <a href="#" class="text-primary">
                                                     {{ Str::limit($product->seller->shop->name, 20) }}
@@ -232,7 +231,7 @@
                                                 <span class="text-muted">{{ translate('Vendor_not_found') }}</span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td data-label="{{ translate('Tier_Plan') }}">
                                             @if($product->vendorTier && $product->vendorTier->tier)
                                                 <span class="badge badge-soft-info">
                                                     {{ $product->vendorTier->tier->name }}
@@ -246,13 +245,13 @@
                                     @endif
                                     {{-- --- END NEW COLUMN DATA --- --}}
 
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('product Type') }}">
                                         {{ translate(str_replace('_',' ',$product['product_type'])) }}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('unit_price') }}">
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['unit_price']), currencyCode: getCurrencyCode()) }}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('show_as_featured') }}">
 
                                         @php($productName = str_replace("'",'`',$product['name']))
                                         <form action="{{ route('admin.products.featured-status') }}" method="post"
@@ -280,7 +279,7 @@
                                         </form>
 
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('active_status') }}">
                                         <form action="{{ route('admin.products.status-update') }}" method="post"
                                               id="product-status{{ $product['id'] }}-form"
                                               class="admin-product-status-form" novalidate>
@@ -305,7 +304,7 @@
                                             </label>
                                         </form>
                                     </td>
-                                    <td>
+                                    <td data-label="{{ translate('action') }}" class="fxa-rc__actions">
                                         <div class="d-flex justify-content-center gap-10">
                                             <a class="btn btn-outline-info icon-btn" title="{{ translate('barcode') }}"
                                                href="{{ route('admin.products.barcode', [$product['id']]) }}">

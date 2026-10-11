@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Freelancer\ServicePricingType;
+use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -65,5 +66,16 @@ class FreelancerService extends Model
     public function images(): HasMany
     {
         return $this->hasMany(FreelancerServiceImage::class, 'freelancer_service_id')->orderBy('priority');
+    }
+
+    /**
+     * Canonical transaction type — the single source of truth for the
+     * business-model mapping (see App\Enums\TransactionType).
+     *  - pricing_type 'fixed' => fixed_service (buy at the set price, direct hire)
+     *  - pricing_type 'quote' => custom_service (quote request first, then contract)
+     */
+    public function transactionType(): TransactionType
+    {
+        return TransactionType::forFreelancerService($this);
     }
 }

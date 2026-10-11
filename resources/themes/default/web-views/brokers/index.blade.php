@@ -1,141 +1,158 @@
 @extends('layouts.front-end.app')
-@push('script')
-    <script>
-        // Check if there is a success session and trigger Toastr
-        @if(session('success'))
-            // Try using the theme's default toastr if available
-            if (typeof toastr !== 'undefined') {
-                toastr.success("{{ session('success') }}");
-            } else {
-                // Fallback to standard browser alert if toastr isn't loaded
-                alert("{{ session('success') }}");
-            }
-        @endif
-        
-        // Check for errors (e.g. validation failed)
-        @if($errors->any())
-            @foreach($errors->all() as $error)
-                if (typeof toastr !== 'undefined') {
-                    toastr.error("{{ $error }}");
-                }
-            @endforeach
-        @endif
-    </script>
-@endpush
 
-
+@section('title', translate('brokers'))
 
 @section('content')
-<div class="container py-5">
-    <div class="row align-items-center mb-4 border-bottom pb-3">
-        <div class="col-md-8">
-            <h1 class="font-weight-bold mb-0">{{ translate('regulated_broker_rankings') }}</h1>
-            <p class="text-muted mb-0">{{ translate('compare_authority_scores_and_user_reviews') }}</p>
+<div class="fx-container" style="padding-top: var(--fx-s6); padding-bottom: var(--fx-s12);">
+    <nav aria-label="{{ translate('breadcrumb') }}">
+        <ol class="fx-breadcrumb">
+            <li><a href="{{ route('home') }}">{{ translate('home') }}</a></li>
+            <li aria-current="page">{{ translate('brokers') }}</li>
+        </ol>
+    </nav>
+
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap: var(--fx-s4); margin-bottom: var(--fx-s6);">
+        <div>
+            <h1 class="fx-hero" style="margin:0 0 var(--fx-s2);">{{ translate('regulated_broker_rankings') }}</h1>
+            <p class="fx-meta" style="margin:0;">{{ translate('compare_authority_scores_and_user_reviews') }}</p>
         </div>
-        <div class="col-md-4 mt-3 mt-md-0">
-            <form method="GET" action="{{ route('brokers.index') }}" novalidate>
-                <div class="d-flex align-items-center justify-content-end">
-                    <label class="mr-2 mb-0 font-weight-bold text-nowrap">{{ translate('sort_by') }}</label>
-                    <select name="sort" class="form-control" onchange="this.form.submit()">
-                        <option value="authority_score" {{ request('sort') == 'authority_score' ? 'selected' : '' }}>
-                            Authority Score (High to Low)
-                        </option>
-                        <option value="user_rating" {{ request('sort') == 'user_rating' ? 'selected' : '' }}>
-                            User Rating (High to Low)
-                        </option>
-                        <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>
-                            Name (A - Z)
-                        </option>
-                        <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>
-                            Newest Added
-                        </option>
-                    </select>
-                </div>
-            </form>
-        </div>
+        <form method="GET" action="{{ route('brokers.index') }}" class="fx-form" style="display:flex; align-items:center; gap: var(--fx-s2);" novalidate>
+            <label for="fx-broker-sort" style="font-size:14px; font-weight:600; white-space:nowrap;">{{ translate('sort_by') }}</label>
+            <select name="sort" id="fx-broker-sort" onchange="this.form.submit()" style="min-width:220px;">
+                <option value="authority_score" {{ request('sort', 'authority_score') == 'authority_score' ? 'selected' : '' }}>{{ translate('authority_score') }} ({{ translate('high_to_low') }})</option>
+                <option value="user_rating" {{ request('sort') == 'user_rating' ? 'selected' : '' }}>{{ translate('user_rating') }} ({{ translate('high_to_low') }})</option>
+                <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>{{ translate('name') }} (A - Z)</option>
+                <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>{{ translate('newest_added') }}</option>
+            </select>
+        </form>
     </div>
 
-    <div class="row">
+    @if($brokers->count())
+        <p class="fx-meta" style="margin:0 0 var(--fx-s4);">{{ $brokers->total() }} {{ translate('brokers_found') }}</p>
+    @endif
+
+    <div class="fx-grid" style="grid-template-columns: 1fr;">
         @forelse($brokers as $broker)
-        <div class="col-12 mb-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-2 text-center border-right">
-                            <img src="{{ asset($broker->logo) }}" 
-                                 onerror="this.src='{{ asset('public/'.$broker->logo) }}'"
-                                 class="img-fluid mb-3" style="max-height: 70px;">
-                            
-                            <a href="{{ $broker->affiliate_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-block font-weight-bold shadow-sm">
-                                {{ translate('Open_Account') }}
+            @php
+                $brokerDetailUrl = route('brokers.show', $broker->slug);
+                $logoPath = $broker->logo ? asset($broker->logo) : null;
+            @endphp
+            <article class="fx-card fx-card-lg fx-broker-card">
+                <div class="fx-broker-card__grid">
+                    <div class="fx-broker-card__brand">
+                        @if($logoPath)
+                            <a href="{{ $brokerDetailUrl }}" aria-label="{{ translate('view_details_for') }} {{ $broker->name }}">
+                                <img src="{{ $logoPath }}" alt="{{ $broker->name }}" loading="lazy"
+                                     class="fx-broker-card__logo" onerror="this.closest('.fx-broker-card__brand').classList.add('is-fallback'); this.remove();">
                             </a>
-                        </div>
+                        @endif
+                        <span class="fx-broker-card__initials" aria-hidden="true">{{ strtoupper(substr($broker->name, 0, 2)) }}</span>
+                    </div>
 
-                        <div class="col-md-7 px-md-4">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h3 class="font-weight-bold mb-1">
-                                        <a href="{{ route('brokers.show', $broker->slug) }}" class="text-dark">{{ $broker->name }}</a>
-                                    </h3>
-                                    <span class="badge badge-soft-info">{{ $broker->regulations }}</span>
-                                    <span class="badge badge-soft-dark">{{ $broker->platforms }}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="row mt-3 text-center">
-                                <div class="col-6 col-md-4">
-                                    <div class="bg-light p-2 rounded {{ request('sort') == 'authority_score' || !request('sort') ? 'border border-primary' : '' }}">
-                                        <small class="text-muted d-block text-uppercase" style="font-size: 10px;">{{ translate('authority_score') }}</small>
-                                        <span class="h2 font-weight-bold text-primary">{{ $broker->system_rating }}</span>
-                                        <span class="small text-muted">/ 10</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-6 col-md-4">
-                                    <div class="bg-light p-2 rounded {{ request('sort') == 'user_rating' ? 'border border-warning' : '' }}">
-                                        <small class="text-muted d-block text-uppercase" style="font-size: 10px;">{{ translate('user_rating') }}</small>
-                                        <span class="h2 font-weight-bold text-warning">{{ $broker->user_rating }}</span>
-                                        <span class="small text-muted">/ 5.0</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="fx-broker-card__main">
+                        <h2 class="fx-broker-card__name">
+                            <a href="{{ $brokerDetailUrl }}">{{ $broker->name }}</a>
+                        </h2>
+                        <div class="fx-broker-card__chips">
+                            @if($broker->regulations)
+                                <span class="fx-chip" title="{{ translate('regulation') }}">{{ $broker->regulations }}</span>
+                            @endif
+                            @if($broker->platforms)
+                                <span class="fx-chip">{{ $broker->platforms }}</span>
+                            @endif
                         </div>
+                        <dl class="fx-broker-card__scores">
+                            <div class="fx-broker-card__score">
+                                <dt>{{ translate('authority_score') }}</dt>
+                                <dd><strong>{{ number_format((float) $broker->system_rating, 2) }}</strong><span class="fx-meta">/10</span></dd>
+                            </div>
+                            <div class="fx-broker-card__score">
+                                <dt>{{ translate('user_rating') }}</dt>
+                                <dd>
+                                    @if((int) $broker->review_count > 0)
+                                        <strong>{{ number_format((float) $broker->user_rating, 1) }}</strong><span class="fx-meta">/5</span>
+                                        <span class="fx-meta">({{ $broker->review_count }} {{ translate('reviews') }})</span>
+                                    @else
+                                        <span class="fx-meta">{{ translate('no_reviews_yet') }}</span>
+                                    @endif
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
 
-                        <div class="col-md-3 border-left">
-                            <ul class="list-unstyled mb-0 small">
-                                <li class="d-flex justify-content-between mb-2">
-                                    <span>{{ translate('license') }}</span> 
-                                    <span class="font-weight-bold">{{ $broker->score_license }}/10</span>
-                                </li>
-                                <li class="d-flex justify-content-between mb-2">
-                                    <span>{{ translate('software') }}</span> 
-                                    <span class="font-weight-bold">{{ $broker->score_software }}/10</span>
-                                </li>
-                                <li class="d-flex justify-content-between mb-2">
-                                    <span>{{ translate('stability') }}</span> 
-                                    <span class="font-weight-bold">{{ $broker->score_stability }}/10</span>
-                                </li>
-                                <li class="d-flex justify-content-between">
-                                    <span>{{ translate('min_dep') }}</span> 
-                                    <span class="font-weight-bold">{{ $broker->min_deposit }}</span>
-                                </li>
-                            </ul>
-                            <a href="{{ route('brokers.show', $broker->slug) }}" class="btn btn-outline-secondary btn-sm btn-block mt-3">View Details</a>
-                        </div>
+                    <dl class="fx-broker-card__facts">
+                        @if($broker->min_deposit)
+                            <div><dt>{{ translate('min_dep') }}</dt><dd>{{ $broker->min_deposit }}</dd></div>
+                        @endif
+                        @if($broker->max_leverage)
+                            <div><dt>{{ translate('max_leverage') }}</dt><dd>{{ $broker->max_leverage }}</dd></div>
+                        @endif
+                        <div><dt>{{ translate('license') }}</dt><dd>{{ number_format((float) $broker->score_license, 1) }}/10</dd></div>
+                        <div><dt>{{ translate('software') }}</dt><dd>{{ number_format((float) $broker->score_software, 1) }}/10</dd></div>
+                    </dl>
+
+                    <div class="fx-broker-card__actions">
+                        <a href="{{ $brokerDetailUrl }}" class="fx-btn fx-btn-outline fx-btn-sm">{{ translate('view_details') }}</a>
+                        <a href="{{ $broker->affiliate_url }}" target="_blank" rel="noopener noreferrer"
+                           class="fx-btn fx-btn-amber fx-btn-sm"
+                           aria-label="{{ translate('open_account') }} — {{ $broker->name }} ({{ translate('opens_in_new_tab') }})">
+                            {{ translate('open_account') }} <span aria-hidden="true">↗</span>
+                        </a>
+                        <p class="fx-meta" style="font-size:12px; margin: var(--fx-s1) 0 0;">{{ translate('external_partner_link') }}</p>
                     </div>
                 </div>
-            </div>
-        </div>
+            </article>
         @empty
-            <div class="col-12 text-center py-5">
-                <h5 class="text-muted">{{ translate('No_brokers_found') }}</h5>
-                <p class="text-muted">{{ translate('Try_adjusting_your_search_or_filters.') }}</p>
+            <div class="fx-empty">
+                <div class="fx-empty__slot" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4"/></svg>
+                </div>
+                <h2 class="fx-empty__title">{{ translate('no_brokers_found') }}</h2>
+                <p class="fx-empty__body">{{ translate('try_adjusting_your_search_or_filters') }}</p>
             </div>
         @endforelse
     </div>
 
-    <div class="mt-4 d-flex justify-content-center">
-        {{ $brokers->appends(request()->query())->links() }}
+    <div style="display:flex; justify-content:center;">
+        @include('web-views.partials._fx-pagination', ['paginator' => $brokers->appends(request()->query())])
     </div>
 </div>
 @endsection
+
+@push('css_or_js')
+<style>
+    .fx-broker-card__grid { display: grid; grid-template-columns: 120px minmax(0, 1fr) 200px 190px; gap: var(--fx-s6); align-items: start; }
+    .fx-broker-card__brand { position: relative; display: flex; align-items: center; justify-content: center; min-height: 96px; }
+    .fx-broker-card__logo { max-height: 80px; max-width: 100%; object-fit: contain; }
+    .fx-broker-card__initials {
+        position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+        font-size: 28px; font-weight: 700; color: var(--fx-navy);
+        background: var(--fx-canvas); border: 1px solid var(--fx-border); border-radius: var(--fx-radius-md);
+    }
+    .fx-broker-card__brand.is-fallback .fx-broker-card__initials,
+    .fx-broker-card__brand:not(:has(img)) .fx-broker-card__initials { display: flex; }
+    .fx-broker-card__name { font-size: 20px; font-weight: 700; margin: 0 0 var(--fx-s2); letter-spacing: -0.01em; }
+    .fx-broker-card__name a { color: inherit; text-decoration: none; }
+    .fx-broker-card__name a:hover { color: var(--fx-navy); }
+    .fx-broker-card__chips { display: flex; flex-wrap: wrap; gap: var(--fx-s2); margin-bottom: var(--fx-s3); }
+    .fx-broker-card__scores { display: flex; gap: var(--fx-s6); margin: 0; }
+    .fx-broker-card__score dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fx-muted); font-weight: 600; }
+    .fx-broker-card__score dd { margin: var(--fx-s1) 0 0; font-size: 18px; }
+    .fx-broker-card__facts { margin: 0; display: grid; gap: var(--fx-s2); font-size: 14px; border-inline-start: 1px solid var(--fx-border); padding-inline-start: var(--fx-s6); }
+    .fx-broker-card__facts div { display: flex; justify-content: space-between; gap: var(--fx-s2); }
+    .fx-broker-card__facts dt { color: var(--fx-muted); }
+    .fx-broker-card__facts dd { margin: 0; font-weight: 600; text-align: end; }
+    .fx-broker-card__actions { display: flex; flex-direction: column; gap: var(--fx-s2); }
+    .fx-broker-card__actions .fx-btn { width: 100%; }
+    @media (max-width: 1023px) {
+        .fx-broker-card__grid { grid-template-columns: 96px minmax(0, 1fr); }
+        .fx-broker-card__facts { grid-column: 1 / -1; border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--fx-border); padding-top: var(--fx-s4); grid-template-columns: repeat(2, 1fr); }
+        .fx-broker-card__actions { grid-column: 1 / -1; flex-direction: row; }
+        .fx-broker-card__actions .fx-meta { display: none; }
+    }
+    @media (max-width: 767px) {
+        .fx-broker-card__scores { gap: var(--fx-s4); flex-wrap: wrap; }
+        .fx-broker-card__facts { grid-template-columns: 1fr; }
+    }
+</style>
+@endpush

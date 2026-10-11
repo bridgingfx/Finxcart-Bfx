@@ -4,8 +4,7 @@
 
 @section('content')
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/front-end/css/fx-tib/tabler-icons.local.css') }}">
 
 <style>
 .tu-wrap {
@@ -235,6 +234,16 @@
     .tu-toc-grid   { grid-template-columns: 1fr; }
     .tu-footer     { flex-direction: column; gap: 1rem; }
 }
+</style>
+
+<style>
+    /* FinXCart font rule: Apple system stack only (replaces Google webfonts). Layout-only change. */
+    .tu-wrap, .tu-wrap *:not(.ti) {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    }
+    .tu-hero h1, .tu-trigger-title {
+        letter-spacing: -0.02em;
+    }
 </style>
 
 <div class="tu-wrap">

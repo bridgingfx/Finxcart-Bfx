@@ -4,18 +4,19 @@
 
 @push('css_or_js')
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/plugin/intl-tel-input/css/intlTelInput.css') }}">
+    <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/fx-commerce.css') }}?v=20260929">
 @endpush
 
 @section('content')
-    <div class="container py-2 py-md-4 p-0 p-md-2 user-profile-container px-5px">
-        <div class="row">
+    <div class="container fx fx-page">
+        <div class="fx-account-layout">
             @include('web-views.partials._profile-aside')
-            <section class="col-lg-9 __customer-profile px-0">
-                <div class="card">
-                    <div class="card-body">
+            <section class="fx-account-main">
+                <div class="fx-card">
+                    <div class="fx-card__body">
 
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                            <h5 class="font-bold m-0 fs-16">{{ translate('profile_Info') }}</h5>
+                            <h1 class="fx-page-title">{{ translate('profile_Info') }}</h1>
                             <button class="profile-aside-btn btn btn--primary px-2 rounded px-2 py-1 d-lg-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none">
                                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -67,27 +68,25 @@
                                     </h5>
                                 </div>
                                 <div class="row g-3">
-                                    <div class="form-group col-sm-6 mb-0">
-                                        <label for="firstName"
-                                               class="mb-2 text-capitalize">{{translate('first_name')}} </label>
-                                        <input type="text" class="form-control" id="f_name" name="f_name"
+                                    <div class="fx-field col-sm-6">
+                                        <label for="firstName" class="fx-label">{{translate('first_name')}} </label>
+                                        <input type="text" class="fx-input" id="f_name" name="f_name"
                                                value="{{$customerDetail['f_name']}}" required>
                                     </div>
-                                    <div class="form-group col-sm-6 mb-0">
-                                        <label for="lastName"
-                                               class="mb-2 text-capitalize"> {{translate('last_name')}} </label>
-                                        <input type="text" class="form-control" id="l_name" name="l_name"
+                                    <div class="fx-field col-sm-6">
+                                        <label for="lastName" class="fx-label"> {{translate('last_name')}} </label>
+                                        <input type="text" class="fx-input" id="l_name" name="l_name"
                                                value="{{$customerDetail['l_name']}}">
                                     </div>
 
-                                    <div class="form-group col-sm-6 mb-0">
-                                        <label for="phone" class="mb-2 text-capitalize">
+                                    <div class="fx-field col-sm-6">
+                                        <label for="phone" class="fx-label">
                                             {{ translate('phone_number') }}
                                         </label>
                                         <div class="position-relative d-flex align-items-center">
 
                                         @php($userCountryAndPhone = ($customerDetail['country_code'] ? '+'.$customerDetail['country_code'] : '').$customerDetail['phone'])
-                                        <input class="form-control phone-input-with-country-picker" id="phone" type="text"
+                                        <input class="fx-input phone-input-with-country-picker" id="phone" type="text"
                                                value="{{ $userCountryAndPhone }}" placeholder="{{ translate('enter_phone_number') }}" required
                                             {{ $customerDetail['is_phone_verified'] ? 'disabled' : '' }}>
 
@@ -114,11 +113,10 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-group col-sm-6 mb-0">
-                                        <label for="inputEmail4"
-                                               class="mb-2 text-capitalize">{{translate('email')}} </label>
+                                    <div class="fx-field col-sm-6">
+                                        <label for="inputEmail4" class="fx-label">{{translate('email')}} </label>
                                         <div class="position-relative d-flex align-items-center">
-                                            <input type="email" class="form-control" id="account-email" name="email" value="{{$customerDetail['email']}}">
+                                            <input type="email" class="fx-input" id="account-email" name="email" value="{{$customerDetail['email']}}">
                                             @if($customerDetail['email'] && getLoginConfig(key: 'email_verification'))
                                                 @if($customerDetail['is_email_verified'])
                                                     <span class="position-absolute inset-inline-end-10px cursor-pointer" data-toggle="tooltip" data-placement="top" title="{{ translate('Your_email_is_verified') }}">
@@ -137,14 +135,14 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="form-group col-sm-6 mb-0">
+                                    <div class="fx-field col-sm-6">
                                                 <div class="mb-4">
                                                     <label for="si-password" >
                                                         {{translate('new_password')}}
                                                         <span class="text-danger fs-12 password-error"></span>
                                                     </label>
                                                     <div class="password-toggle rtl" style="position: relative;">
-                                                        <input class="form-control text-align-direction password-check" name="password" type="password" id="password"
+                                                        <input class="fx-input text-align-direction password-check" name="password" type="password" id="password"
                                                             placeholder="{{ translate('minimum_8_characters_long') }}"
                                                             style="padding-right: 2.5rem;">
                                                         <label class="password-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); margin: 0; cursor: pointer;">
@@ -156,14 +154,14 @@
 
                                                 </div>
                                     </div>
-                                    <div class="form-group col-sm-6 mb-0">
+                                    <div class="fx-field col-sm-6">
                                                 <div class="mb-4">
                                                     <label for="password" class="text-capitalize">
                                                         {{translate('confirm_password')}}
                                                         <span class="text-danger fs-12 confirm-password-error"></span>
                                                     </label>
                                                     <div class="password-toggle rtl" style="position: relative;">
-                                                        <input class="form-control text-align-direction" name="confirm_password" type="password" id="confirm_password"
+                                                        <input class="fx-input text-align-direction" name="confirm_password" type="password" id="confirm_password"
                                                             placeholder="{{ translate('confirm_password') }}"
                                                             style="padding-right: 2.5rem;">
                                                         <label class="password-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); margin: 0; cursor: pointer;">
@@ -176,7 +174,7 @@
                                                 </div>
                                     </div>
                                     <div class="col-12 text-end d-none d-md-block">
-                                        <button type="submit" class="btn btn--primary px-4 fs-14 font-semi-bold py-2">
+                                        <button type="submit" class="fx-btn fx-btn-primary">
                                             {{ translate('update') }}
                                         </button>
                                     </div>
@@ -191,7 +189,7 @@
 
     <div class="bottom-sticky_offset"></div>
     <div class="bottom-sticky_ele bg-white d-md-none p-3 ">
-        <button type="submit" class="btn btn--primary w-100 update-account-info">
+        <button type="submit" class="fx-btn fx-btn-primary fx-btn-block update-account-info">
             {{translate('update')}}
         </button>
     </div>

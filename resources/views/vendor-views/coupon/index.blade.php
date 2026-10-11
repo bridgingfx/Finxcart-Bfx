@@ -160,7 +160,7 @@
 
                     <div class="table-responsive">
                         <table id="datatable"
-                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table {{ Session::get('direction') === 'rtl' ? 'text-right' : 'text-left' }}">
+                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table fxv-rc {{ Session::get('direction') === 'rtl' ? 'text-right' : 'text-left' }}">
                             <thead class="thead-light thead-50 text-capitalize">
                             <tr>
                                 <th>{{translate('SL')}}</th>
@@ -190,26 +190,26 @@
                             <tbody>
                             @foreach($coupons as $k=>$coupon)
                                 <tr>
-                                    <td>{{$coupons->firstItem() + $k}}</td>
-                                    <td>
+                                    <td data-label="{{translate('SL')}}">{{$coupons->firstItem() + $k}}</td>
+                                    <td data-label="{{translate('coupon')}}">
                                         <div>{{substr($coupon['title'],0,20)}}</div>
                                         <strong>{{translate('code')}}: {{$coupon['code']}}</strong>
                                     </td>
-                                    <td class="text-capitalize">{{translate(str_replace('_',' ',$coupon['coupon_type']))}}</td>
-                                    <td>
+                                    <td class="text-capitalize" data-label="{{translate('coupon_type')}}">{{translate(str_replace('_',' ',$coupon['coupon_type']))}}</td>
+                                    <td data-label="{{translate('duration')}}">
                                         <div class="d-flex flex-wrap gap-1">
                                             <span>{{date('d M, y',strtotime($coupon['start_date']))}} - </span>
                                             <span>{{date('d M, y',strtotime($coupon['expire_date']))}}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="{{translate('user_limit')}}">
                                         <span>{{translate('limit')}}: <strong>{{ $coupon['limit'] }},</strong></span>
                                         <span class="ml-1">{{translate('used')}}:
                                             <strong>{{ $coupon['order_count'] }}</strong>
                                         </span>
                                     </td>
-                                    <td class="text-center">{{ translate($coupon['coupon_bearer'] == 'inhouse' ? 'admin':$coupon['coupon_bearer']) }}</td>
-                                    <td>
+                                    <td class="text-center" data-label="{{translate('discount_bearer')}}">{{ translate($coupon['coupon_bearer'] == 'inhouse' ? 'admin':$coupon['coupon_bearer']) }}</td>
+                                    <td data-label="{{translate('status')}}">
                                         @if($coupon->added_by=='seller' || ($coupon->added_by=='admin' && $coupon->coupon_bearer=='seller' && $coupon->seller_id==auth('seller')->id()))
                                             <form action="{{route('vendor.coupon.update-status',[$coupon['id'],$coupon->status?0:1])}}" method="get" id="coupon_status{{$coupon['id']}}-form" class="coupon_status_form" novalidate>
                                                 <label class="switcher">
@@ -234,7 +234,7 @@
                                             </label>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td data-label="{{translate('action')}}" class="fxv-rc__actions">
                                         <div class="d-flex gap-10 justify-content-center">
                                             <button class="btn btn-outline-info btn-sm square-btn get-quick-view" data-id="{{ $coupon['id'] }}">
                                                 <i class="tio-invisible"></i>

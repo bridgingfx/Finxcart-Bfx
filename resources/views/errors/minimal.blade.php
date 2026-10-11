@@ -1,52 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        @php
-            $primaryColor = getWebConfig(name: 'primary_color') ?? '#1455ac';
-            $direction = Session::get('direction') ?? 'ltr';
-        @endphp
-        <meta charset="utf-8">
-        <title>@yield('title')</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="shortcut icon" href="{{getStorageImages(path: getWebConfig(name: 'company_fav_icon'), type:'backend-logo')}}">
-        <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/font-awesome.css') }}">
-        <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/toastr.css') }}">
-        <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/premium-toasts.css') }}">
-        <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/bootstrap.min.css') }}">
-
-        <style>
-            :root {
-                --blue: {{ $primaryColor }};
-                --primary: {{ $primaryColor }};
-                --bs-direction: {{ $direction }};
-                --theme--text-light: #FFFFFF;
-            }
-            .btn--primary,
-            .btn--primary:hover,
-            .btn--primary:focus {
-                background-color: var(--primary) !important;
-                color: var(--theme--text-light) !important;
-            }
-
-            .btn-outline-primary {
-                color: var(--primary) !important;
-                border-color: var(--primary) !important;
-            }
-            .text-primary {
-                color: var(--primary) !important;
-            }
-        </style>
-
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-            <div class="code">
-                @yield('code')
-            </div>
-
-            <div class="message">
-                @yield('message')
-            </div>
-        </div>
-    </body>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ Session::get('direction') ?? 'ltr' }}">
+<head>
+    <meta charset="utf-8">
+    <title>@yield('title')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @php
+        try { $errorFavIcon = getStorageImages(path: getWebConfig(name: 'company_fav_icon'), type: 'backend-logo'); }
+        catch (\Throwable $e) { $errorFavIcon = null; }
+    @endphp
+    @if($errorFavIcon)
+    <link rel="shortcut icon" href="{{ $errorFavIcon }}">
+    @endif
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/front-end/css/fx-redesign.css') }}">
+    <style>
+        html, body { height: 100%; }
+        body.fx-error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+        }
+        .fx-error-wrap { width: 100%; max-width: 560px; }
+        .fx-error-code {
+            font-size: 88px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #203F60;
+            line-height: 1;
+            margin: 0 0 8px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body class="fx fx-error-page">
+    <div class="fx-error-wrap">
+        @yield('message')
+    </div>
+</body>
 </html>

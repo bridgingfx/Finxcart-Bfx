@@ -57,7 +57,7 @@
             </div>
             <div class="table-responsive datatable-custom">
                 <table
-                    class="table table-hover table-borderless">
+                    class="table table-hover table-borderless fxa-rc">
                     <thead class="text-capitalize">
                     <tr>
                         <th>{{ translate('SL') }}</th>
@@ -73,20 +73,20 @@
                     <tbody>
                     @foreach($refundList as $key=>$refund)
                         <tr>
-                            <td>{{ $refundList->firstItem()+$key}}</td>
-                            <td class="text-center">
+                            <td data-label="{{ translate('SL') }}">{{ $refundList->firstItem()+$key}}</td>
+                            <td class="text-center" data-label="{{ translate('refund_ID') }}">
                                 <a href="{{route('admin.refund-section.refund.details', ['id' => $refund['id']]) }}"
                                    class="text-dark hover-primary">
                                     {{ $refund->id}}
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('order_id') }}">
                                 <a href="{{route('admin.orders.details',['id'=>$refund->order_id]) }}"
                                    class="text-dark hover-primary">
                                     {{ $refund->order_id }}
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('product_info') }}">
                                 @if ($refund->product !=null)
                                     <div class="d-flex flex-nowrap gap-2">
                                         <div class="d-block w-max-content">
@@ -110,7 +110,7 @@
                                     {{ translate('product_name_not_found') }}
                                 @endif
                             </td>
-                            <td>
+                            <td data-label="{{ translate('customer_info') }}">
                                 @if ($refund->customer !=null)
                                     <div class="d-flex flex-column gap-1">
                                         <a href="{{route('admin.customer.view', [$refund->customer->id]) }}"
@@ -135,14 +135,14 @@
                                     </a>
                                 @endif
                             </td>
-                            <td>
+                            <td data-label="{{ translate('total_amount') }}">
                                 <div class="d-flex flex-column gap-1 text-end">
                                     <div>
                                         {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $refund->amount), currencyCode: getCurrencyCode()) }}
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('action') }}" class="fxa-rc__actions">
                                 <div class="d-flex justify-content-center">
                                     <a
                                         class="btn btn-outline-info btn-outline-info-dark icon-btn"

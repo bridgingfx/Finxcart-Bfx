@@ -70,7 +70,7 @@
         @else
             <div class="portfolio-table-card">
                 <div class="table-responsive">
-                    <table class="table portfolio-table">
+                    <table class="table portfolio-table fx-rtable">
                         <thead>
                             <tr>
                                 <th>{{ translate('item') }}</th>

@@ -76,6 +76,22 @@
             line-height: 1.65;
         }
 
+        .faq-search-wrap {
+            max-width: 560px;
+            margin: 0 auto 24px;
+        }
+
+        .faq-no-results {
+            display: none;
+            text-align: center;
+            padding: 32px 16px;
+            color: #4b5563;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .faq-plus { transition: none; }
+        }
+
         @media (max-width: 575px) {
             .faq-question {
                 padding: 14px;
@@ -90,10 +106,10 @@
         <div class="container rtl">
             <div class="row">
                 <div class="col-md-12 sidebar_heading text-center mb-2">
-                    <h1 class="text-center pt-4 fs-24 font-semi-bold text-capitalize">{{ translate('frequently_asked_question') }}</h1>
+                    <h1 class="text-center pt-4 fs-24 font-semi-bold text-capitalize" style="color:#203F60;">{{ translate('frequently_asked_question') }}</h1>
+                    <p style="color:#4b5563;">{{ translate('search_or_browse_answers_to_common_questions') }}</p>
                 </div>
             </div>
-            <hr>
         </div>
 
         <div class="container pb-5 mb-2 mb-md-4 mt-3 rtl">
@@ -103,9 +119,19 @@
                 @if(count($helps) > 0)
                     <section class="col-12 mt-3">
                         <section class="container pt-4 pb-5">
+                            <div class="faq-search-wrap">
+                                <form class="fx-search" role="search" onsubmit="return false;">
+                                    <input class="fx-search__input" id="faqSearchInput" type="search"
+                                           placeholder="{{ translate('search_faqs') }}"
+                                           aria-label="{{ translate('search_faqs') }}" autocomplete="off">
+                                    <button class="fx-search__btn" type="button" tabindex="-1" aria-hidden="true">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    </button>
+                                </form>
+                            </div>
                             <div class="faq-shell faq-list" id="faqAccordion">
                                 @foreach($helps as $key => $help)
-                                    <article class="faq-item">
+                                    <article class="faq-item" data-faq-item data-search-text="{{ strtolower($help['question'].' '.$help['answer']) }}">
                                         <button class="faq-question" type="button"
                                                 data-toggle="collapse"
                                                 data-target="#faqAnswer{{ $help['id'] }}"
@@ -124,15 +150,19 @@
                                     </article>
                                 @endforeach
                             </div>
+                            <div class="faq-no-results" id="faqNoResults" role="status">
+                                <p class="fs-16 font-semi-bold mb-1">{{ translate('no_matching_questions_found') }}</p>
+                                <p class="fs-14">{{ translate('try_different_keywords_or_contact_support') }}</p>
+                            </div>
                         </section>
                     </section>
                 @else
                     <div class="col-12">
                         <div class="d-flex justify-content-center align-items-center pt-4">
                             <div class="d-flex flex-column justify-content-center align-items-center gap-3">
-                                <img src="{{ dynamicStorage(path: 'public/assets/front-end/img/empty-icons/empty-faqs.svg') }}"
+                                <img src="{{ dynamicAsset(path: 'public/assets/front-end/img/empty-icons/empty-faqs.svg') }}"
                                      alt="{{ translate('brand') }}" class="img-fluid" width="100">
-                                <h5 class="text-muted fs-14 font-semi-bold text-center">{{ translate('there_is_no_FAQs') }}</h5>
+                                <h5 class="fs-14 font-semi-bold text-center" style="color:#4b5563;">{{ translate('there_is_no_FAQs') }}</h5>
                             </div>
                         </div>
                     </div>
@@ -150,5 +180,22 @@
             const isOpen = $(this).hasClass('show');
             $('[data-target="#' + this.id + '"]').attr('aria-expanded', isOpen ? 'true' : 'false');
         });
+
+        (function () {
+            const input = document.getElementById('faqSearchInput');
+            if (!input) return;
+            const items = Array.from(document.querySelectorAll('[data-faq-item]'));
+            const noResults = document.getElementById('faqNoResults');
+            input.addEventListener('input', function () {
+                const q = input.value.trim().toLowerCase();
+                let visible = 0;
+                items.forEach(function (item) {
+                    const match = !q || (item.getAttribute('data-search-text') || '').indexOf(q) !== -1;
+                    item.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+                if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+            });
+        })();
     </script>
 @endpush

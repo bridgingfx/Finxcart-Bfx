@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\FreelancerQuoteController;
 use App\Http\Controllers\Web\FreelancerContractController;
 use App\Http\Controllers\Web\FreelancerReviewController;
 use App\Http\Controllers\Web\FreelancerContractAttachmentController;
+use App\Http\Controllers\Web\FxCatalogController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\ProductCompareController;
 use App\Http\Controllers\Web\ProductDetailsController;
@@ -82,181 +83,6 @@ Route::get('/checkout', fn () => redirect()->route('checkout-details', [], 302))
 Route::get('/hire-freelancer', [HireFreelancerController::class, 'index'])->name('hire-freelancer');
 Route::get('/hire-freelancer/profile/{seller}', [HireFreelancerController::class, 'show'])->name('hire-freelancer.show');
 Route::get('/hire-freelancer/service/{service}', [HireFreelancerController::class, 'showService'])->name('hire-freelancer.service-show');
-
-Route::get('/test-log', function () {
-    info('Testing Slack logging from Laravel!');
-    return 'Slack log triggered!';
-});
-
-Route::get('/test-mail-debug', function () {
-    try {
-        $config = \App\Models\BusinessSetting::where('type', 'mail_config')->first();
-        if (!$config) {
-            return response()->json([
-                'status' => 'FAILED',
-                'error' => 'mail_config row not found',
-                'config_used' => config('mail.mailers.smtp'),
-            ], 404);
-        }
-
-        $mailConfig = json_decode($config->value, true);
-        if (!is_array($mailConfig)) {
-            return response()->json([
-                'status' => 'FAILED',
-                'error' => 'mail_config JSON is invalid',
-                'config_used' => config('mail.mailers.smtp'),
-            ], 500);
-        }
-
-        $fromAddress = $mailConfig['from'] ?? ($mailConfig['email_id'] ?? ($mailConfig['username'] ?? null));
-        $fromName = $mailConfig['name'] ?? config('app.name', 'Finxcart');
-        $testEmail = request('email', $mailConfig['username'] ?? null);
-        $timestamp = now()->toString();
-        $encryption = strtolower($mailConfig['encryption'] ?? 'tls');
-
-        config(['mail.default' => 'smtp']);
-        config(['mail.mailers.smtp.transport' => 'smtp']);
-        config(['mail.mailers.smtp.host' => $mailConfig['host'] ?? null]);
-        config(['mail.mailers.smtp.port' => $mailConfig['port'] ?? null]);
-        config(['mail.mailers.smtp.encryption' => $encryption]);
-        config(['mail.mailers.smtp.username' => $mailConfig['username'] ?? null]);
-        config(['mail.mailers.smtp.password' => $mailConfig['password'] ?? null]);
-        config(['mail.mailers.smtp.timeout' => null]);
-        config(['mail.from.address' => $fromAddress]);
-        config(['mail.from.name' => $fromName]);
-        config(['mail.driver' => 'smtp']);
-        config(['mail.host' => $mailConfig['host'] ?? null]);
-        config(['mail.port' => $mailConfig['port'] ?? null]);
-        config(['mail.encryption' => $encryption]);
-        config(['mail.username' => $mailConfig['username'] ?? null]);
-        config(['mail.password' => $mailConfig['password'] ?? null]);
-        $socketScheme = $encryption === 'ssl' ? 'ssl://' : '';
-        $socketTarget = $socketScheme . ($mailConfig['host'] ?? '');
-        $socketPort = (int)($mailConfig['port'] ?? 0);
-        $socket = @fsockopen($socketTarget, $socketPort, $errno, $errstr, 10);
-        if ($socket) {
-            $banner = fgets($socket, 512);
-            fclose($socket);
-            $socketTest = 'CONNECTED: ' . trim((string)$banner);
-        } else {
-            $socketTest = 'FAILED: ' . $errno . ' - ' . $errstr;
-        }
-
-        \Log::info('MAIL SOCKET TEST COMPLETED', [
-            'target' => $socketTarget,
-            'port' => $socketPort,
-            'result' => $socketTest,
-        ]);
-
-        $directSend = [
-            'mailer' => null,
-            'result' => null,
-            'failures' => [],
-        ];
-
-        if (class_exists(\Swift_Mailer::class) && class_exists(\Swift_SmtpTransport::class) && class_exists(\Swift_Message::class)) {
-            $transport = new \Swift_SmtpTransport($mailConfig['host'], $socketPort, $encryption);
-            $transport->setUsername($mailConfig['username']);
-            $transport->setPassword($mailConfig['password']);
-
-            $mailer = new \Swift_Mailer($transport);
-            $message = (new \Swift_Message('Direct Swift Test ' . $timestamp))
-                ->setFrom([$fromAddress => $fromName])
-                ->setTo([$testEmail])
-                ->setBody('Direct Swift Mailer test at ' . $timestamp);
-
-            $failures = [];
-            $result = $mailer->send($message, $failures);
-
-            $directSend = [
-                'mailer' => 'swift',
-                'result' => $result,
-                'failures' => $failures,
-            ];
-        } elseif (class_exists(\Symfony\Component\Mailer\Transport::class)
-            && class_exists(\Symfony\Component\Mailer\Mailer::class)
-            && class_exists(\Symfony\Component\Mime\Email::class)) {
-            $dsn = sprintf(
-                'smtp://%s:%s@%s:%d?encryption=%s',
-                rawurlencode((string)$mailConfig['username']),
-                rawurlencode((string)$mailConfig['password']),
-                $mailConfig['host'],
-                $socketPort,
-                $encryption
-            );
-
-            $transport = \Symfony\Component\Mailer\Transport::fromDsn($dsn);
-            $mailer = new \Symfony\Component\Mailer\Mailer($transport);
-
-            $email = (new \Symfony\Component\Mime\Email())
-                ->from(new \Symfony\Component\Mime\Address($fromAddress, $fromName))
-                ->to($testEmail)
-                ->subject('Direct Symfony Test ' . $timestamp)
-                ->text('Direct Symfony Mailer test at ' . $timestamp);
-
-            $mailer->send($email);
-
-            $directSend = [
-                'mailer' => 'symfony',
-                'result' => 'sent',
-                'failures' => [],
-            ];
-        } else {
-            $directSend = [
-                'mailer' => 'unavailable',
-                'result' => 'No direct mailer class available',
-                'failures' => [],
-            ];
-        }
-
-        \Log::info('DIRECT MAIL TEST COMPLETED', [
-            'to' => $testEmail,
-            'mailer' => $directSend['mailer'],
-            'result' => $directSend['result'],
-            'failures' => $directSend['failures'],
-        ]);
-
-        return response()->json([
-            'status' => 'SUCCESS',
-            'message' => 'Direct mail debug completed for ' . $testEmail,
-            'timestamp' => $timestamp,
-            'socket_test' => $socketTest,
-            'direct_send' => $directSend,
-            'config_used' => [
-                'host' => $mailConfig['host'] ?? null,
-                'port' => $mailConfig['port'] ?? null,
-                'encryption' => $encryption,
-                'username' => $mailConfig['username'] ?? null,
-                'from' => $fromAddress,
-                'from_name' => $fromName,
-            ],
-        ]);
-    } catch (\Exception $e) {
-        \Log::error('TEST MAIL FAILED', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'config' => config('mail.mailers.smtp'),
-        ]);
-
-        return response()->json([
-            'status' => 'FAILED',
-            'error' => $e->getMessage(),
-            'config_used' => config('mail.mailers.smtp'),
-        ], 500);
-    }
-})->middleware('auth:admin');
-
- Route::prefix('chat')->group(function () {
-        Route::post('/start', [ChatController::class, 'startChat'])->name('chat.start');
-        Route::post('/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-    });
-Route::get('/test-broadcast-auth', function() {
-    return response()->json([
-        'broadcasting_routes_loaded' => Route::has('broadcasting.auth'),
-        'session_id' => session()->getId(),
-        'csrf_token' => csrf_token(),
-    ]);
-});
 
 Route::post('/vendor/kyc/sumsub-webhook', [SumsubController::class, 'webhook'])
     ->name('vendor.kyc.sumsub-webhook')
@@ -396,6 +222,12 @@ Route::controller(HomeController::class)->group(function () {
         Route::get('/product/{slug}', 'index')->name('product');
     });
 
+    Route::controller(FxCatalogController::class)->group(function () {
+        Route::get('fx/search-suggest', 'suggest')->name('fx.search.suggest');
+        Route::get('fx/product/{id}/preview', 'quickPreview')->name('fx.product.quick-preview');
+        Route::get('fx/compare-table', 'compareTable')->name('fx.compare-table');
+    });
+
     Route::controller(ProductListController::class)->group(function () {
         Route::get('products', 'products')->name('products');
         Route::get('flash-deals/{id}', 'getFlashDealsView')->name('flash-deals');
@@ -431,10 +263,10 @@ Route::controller(HomeController::class)->group(function () {
     // Support Ticket
     Route::controller(UserProfileController::class)->group(function () {
         Route::group(['prefix' => 'support-ticket', 'as' => 'support-ticket.'], function () {
-            Route::get('{id}', 'single_ticket')->name('index');
-            Route::post('{id}', 'comment_submit')->name('comment');
-            Route::get('delete/{id}', 'support_ticket_delete')->name('delete');
-            Route::get('close/{id}', 'support_ticket_close')->name('close');
+            Route::get('{id}', 'single_ticket')->name('index')->middleware('customer');
+            Route::post('{id}', 'comment_submit')->name('comment')->middleware('customer');
+            Route::get('delete/{id}', 'support_ticket_delete')->name('delete')->middleware('customer');
+            Route::get('close/{id}', 'support_ticket_close')->name('close')->middleware('customer');
         });
     });
 
@@ -464,15 +296,15 @@ Route::controller(HomeController::class)->group(function () {
         Route::get('account-order-details-vendor-info', 'account_order_details_seller_info')->name('account-order-details-vendor-info')->middleware('customer');
         Route::get('account-order-details-delivery-man-info', 'account_order_details_delivery_man_info')->name('account-order-details-delivery-man-info')->middleware('customer');
         Route::get('account-order-details-reviews', 'getAccountOrderDetailsReviewsView')->name('account-order-details-reviews')->middleware('customer');
-        Route::get('generate-invoice/{id}', 'generate_invoice')->name('generate-invoice');
+        Route::get('generate-invoice/{id}', 'generate_invoice')->name('generate-invoice')->middleware('customer');
         Route::get('account-wishlist', 'account_wishlist')->name('account-wishlist'); //add to card not work
         Route::get('refund-request/{id}', 'refund_request')->name('refund-request');
         Route::get('refund-details/{id}', 'refund_details')->name('refund-details');
         Route::post('refund-store', 'store_refund')->name('refund-store');
         Route::get('account-tickets', 'account_tickets')->name('account-tickets');
-        Route::get('order-cancel/{id}', 'order_cancel')->name('order-cancel');
+        Route::get('order-cancel/{id}', 'order_cancel')->name('order-cancel')->middleware('customer');
         Route::post('ticket-submit', 'submitSupportTicket')->name('ticket-submit');
-        Route::get('account-delete/{id}', 'account_delete')->name('account-delete');
+        Route::get('account-delete/{id}', 'account_delete')->name('account-delete')->middleware('customer');
         Route::get('refer-earn', 'refer_earn')->name('refer-earn')->middleware('customer');
         Route::get('user-coupons', 'user_coupons')->name('user-coupons')->middleware('customer');
         Route::get('user-restock-requests', 'restockRequestsView')->name('user-restock-requests')->middleware('customer');

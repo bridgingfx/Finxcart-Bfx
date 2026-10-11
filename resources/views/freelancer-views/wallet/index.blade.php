@@ -83,7 +83,7 @@
             </div>
         @else
             <div class="wallet-table-card">
-                <div class="table-responsive">
+                <div class="table-responsive fx-hscroll">
                     <table class="table wallet-table">
                         <thead>
                             <tr>

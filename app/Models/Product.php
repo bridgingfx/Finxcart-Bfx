@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use App\Traits\CacheManagerTrait;
 use App\Traits\StorageTrait;
 use Illuminate\Database\Eloquent\Builder;
@@ -78,6 +79,7 @@ class Product extends Model
         'brand_id',
         'unit',
         'digital_product_type',
+        'transaction_type',
         'delivery_mode',
         'product_type',
         'details',
@@ -150,6 +152,7 @@ class Product extends Model
         'brand_id' => 'integer',
         'unit' => 'string',
         'digital_product_type' => 'string',
+        'transaction_type' => 'string',
         'delivery_mode' => 'string',
         'product_type' => 'string',
         'details' => 'string',
@@ -518,5 +521,50 @@ class Product extends Model
     public function vendorTier(): BelongsTo
     {
         return $this->belongsTo(VendorTier::class, 'vendor_tier_id');
+    }
+
+    /**
+     * Canonical transaction type for this listing — the single source of
+     * truth for the business-model mapping (see App\Enums\TransactionType).
+     *
+     * Prefers the explicit `transaction_type` override column when set;
+     * otherwise derives deterministically from product_type (+
+     * digital_product_type for download fulfillment).
+     */
+    public function transactionType(): TransactionType
+    {
+        return TransactionType::forProduct($this);
+    }
+
+    /**
+     * The ONE accurate delivery-promise translate() key for this listing.
+     *
+     * This is what kills the "instant access" vs "file sent after order
+     * processed" contradiction: the promise comes from the verified
+     * digital_product_type flag, never from a hardcoded template string.
+     *  - digital + ready_product    => instant_download_after_payment
+     *  - digital + ready_after_sell => file_sent_after_order_processed
+     */
+    public function deliveryPromiseKey(): ?string
+    {
+        $type = $this->transactionType();
+
+        if ($type === TransactionType::Download) {
+            return ($this->digital_product_type ?? null) === 'ready_product'
+                ? 'instant_download_after_payment'
+                : 'file_sent_after_order_processed';
+        }
+
+        return $type->promiseKey();
+    }
+
+    /**
+     * Whether this listing can go through the cart/checkout pipeline.
+     * Event and provider-directory listings are informational — their
+     * actions are external (book tickets / open account / contact).
+     */
+    public function isPurchasable(): bool
+    {
+        return $this->transactionType()->isPurchasable();
     }
 }

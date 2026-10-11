@@ -17,7 +17,7 @@
                     <form action="{{route('vendor.shop.update-order-settings',[$vendor['id']])}}" method="post"
                           enctype="multipart/form-data" novalidate>
                         @csrf
-                        <div class="card h-100">
+                        <div class="card fxv-form-card h-100">
                             <div class="card-header">
                                 <h5 class="text-capitalize mb-0">
                                     <i class="tio-dollar-outlined"></i>

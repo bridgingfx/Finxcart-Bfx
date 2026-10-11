@@ -50,7 +50,7 @@
                     <div class="col-sm-12 mb-3">
                         <div class="card">
                             <div class="table-responsive datatable-custom">
-                                <table class="table table-hover table-borderless table-thead-bordered table-align-middle card-table text-left">
+                                <table class="table table-hover table-borderless table-thead-bordered table-align-middle card-table text-left fxv-rc">
                                     <thead class="thead-light thead-50 text-capitalize table-nowrap">
                                     <tr>
                                         <th>{{ translate('SL') }}</th>
@@ -63,15 +63,15 @@
                                     <tbody id="set-rows">
                                     @foreach($orders as $key=>$order)
                                         <tr>
-                                            <td>{{ $orders->firstItem()+$key }}</td>
-                                            <td>
+                                            <td data-label="{{ translate('SL') }}">{{ $orders->firstItem()+$key }}</td>
+                                            <td data-label="{{ translate('order_no') }}">
                                                 <div class="media align-items-center gap-10 flex-wrap">
                                                     <div class="media-body">
                                                         <a  class="title-color hover-c1" href="{{route('vendor.orders.details',$order['id'])}}">{{$order['id']}}</a>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="text-center text-capitalize">
+                                            <td class="text-center text-capitalize" data-label="{{ translate('current_status') }}">
                                                 @if($order['order_status']=='pending')
                                                     <span class="badge badge-soft-info fs-12">
                                                     {{$order['order_status']}}
@@ -99,7 +99,7 @@
                                             </span>
                                                 @endif
                                             </td>
-                                            <td>
+                                            <td data-label="{{ translate('history') }}">
                                                 <div class="media align-items-center gap-10 flex-wrap">
                                                     <button class="btn btn-info order-status-history" data-id="{{ $order->id }}" data-toggle="modal" data-target="#exampleModalLong"><i class="tio-history"></i></button>
                                                 </div>

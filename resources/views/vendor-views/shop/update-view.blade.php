@@ -14,7 +14,7 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
+            <div class="card fxv-form-card">
                 <div class="card-header">
                     <h5 class="mb-0 text-capitalize">{{translate('edit_shop_info')}}</h5>
                     <a href="{{route('vendor.shop.index')}}" class="btn btn--primary __inline-70 px-4 text-white">{{ translate('back') }}</a>

@@ -71,6 +71,9 @@ class ShopController extends BaseController
     public function getUpdateView(string|int $id):View
      {
          $shop = $this->shopRepo->getFirstWhere(['id' => $id]);
+         if (!$shop || (int)$shop->seller_id !== (int)auth('seller')->id()) {
+             abort(403);
+         }
          return view(Shop::UPDATE[VIEW],compact('shop'));
      }
 
@@ -82,6 +85,9 @@ class ShopController extends BaseController
     public function update(ShopRequest $request, string|int $id):RedirectResponse
      {
          $shop = $this->shopRepo->getFirstWhere(['id' => $id]);
+         if (!$shop || (int)$shop->seller_id !== (int)auth('seller')->id()) {
+             abort(403);
+         }
          $this->shopRepo->update(id: $id, data: $this->shopService->getShopDataForUpdate(request: $request, shop: $shop));
          ToastMagic::info(translate('Shop_updated_successfully'));
          return redirect()->route(Shop::INDEX[ROUTE]);
@@ -94,6 +100,10 @@ class ShopController extends BaseController
      */
     public function updateVacation(ShopVacationRequest $request , string|int $id):RedirectResponse
      {
+         $shop = $this->shopRepo->getFirstWhere(['id' => $id]);
+         if (!$shop || (int)$shop->seller_id !== (int)auth('seller')->id()) {
+             abort(403);
+         }
          $this->shopRepo->update(id: $id, data: $this->shopService->getVacationData(request: $request));
          ToastMagic::success(translate('Vacation_mode_updated_successfully'));
          return redirect()->back();
@@ -106,6 +116,10 @@ class ShopController extends BaseController
      */
     public function closeShopTemporary(Request $request, string|int $id):JsonResponse
      {
+         $shop = $this->shopRepo->getFirstWhere(['id' => $id]);
+         if (!$shop || (int)$shop->seller_id !== (int)auth('seller')->id()) {
+             return response()->json(['status' => false, 'message' => translate('access_denied')], 403);
+         }
          $this->shopRepo->update(id: $id, data: ['temporary_close' => $request->get(key: 'status', default: 0)]);
 
          // Cache::clear() used to flush the ENTIRE app cache store on a single
@@ -125,6 +139,9 @@ class ShopController extends BaseController
      */
     public function updateOrderSettings(Request $request, string|int $id):RedirectResponse
      {
+         if ((int)auth('seller')->id() !== (int)$id) {
+             abort(403);
+         }
          if ($request->has('minimum_order_amount')) {
              $this->vendorRepo->update(id: $id, data: $this->vendorService->getMinimumOrderAmount(request: $request));
          }

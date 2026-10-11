@@ -60,7 +60,7 @@
             </div>
         @else
             <div class="ledger-table-card">
-                <div class="table-responsive">
+                <div class="table-responsive fx-hscroll">
                     <table class="table ledger-table">
                         <thead>
                             <tr>

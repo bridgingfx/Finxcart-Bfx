@@ -65,7 +65,7 @@
         @else
             <div class="quote-table-card">
                 <div class="table-responsive">
-                    <table class="table quote-table">
+                    <table class="table quote-table fx-rtable">
                         <thead>
                             <tr>
                                 <th>{{ translate('customer') }}</th>

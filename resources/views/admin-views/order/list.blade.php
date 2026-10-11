@@ -154,7 +154,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-hover table-borderless">
+                        <table class="table table-hover table-borderless fxa-rc">
                             <thead class="text-capitalize">
                                 <tr>
                                     <th>{{translate('SL') }}</th>
@@ -176,17 +176,17 @@
                             @foreach($orders as $key=>$order)
 
                                 <tr class="status-{{$order['order_status'] }} class-all">
-                                    <td class="">
+                                    <td class="" data-label="{{translate('SL') }}">
                                         {{$orders->firstItem()+$key}}
                                     </td>
-                                    <td >
+                                    <td data-label="{{translate('order_ID') }}">
                                         <a class="text-dark" href="{{route('admin.orders.details',['id'=>$order['id']])}}">{{ $order->parent_order_id ? $order->parent_order_id.'-'.$order->child_number : $order['id'] }} {!! $order->order_type == 'POS' ? '<span class="text--primary">(POS)</span>' : '' !!}</a>
                                     </td>
-                                    <td>
+                                    <td data-label="{{translate('order_date') }}">
                                         <div>{{date('d M Y',strtotime($order['created_at']))}},</div>
                                         <div>{{ date("h:i A",strtotime($order['created_at'])) }}</div>
                                     </td>
-                                    <td>
+                                    <td data-label="{{translate('customer_info') }}">
                                         @if($order->is_guest)
                                             <strong class="text-dark">{{translate('guest_customer')}}</strong>
                                         @elseif($order->customer_id == 0)
@@ -208,7 +208,7 @@
                                             @endif
                                         @endif
                                     </td>
-                                    <td>
+                                    <td data-label="{{translate('store') }}">
                                         @if(isset($order->seller_id) && isset($order->seller_is))
                                             @if($order->seller_is == 'seller' && !$order->seller)
                                                 {{-- The vendor was deleted after this order was placed; orders
@@ -230,7 +230,7 @@
                                             {{ translate('Store_not_found') }}
                                         @endif
                                     </td>
-                                    <td>
+                                    <td data-label="{{translate('total_amount') }}">
                                         <div>
                                             @php($orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(order: $order))
                                             {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount:  $orderTotalPriceSummary['totalAmount']), currencyCode: getCurrencyCode()) }}
@@ -243,7 +243,7 @@
                                         @endif
                                     </td>
                                     @if($status == 'all')
-                                        <td class="text-center text-capitalize">
+                                        <td class="text-center text-capitalize" data-label="{{translate('order_status') }}">
                                             @if($order['order_status']=='pending')
                                                 <span class="badge badge-info text-bg-info">
                                                     {{translate($order['order_status'])}}
@@ -271,11 +271,11 @@
                                             @endif
                                         </td>
                                     @else
-                                        <td class="text-capitalize">
+                                        <td class="text-capitalize" data-label="{{translate('payment_method') }}">
                                             {{str_replace('_',' ',$order['payment_method'])}}
                                         </td>
                                     @endif
-                                    <td>
+                                    <td data-label="{{translate('action') }}" class="fxa-rc__actions">
                                         <div class="d-flex justify-content-center gap-2">
                                            <a class="btn btn-outline-info btn-outline-info-dark icon-btn" title="{{translate('view')}}"
                                                 href="{{route('admin.orders.details',['id'=>$order['id']])}}">

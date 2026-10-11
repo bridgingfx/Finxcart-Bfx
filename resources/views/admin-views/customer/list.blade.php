@@ -106,7 +106,7 @@
                     </div>
                 </div>
                 <div class="table-responsive datatable-custom">
-                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap fxa-rc table-align-middle card-table w-100">
                         <thead class="thead-light thead-50 text-capitalize">
                             <tr>
                                 <th>{{translate('SL')}}</th>
@@ -121,10 +121,10 @@
                         <tbody>
                         @foreach($customers as $key=>$customer)
                             <tr>
-                                <td>
+                                <td data-label="{{translate('SL')}}">
                                     {{$customers->firstItem()+$key}}
                                 </td>
-                                <td>
+                                <td data-label="{{translate('customer_name')}}">
                                     <a href="{{route('admin.customer.view',[$customer['id']])}}"
                                     class="text-dark text-hover-primary d-flex align-items-center gap-10">
                                         <img src="{{getStorageImages(path:$customer->image_full_url,type:'backend-profile')}}"
@@ -132,7 +132,7 @@
                                         {{Str::limit($customer['f_name']." ".$customer['l_name'],20)}}
                                     </a>
                                 </td>
-                                <td>
+                                <td data-label="{{translate('contact_info')}}">
                                     <div class="mb-1">
                                         <strong><a class="text-dark text-hover-primary"
                                                 href="mailto:{{$customer->email}}">{{$customer->email}}</a></strong>
@@ -141,16 +141,16 @@
                                     <a class="text-dark text-hover-primary" href="tel:{{$customer->phone}}">{{$customer->phone}}</a>
 
                                 </td>
-                                <td>
+                                <td data-label="{{translate('total_Order')}}">
                                     <label class="badge badge-info text-bg-info">
                                         {{$customer?->orders_count ?? 0}}
                                     </label>
                                 </td>
-                                <td>
+                                <td data-label="{{translate('created_time')}}">
                                     <div>{{ $customer->created_at?->format('d M Y') }}</div>
                                     <div class="text-muted fs-12">{{ $customer->created_at?->format('h:i A') }}</div>
                                 </td>
-                                <td>
+                                <td data-label="{{translate('block')}} / {{translate('unblock')}}">
                                     @if($customer['email'] == 'walking@customer.com')
                                         <div class="text-center">
                                             <div class="badge badge-soft-version">{{ translate('default') }}</div>
@@ -182,7 +182,7 @@
                                     @endif
                                 </td>
 
-                                <td>
+                                <td data-label="{{translate('action')}}" class="fxa-rc__actions">
                                     <div class="d-flex justify-content-center gap-2">
                                         <a title="{{translate('view')}}"
                                         class="btn btn-outline-info icon-btn"

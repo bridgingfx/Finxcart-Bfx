@@ -60,7 +60,7 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table id="datatable" class="table table-hover table-borderless table-nowrap align-middle">
+                            <table id="datatable" class="table table-hover table-borderless table-nowrap align-middle fxa-rc">
                                 <thead class="thead-light thead-50 text-capitalize">
                                 <tr>
                                     <th>{{translate('SL')}}</th>
@@ -80,25 +80,25 @@
                                         $dsColors = ['pending_transfer'=>'secondary','in_transfer'=>'warning','transferred'=>'success','failed'=>'danger'];
                                     @endphp
                                     <tr>
-                                        <td>{{$withdrawRequests->firstItem() + $key }}</td>
-                                        <td>
+                                        <td data-label="{{translate('SL')}}">{{$withdrawRequests->firstItem() + $key }}</td>
+                                        <td data-label="{{translate('amount')}}">
                                             {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $withdrawRequest['amount']), currencyCode: getCurrencyCode(type: 'default')) }}
                                         </td>
-                                        <td>
+                                        <td data-label="{{ translate('vendor') }}">
                                             @if (isset($withdrawRequest->seller))
                                                 <a href="{{route('admin.vendors.view', $withdrawRequest->seller_id)}}" class="text-dark text-hover-primary">{{ $withdrawRequest->seller->f_name . ' ' . $withdrawRequest->seller->l_name }}</a>
                                             @else
                                                 <span class="text-muted">{{translate('not_found')}}</span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td data-label="{{ translate('method') }}">
                                             <span class="badge badge-soft-info">{{ $withdrawRequest->withdrawMethod?->method_name ?? translate('unknown') }}</span>
                                         </td>
-                                        <td>
+                                        <td data-label="{{translate('request_time')}}">
                                             <div>{{date("d M Y", strtotime($withdrawRequest->created_at))}}</div>
                                             <small class="text-muted">{{date("h:i A", strtotime($withdrawRequest->created_at))}}</small>
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center" data-label="{{translate('approval_status')}}">
                                             @if($withdrawRequest->approved == 0)
                                                 <span class="badge badge-soft--primary">{{translate('pending')}}</span>
                                             @elseif($withdrawRequest->approved == 1)
@@ -107,7 +107,7 @@
                                                 <span class="badge badge-soft-danger">{{translate('denied')}}</span>
                                             @endif
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center" data-label="{{translate('transfer_status')}}">
                                             @if($withdrawRequest->approved == 1)
                                                 <form method="POST" action="{{ route('admin.vendors.withdraw_delivery_status', $withdrawRequest->id) }}" novalidate>
                                                     @csrf
@@ -122,7 +122,7 @@
                                                 <span class="text-muted">—</span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td data-label="{{translate('action')}}" class="fxa-rc__actions">
                                             <div class="d-flex justify-content-center">
                                                 @if (isset($withdrawRequest->seller))
                                                     <a href="{{route('admin.vendors.withdraw_view', ['withdrawId'=>$withdrawRequest['id'], 'vendorId'=>$withdrawRequest->seller['id']])}}"

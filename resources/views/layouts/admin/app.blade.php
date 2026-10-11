@@ -17,6 +17,7 @@
 
     {!! ToastMagic::styles() !!}
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/premium-toasts.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/fx-admin.css') }}">
 
     @stack('css_or_js')
 </head>

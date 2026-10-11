@@ -2,6 +2,9 @@
 
 function initializePhoneInput(selector, outputSelector) {
     const phoneInput = document.querySelector(selector);
+    if (!phoneInput) {
+        return null;
+    }
     const phoneNumber = phoneInput.value;
     const countryCodeMatch = phoneNumber.replace(/[^0-9]/g, "");
     const initialCountry = countryCodeMatch

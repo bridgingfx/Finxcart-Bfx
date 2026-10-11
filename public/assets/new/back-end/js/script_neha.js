@@ -322,6 +322,7 @@ $(document).ready(function() {
     });
 
     // --- Date range Picker ---
+    if ($(".js-daterangepicker").length && typeof $(".js-daterangepicker").daterangepicker === "function") {
     $(".js-daterangepicker").daterangepicker(
         {
             autoUpdateInput: false,
@@ -407,6 +408,7 @@ $(document).ready(function() {
             start.format("hh:mm:ss A") + " - " + end.format("hh:mm:ss A")
         );
     }
+    } // end daterangepicker guard
 
     // --- lightbox ---
     $(".lightbox_custom").on("click", function(e) {

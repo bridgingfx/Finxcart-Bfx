@@ -137,6 +137,64 @@
                 </div>
             </div>
         </div>
+
+        @php
+            $attentionPendingOrders = (int) ($dashboardData['orderStatus']['pending'] ?? 0);
+            $stockLimitConfig = (int) (getWebConfig('stock_limit') ?? 0);
+            $attentionLowStock = \App\Models\Product::where('user_id', $seller->id)
+                ->where('added_by', 'seller')
+                ->where('request_status', 1)
+                ->where('product_type', 'physical')
+                ->where('current_stock', '<=', $stockLimitConfig)
+                ->count();
+            $attentionPendingRefunds = \App\Models\RefundRequest::where('status', 'pending')
+                ->whereHas('order', function ($q) use ($seller) {
+                    $q->where('seller_is', 'seller')->where('seller_id', $seller->id);
+                })->count();
+            $attentionItems = $attentionPendingOrders + $attentionLowStock + $attentionPendingRefunds;
+        @endphp
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="fs-18 font-weight-bold mb-1">{{ translate('needs_your_attention') }}</h2>
+                <p class="text-muted fs-14 mb-3">{{ translate('items_requiring_action_right_now') }}</p>
+                @if($attentionItems > 0)
+                    <ul class="fxv-attention">
+                        @if($attentionPendingOrders > 0)
+                            <li class="fxv-attention__item is-danger">
+                                <div class="fxv-attention__body">
+                                    <p class="fxv-attention__title">{{ translate('pending_orders') }}: {{ $attentionPendingOrders }}</p>
+                                    <p class="fxv-attention__desc">{{ translate('confirm_or_cancel_these_orders_so_customers_are_not_kept_waiting') }}</p>
+                                </div>
+                                <a class="btn btn-sm btn--primary fxv-attention__action" href="{{ route('vendor.orders.list', ['pending']) }}">{{ translate('review') }}</a>
+                            </li>
+                        @endif
+                        @if($attentionLowStock > 0)
+                            <li class="fxv-attention__item">
+                                <div class="fxv-attention__body">
+                                    <p class="fxv-attention__title">{{ translate('low_stock_products') }}: {{ $attentionLowStock }}</p>
+                                    <p class="fxv-attention__desc">{{ translate('at_or_below_the_stock_limit_of') }} {{ $stockLimitConfig }} {{ translate('units') }}</p>
+                                </div>
+                                <a class="btn btn-sm btn--primary fxv-attention__action" href="{{ route('vendor.products.stock-limit-list') }}">{{ translate('restock') }}</a>
+                            </li>
+                        @endif
+                        @if($attentionPendingRefunds > 0)
+                            <li class="fxv-attention__item">
+                                <div class="fxv-attention__body">
+                                    <p class="fxv-attention__title">{{ translate('pending_refund_requests') }}: {{ $attentionPendingRefunds }}</p>
+                                    <p class="fxv-attention__desc">{{ translate('customers_are_waiting_on_a_refund_decision') }}</p>
+                                </div>
+                                <a class="btn btn-sm btn--primary fxv-attention__action" href="{{ route('vendor.refund.index', ['pending']) }}">{{ translate('review') }}</a>
+                            </li>
+                        @endif
+                    </ul>
+                @else
+                    <div class="fxv-empty" style="padding: 24px 16px;">
+                        <p class="fxv-empty__title">{{ translate('all_caught_up') }}</p>
+                        <p class="fxv-empty__body">{{ translate('no_items_need_your_attention_right_now') }}</p>
+                    </div>
+                @endif
+            </div>
+        </div>
         <div class="card mb-3 remove-card-shadow">
             <div class="card-body">
                 <div class="row justify-content-between align-items-center g-2 mb-3">
@@ -146,7 +204,8 @@
                             {{translate('order_analytics')}}
                         </h4>
                     </div>
-                    <div class="col-sm-6 d-flex justify-content-sm-end">
+                    <div class="col-sm-6 d-flex justify-content-sm-end align-items-center gap-2">
+                        <span class="text-muted fs-12" id="statistics_period_label">{{translate('all_time')}}</span>
                         <select class="custom-select w-auto" id="statistics_type" name="statistics_type">
                             <option value="overall">
                                 {{translate('overall_Statistics')}}
@@ -173,6 +232,7 @@
                             <img width="20" class="mb-1" src="{{dynamicAsset(path: 'public/assets/back-end/img/admin-wallet.png')}}" alt="">
                             {{translate('vendor_Wallet')}}
                         </h4>
+                        <p class="text-muted fs-12 mb-0 mt-1">{{translate('all_time_totals_from_your_wallet_ledger')}}</p>
                     </div>
                 </div>
                 <div class="row g-2" id="order_stats">

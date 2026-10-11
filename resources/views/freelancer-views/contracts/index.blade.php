@@ -73,7 +73,7 @@
         @else
             <div class="contract-table-card">
                 <div class="table-responsive">
-                    <table class="table contract-table">
+                    <table class="table contract-table fx-rtable">
                         <thead>
                             <tr>
                                 <th>{{ translate('client') }}</th>

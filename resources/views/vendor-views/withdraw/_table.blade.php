@@ -1,7 +1,7 @@
 <div class="table-responsive">
     <table id="datatable"
            style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};"
-           class="table table-hover table-borderless table-thead-bordered table-align-middle card-table w-100">
+           class="table table-hover table-borderless table-thead-bordered table-align-middle card-table w-100 fxv-rc">
         <thead class="thead-light thead-50 text-capitalize">
         <tr>
             <th>{{translate('SL')}}</th>
@@ -17,17 +17,17 @@
         @if($withdrawRequests->count() > 0)
             @foreach($withdrawRequests as $key=>$withdrawRequest)
                 <tr>
-                    <td>{{$withdrawRequests->firstitem()+$key}}</td>
-                    <td>
+                    <td data-label="{{translate('SL')}}">{{$withdrawRequests->firstitem()+$key}}</td>
+                    <td data-label="{{translate('amount')}}">
                         <span class="fw-bold">
                             {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $withdrawRequest['amount']), currencyCode: getCurrencyCode(type: 'default')) }}
                         </span>
                     </td>
-                    <td>
+                    <td data-label="{{translate('request_time')}}">
                         <div>{{date("d M Y", strtotime($withdrawRequest->created_at))}}</div>
                         <small class="text-muted">{{date("h:i A", strtotime($withdrawRequest->created_at))}}</small>
                     </td>
-                    <td>
+                    <td data-label="{{translate('status')}}">
                         @if($withdrawRequest->approved == 0)
                             <span class="badge badge-soft--primary">{{translate('pending')}}</span>
                         @elseif($withdrawRequest->approved == 1)
@@ -46,7 +46,7 @@
                             </div>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="{{translate('delivery_status')}}">
                         @if($withdrawRequest->approved == 1)
                             @php
                                 $ds = $withdrawRequest->delivery_status ?? 'pending_transfer';
@@ -70,7 +70,7 @@
                             <span class="text-muted">—</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="{{translate('admin_note')}}">
                         @if($withdrawRequest->transaction_note)
                             <span class="text-dark" style="max-width:200px;white-space:normal;display:block;">
                                 {{ $withdrawRequest->transaction_note }}
@@ -79,7 +79,7 @@
                             <span class="text-muted">—</span>
                         @endif
                     </td>
-                    <td class="text-center">
+                    <td data-label="{{translate('action')}}" class="text-center fxv-rc__actions">
                         @if($withdrawRequest->approved == 0)
                             <button data-action="{{ route('vendor.business-settings.withdraw.close', [$withdrawRequest['id']]) }}"
                                     class="btn btn-outline-danger btn-sm close-request"

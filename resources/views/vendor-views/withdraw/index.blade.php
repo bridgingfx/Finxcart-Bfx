@@ -192,7 +192,7 @@
                     <span class="badge badge-soft-primary ml-1">{{ $tierWalletPayments->count() }}</span>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table fxv-rc">
                         <thead class="thead-light">
                             <tr>
                                 <th>{{ translate('Date') }}</th>
@@ -206,14 +206,14 @@
                         <tbody>
                             @foreach($tierWalletPayments as $tp)
                             <tr>
-                                <td>{{ $tp->paid_at ? date('d M Y', strtotime($tp->paid_at)) : '-' }}</td>
-                                <td>{{ $tp->vendorTier?->tier?->name ?? '-' }}</td>
-                                <td><small class="text-muted">{{ $tp->transaction_id }}</small></td>
-                                <td><strong class="text-danger">- ${{ number_format($tp->amount_paid, 2) }}</strong></td>
-                                <td class="small text-muted">
+                                <td data-label="{{ translate('Date') }}">{{ $tp->paid_at ? date('d M Y', strtotime($tp->paid_at)) : '-' }}</td>
+                                <td data-label="{{ translate('Plan') }}">{{ $tp->vendorTier?->tier?->name ?? '-' }}</td>
+                                <td data-label="{{ translate('Transaction_ID') }}"><small class="text-muted">{{ $tp->transaction_id }}</small></td>
+                                <td data-label="{{ translate('Amount_Paid') }}"><strong class="text-danger">- ${{ number_format($tp->amount_paid, 2) }}</strong></td>
+                                <td class="small text-muted" data-label="{{ translate('Billing_Period') }}">
                                     {{ date('d M Y', strtotime($tp->billing_start_date)) }} – {{ date('d M Y', strtotime($tp->billing_end_date)) }}
                                 </td>
-                                <td><span class="badge badge-soft-success">{{ translate('Paid_from_Wallet') }}</span></td>
+                                <td data-label="{{ translate('Status') }}"><span class="badge badge-soft-success">{{ translate('Paid_from_Wallet') }}</span></td>
                             </tr>
                             @endforeach
                         </tbody>

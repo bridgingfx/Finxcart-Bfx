@@ -184,7 +184,7 @@
                         font-weight:700;
                         line-height:20px;
                     ">
-                        {{ $product['product_type'] === 'digital' ? translate('instant_access') : translate('ready_to_order') }}
+                        {{ $product['product_type'] === 'digital' ? translate($product->deliveryPromiseKey()) : translate('ready_to_order') }}
                     </strong>
 
                     <small style="

@@ -48,6 +48,17 @@ class DatabaseSettingController extends BaseController
     {
         $tables = (array)$request['tables'];
 
+        // Server-side whitelist: only tables the UI itself lists may be cleaned.
+        // Rebuilt here from the same exclusion list as getView() — never trust
+        // the table names coming from the request.
+        $protectedTables = array('addon_settings','admin_roles','admins','business_settings','colors','currencies',
+                                'failed_jobs','migrations','oauth_access_tokens','oauth_auth_codes',
+                                'oauth_clients','oauth_personal_access_clients','oauth_refresh_tokens',
+                                'password_resets','personal_access_tokens','phone_or_email_verifications',
+                                'social_medias','soft_credentials','users');
+        $allowedTables = array_values(array_diff(DB::connection()->getDoctrineSchemaManager()->listTableNames(), $protectedTables));
+        $tables = array_values(array_intersect($tables, $allowedTables));
+
         if(count($tables) == 0) {
             ToastMagic::error(translate('No_Table_Updated'));
             return back();

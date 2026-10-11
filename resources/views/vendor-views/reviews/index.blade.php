@@ -130,7 +130,7 @@
         <div class="card mt-20">
             @php($vendorReviewReplyStatus = getWebConfig('vendor_review_reply_status') ?? 0)
             <div class="table-responsive datatable-custom">
-                <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table text-start">
+                <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table text-start fxv-rc">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>
                         <th>{{ translate('SL') }}</th>
@@ -149,33 +149,33 @@
                     @foreach ($reviews as $key => $review)
                         @if ($review->product)
                             <tr>
-                                <td>
+                                <td data-label="{{ translate('SL') }}">
                                     {{ $reviews->firstItem()+$key }}
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" data-label="{{ translate('Review_ID') }}">
                                     {{ $review->id }}
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('product') }}">
                                     <a class="title-color hover-c1"
                                        href="{{ route('vendor.products.view', [$review['product_id']]) }}">
                                         {{ Str::limit($review->product['name'], 25) }}
                                     </a>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('customer') }}">
                                     @if ($review->customer)
                                         {{ $review->customer->f_name . ' ' . $review->customer->l_name }}
                                     @else
                                         <label class="badge badge-soft-danger">{{ translate('customer_removed') }}</label>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('rating') }}">
                                     <label class="badge badge-soft-info mb-0">
                                             <span class="fs-12 d-flex align-items-center gap-1">{{ $review->rating }} <i
                                                         class="tio-star"></i>
                                             </span>
                                     </label>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('review') }}">
                                     <div class="gap-1">
                                         <div>{{ $review->comment ? Str::limit($review->comment, 35) : translate('no_comment_found') }}</div>
                                         <br>
@@ -194,13 +194,13 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('Reply') }}">
                                     <div class="line--limit-2 max-w-250 word-break">
                                         {{ $review?->reply?->reply_text ?? '-' }}
                                     </div>
                                 </td>
-                                <td>{{ date('d M Y', strtotime($review->created_at)) }}</td>
-                                <td>
+                                <td data-label="{{ translate('date') }}">{{ date('d M Y', strtotime($review->created_at)) }}</td>
+                                <td data-label="{{ translate('status') }}">
                                     <form action="{{ route('vendor.reviews.update-status', [$review['id'], $review->status ? 0 : 1]) }}"
                                           method="get" id="reviews-status{{$review['id']}}-form"
                                           class="reviews_status_form" novalidate>
@@ -215,12 +215,12 @@
                                                    data-on-title = "{{translate('Want_to_Turn_ON_Customer_Reviews').'?'}}"
                                                    data-off-title = "{{translate('Want_to_Turn_OFF_Customer_Reviews').'?'}}"
                                                    data-on-message = "<p>{{translate('if_enabled_anyone_can_see_this_review_on_the_user_website_and_customer_app')}}</p>"
-                                                   data-off-message = "<p>{{translate('if_disabled_this_review_will_be_hidden_from_the_user_website_and_customer_app')}}</p>">`)">
+                                                   data-off-message = "<p>{{translate('if_disabled_this_review_will_be_hidden_from_the_user_website_and_customer_app')}}</p>">
                                             <span class="switcher_control"></span>
                                         </label>
                                     </form>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('action') }}" class="fxv-rc__actions">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <div data-toggle="modal" data-target="#review-view-for-{{ $review['id'] }}">
                                             <a class="btn btn-outline-info btn-sm square-btn" title="{{ translate('View') }}" data-toggle="tooltip">

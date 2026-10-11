@@ -51,7 +51,7 @@
             </div>
             <div class="table-responsive datatable-custom">
                 <table
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table text-start">
+                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table text-start fxv-rc">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>
                         <th>{{translate('SL')}}</th>
@@ -66,21 +66,21 @@
                     <tbody>
                     @foreach($refundList as $key=>$refund)
                         <tr>
-                            <td> {{$refundList->firstItem()+$key}}</td>
-                            <td class="text-center">
+                            <td data-label="{{translate('SL')}}"> {{$refundList->firstItem()+$key}}</td>
+                            <td class="text-center" data-label="{{translate('refund_id')}}">
 
                                 <a class="title-color hover-c1"
                                    href="{{route('vendor.refund.details',['id'=>$refund['id']])}}">
                                     {{$refund['id']}}
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{translate('order_ID')}}">
                                 <a class="title-color hover-c1"
                                    href="{{route('vendor.orders.details',[$refund->order_id])}}">
                                     {{$refund->order_id}}
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{translate('product_Info')}}">
                                 @if ($refund->product!=null)
                                     <div class="d-flex flex-wrap gap-2">
                                         <a href="{{route('vendor.products.view',[$refund->product->id])}}">
@@ -99,7 +99,7 @@
                                     {{translate('product_name_not_found')}}
                                 @endif
                             </td>
-                            <td>
+                            <td data-label="{{translate('customer_Info')}}">
                                 @if ($refund->customer !=null)
                                     <div class="d-flex flex-column gap-1">
                                         <a href="javascript:" class="title-color font-weight-bold hover-c1">
@@ -118,10 +118,10 @@
                                     </a>
                                 @endif
                             </td>
-                            <td>
+                            <td data-label="{{translate('total_Amount')}}">
                                 {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $refund->amount), currencyCode: getCurrencyCode())}}
                             </td>
-                            <td>
+                            <td data-label="{{translate('action')}}" class="fxv-rc__actions">
                                 <div class="d-flex justify-content-center">
                                     <a class="btn btn-outline--primary btn-sm"
                                        title="{{translate('view')}}"

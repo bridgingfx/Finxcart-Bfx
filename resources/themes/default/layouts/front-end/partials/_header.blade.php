@@ -1,2182 +1,849 @@
-﻿{{-- ========== PHP IMPORTS & DATA ========== --}}
+{{-- ============================================================
+     FinXCart light-first header (SHELL worker — quinn/finxcart-light-redesign)
+     Scope: .fx .fxh-* (header), .fx .fxd-* (drawer). Foundation
+     primitives come from fx-redesign.css (NOT edited here).
+     Backend behavior preserved: #user_cart_count / #wish_count IDs
+     (updated by cart-details.js & custom.js), customer notification
+     poll (same IDs), currency AJAX (.get-currency-change-function /
+     currencyChangeFunction), announcement bar, search route/params.
+     ============================================================ --}}
 @php
-    use App\Models\Brand;
-    use App\Models\Category;
-    use App\Utils\Helpers;
-
-    $announcement = getWebConfig(name: 'announcement');
-    $categorie = \App\Utils\CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting();
-    // Same call as $categorie above — this used to hit the method (and its cache
-    // lookup) twice per page load, on every page site-wide.
-    $megacategorie = $categorie;
-    $brands = \App\Utils\BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting();
-    $cart = \App\Utils\CartManager::getCartListQuery();
-    $productCatRootCategory = \App\Utils\CategoryManager::getCategoryWithProductsRootCategory();
-    $productCatWithProducts = \App\Utils\CategoryManager::getCategoryWithProducts();
-    $currency_model = getWebConfig(name: 'currency_model');
-    $currencies = class_exists('\App\Models\Currency')
+    $fxAnnouncement = getWebConfig(name: 'announcement');
+    $fxCategories   = \App\Utils\CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting();
+    $fxCart         = \App\Utils\CartManager::getCartListQuery();
+    $fxWishCount    = session()->has('wish_list') ? count(session('wish_list')) : 0;
+    $fxRoute        = Route::currentRouteName();
+    $fxCurrencyModel = getWebConfig(name: 'currency_model');
+    $fxCurrencies    = class_exists('\App\Models\Currency')
         ? Cache::remember(CACHE_FOR_ACTIVE_CURRENCY_LIST, CACHE_FOR_3_HOURS, fn() => \App\Models\Currency::where('status', 1)->get())
         : collect();
+    $fxIsCustomer   = auth('customer')->check();
+    $fxIsSeller     = auth('seller')->check();
+    $fxIsFreelancer = auth('freelancer')->check();
+    // Signed-in = any of the three guards (matches legacy header's guest check:
+    // !customer && !seller && !freelancer)
+    $fxSignedIn     = $fxIsCustomer || $fxIsSeller || $fxIsFreelancer;
+    $fxCompany      = $web_config['company_name'] ?? 'FinXCart';
+
+    // 5-destination nav: resolve category landing pages by slug (no hardcoded IDs)
+    $fxSolutionsCat = $fxCategories->firstWhere('slug', 'solutions');
+    $fxProvidersCat = $fxCategories->firstWhere('slug', 'providers');
+    $fxEventsCat    = $fxCategories->firstWhere('slug', 'events');
+
+    // Mirrors the legacy product-filter URL shapes exactly
+    $fxCatUrl = function ($cat, $level = 'root') {
+        if (($cat->slug ?? null) === 'latest-listings') {
+            return route('products', ['data_from' => 'latest', 'page' => 1]);
+        }
+        $key = $level === 'sub' ? 'sub_category_id' : ($level === 'subsub' ? 'sub_sub_category_id' : 'category_id');
+        return route('products', [$key => $cat->id, 'data_from' => 'category', 'page' => 1]);
+    };
+
+    $fxExploreRoutes  = ['products', 'product', 'categories', 'brands', 'discounted-products', 'search-shop', 'flash-deals'];
+    $fxExploreActive  = in_array($fxRoute, $fxExploreRoutes, true);
+    $fxActiveCatId    = (int) (request('category_id') ?? request('sub_category_id') ?? request('sub_sub_category_id') ?? 0);
+
+    // Mobile full-width search: discovery pages only (kept off checkout / account / auth)
+    $fxDiscoveryRoutes   = ['home', 'products', 'product', 'categories', 'brands', 'vendors', 'brokers.index', 'brokers.show', 'influencers.index', 'influencers.show', 'hire-freelancer', 'search-shop', 'discounted-products', 'flash-deals'];
+    $fxShowMobileSearch  = in_array($fxRoute, $fxDiscoveryRoutes, true);
 @endphp
 
-{{-- ========== STYLES ========== --}}
 <style>
-    /* ── Topbar Button (Desktop) ── */
-    .topbar-btn {
-        border: 1px solid #003f6b;
-        border-radius: 999px;
-        padding: 6px 14px;
-        color: #003f6b;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background-color: white;
-        transition: 0.2s ease;
-    }
-
-    .topbar-btn:hover {
-        background-color: #003f6b;
-        color: white;
-    }
-
-    /* ── Navbar row full-width space-between ── */
-    .header-inner-row {
-        flex-wrap: nowrap !important;
-        width: 100%;
-        align-items: center;
-    }
-
-    .header-inner-row .col-logo {
-        flex-shrink: 0;
-        flex-grow: 0;
-    }
-
-    .header-inner-row .col-search {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .header-inner-row .col-icons {
-        flex-shrink: 0;
-        flex-grow: 0;
-        margin-left: auto;
-    }
-
-    /* ── btn-head-menus ── */
-    .btn-head-menus {
-        display: inline-flex !important;
-        align-items: center !important;
-        flex-wrap: nowrap !important;
-        overflow: hidden;
-        white-space: nowrap;
-        border-radius: 10px;
-        max-width: clamp(70px, 15vw, 140px);
-        font-size: clamp(9px, 1.5vw, 14px) !important;
-        padding: clamp(3px, 0.8vw, 7px) clamp(5px, 1.2vw, 12px) !important;
-        gap: clamp(3px, 0.5vw, 6px);
-        line-height: 1.5;
-    }
-
-    .btn-head-menus.dropdown-toggle::after {
-        flex-shrink: 0;
-        margin-left: clamp(2px, 0.4vw, 4px);
-    }
-
-    .btn-head-menus img {
-        flex-shrink: 0;
-        width: clamp(16px, 2vw, 24px) !important;
-        height: clamp(16px, 2vw, 24px) !important;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .btn-head-menus i {
-        flex-shrink: 0;
-        font-size: clamp(10px, 1.5vw, 14px) !important;
-    }
-
-    .btn-head-menus .btn-text {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    /* ── btn-head-menus Breakpoints ── */
-    @media (max-width: 1199px) {
-        .btn-head-menus {
-            max-width: 130px;
-            font-size: 13px !important;
-            padding: 5px 10px !important;
-        }
-    }
-
-    @media (max-width: 991px) {
-        .btn-head-menus {
-            max-width: 120px;
-            font-size: 12px !important;
-            padding: 4px 8px !important;
-        }
-    }
-
-    @media (max-width: 767px) {
-        .btn-head-menus {
-            max-width: 110px;
-            font-size: 11px !important;
-            padding: 3px 7px !important;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .btn-head-menus {
-            max-width: 90px;
-            font-size: 10px !important;
-            padding: 3px 6px !important;
-        }
-
-        .btn-head-menus img {
-            width: 16px !important;
-            height: 16px !important;
-        }
-
-        .btn-head-menus i {
-            font-size: 10px !important;
-        }
-    }
-
-    @media (max-width: 360px) {
-        .btn-head-menus {
-            max-width: 70px;
-            font-size: 9px !important;
-            padding: 2px 5px !important;
-        }
-
-        .btn-head-menus .btn-text {
-            display: none;
-        }
-    }
-
-    /* ── Hover States ── */
-    .btn-outline-secondary:hover {
-        background-color: #003f6b;
-        color: white;
-        border-color: #003f6b;
-    }
-
-    /* ── Dropdown Items ── */
-    .dropdown-item:hover {
-        background-color: #f1f1f1;
-    }
-
-    .dropdown-item.active {
-        background-color: #e8f5e9;
-        font-weight: 600;
-    }
-
-    /* ── Customer Notification Bell — same footprint as the Wishlist/Cart
-       icons beside it (plain icon + corner badge) so all three sit level
-       instead of the bell looking like a separate account button ── */
-    .customer-notification-toggle {
-        width: 22px;
-        height: 22px;
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-    }
-
-    /* Bootstrap's default dropdown-toggle caret (::after) was still showing
-       up next to the bell — the theme has no ".no-caret" rule defined, so
-       that utility class was a no-op. Kill the caret explicitly instead. */
-    .customer-notification-toggle.dropdown-toggle::after {
-        display: none !important;
-    }
-
-    .customer-notification-toggle .fi-rr-bell {
-        font-size: 20px;
-        line-height: 1;
-        transition: color .2s ease, transform .2s ease;
-    }
-
-    .customer-notification-toggle:hover .fi-rr-bell {
-        color: #fff;
-        transform: rotate(-8deg);
-    }
-
-    /* ── Customer Notification Dropdown ── */
-    .customer-notification-menu {
-        border: 1px solid #edf0f3;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .customer-notification-menu-header {
-        background: #f8fafc;
-        border-bottom: 1px solid #edf0f3;
-    }
-
-    .customer-notification-menu .dropdown-item {
-        color: #212529 !important;
-    }
-
-    .customer-notification-menu .dropdown-item:hover,
-    .customer-notification-menu .dropdown-item:focus {
-        background-color: #f4f8ff;
-    }
-
-    .customer-notification-menu .dropdown-item.bg-light {
-        background-color: #eef5ff !important;
-        position: relative;
-    }
-
-    .customer-notification-menu .dropdown-item.bg-light::before {
-        content: "";
-        position: absolute;
-        left: 4px;
-        top: 16px;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #003f6b;
-    }
-
-    .customer-notification-menu .dropdown-item .small {
-        color: #1f2937 !important;
-        font-weight: 600;
-    }
-
-    .customer-notification-menu .dropdown-item .text-muted {
-        color: #6b7280 !important;
-    }
-
-    .customer-notification-mark-all-form button {
-        color: #003f6b;
-        font-weight: 600;
-    }
-
-    .customer-notification-mark-all-form button:hover {
-        text-decoration: none;
-        color: #002a49;
-    }
-
-    /* ── Currency Dropdown ── */
-    .currency-dropdown-item {
-        display: flex !important;
-        align-items: center;
-        gap: 10px;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        transition: background-color 0.2s ease;
-        width: 100%;
-    }
-
-    .currency-dropdown-item .currency-icon-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background-color: rgba(0, 63, 107, 0.08);
-        color: #003f6b;
-        flex-shrink: 0;
-    }
-
-    .currency-dropdown-item .currency-symbol svg {
-        width: 1em;
-        height: 1em;
-        display: inline-block;
-        vertical-align: middle;
-        margin-top: -9px;
-    }
-
-    .currency-dropdown-item .currency-name {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
-
-    /* ── Mobile burger dropdown panel ── */
-    .mobile-menu-panel {
-        min-width: 250px;
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid #e0e0e0;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-
-    .mobile-menu-panel .panel-section-header {
-        padding: 6px 14px 4px;
-        background: #f4f6f8;
-        border-bottom: 1px solid #e8e8e8;
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: #888;
-    }
-
-    .mobile-menu-panel .panel-divider {
-        height: 1px;
-        background: #ebebeb;
-        margin: 2px 0;
-    }
-
-    .mobile-menu-panel .panel-user-header {
-        display: flex;
-        align-items: center;
-        padding: 12px 14px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #eee;
-    }
-
-    .mobile-menu-panel .panel-user-header img {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-        margin-right: 10px;
-        border: 2px solid #dee2e6;
-    }
-
-    .mobile-menu-panel .panel-user-name {
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.2;
-        color: #222;
-    }
-
-    .mobile-menu-panel .panel-user-sub {
-        font-size: 11px;
-        color: #888;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 160px;
-    }
-
-    .mobile-menu-panel .panel-item {
-        display: flex;
-        align-items: center;
-        padding: 9px 14px;
-        font-size: 13px;
-        color: #333;
-        text-decoration: none;
-        transition: background 0.15s;
-        cursor: pointer;
-    }
-
-    .mobile-menu-panel .panel-item:hover {
-        background: #f1f3f5;
-        color: #003f6b;
-    }
-
-    .mobile-menu-panel .panel-item i {
-        width: 20px;
-        flex-shrink: 0;
-        color: #003f6b;
-    }
-
-    .mobile-menu-panel .panel-item.danger {
-        color: #dc3545;
-    }
-
-    .mobile-menu-panel .panel-item.danger i {
-        color: #dc3545;
-    }
-
-    .mobile-menu-panel .panel-item .item-badge {
-        margin-left: auto;
-        font-size: 11px;
-        background: #e9ecef;
-        padding: 1px 7px;
-        border-radius: 20px;
-        color: #555;
-    }
-
-    .mobile-menu-panel .currency-scroll {
-        max-height: 150px;
-        overflow-y: auto;
-    }
-
-    .mobile-menu-panel .currency-item {
-        display: flex;
-        align-items: center;
-        padding: 8px 14px;
-        font-size: 13px;
-        color: #333;
-        cursor: pointer;
-        transition: background 0.15s;
-        text-decoration: none;
-    }
-
-    .mobile-menu-panel .currency-item:hover {
-        background: #f1f3f5;
-    }
-
-    .mobile-menu-panel .currency-item.active {
-        background: #eaf4ff;
-        color: #003f6b;
-        font-weight: 600;
-    }
-
-    .mobile-menu-panel .currency-item .currency-sym {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: rgba(0, 63, 107, 0.08);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 13px;
-        color: #003f6b;
-        flex-shrink: 0;
-        margin-right: 10px;
-    }
-
-    .mobile-menu-panel .currency-item .check-icon {
-        margin-left: auto;
-        color: #28a745;
-        font-size: 12px;
-    }
-
-    .mobile-menu-panel .lang-wrap {
-        padding: 8px 14px 10px;
-        min-width: 240px;
-        width: 100%;
-    }
-
-    /* ── Custom Dropdown Wrapper ── */
-    .dropdown-wrapper {
-        position: relative;
-    }
-
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background-color: #fff;
-        min-width: 100%;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-        z-index: 1000;
-        margin-top: 5px;
-        max-height: 200px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .dropdown-wrapper:hover .dropdown-content {
-        display: block;
-    }
-
-    .dropdown-content li {
-        padding: 6px 14px;
-        cursor: pointer;
-        white-space: nowrap;
-        color: #333;
-    }
-
-    .dropdown-content li:hover {
-        background-color: #f2f2f2;
-    }
-
-    .dropdown-content.dropdown {
-        display: none;
-    }
-
-    .dropdown-wrapper.active .dropdown-content.dropdown {
-        display: block;
-    }
-
-    .dropdown-menu-list li a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    /* ── Bootstrap Dropdown Positioning ── */
-    .topbar-right,
-    .scrolling-topbar {
-        position: relative;
-    }
-
-    .topbar-right .btn-group,
-    .scrolling-topbar .btn-group {
-        position: relative !important;
-        display: inline-block !important;
-        vertical-align: middle;
-    }
-
-    .topbar-right .btn-group .dropdown-menu,
-    .scrolling-topbar .btn-group .dropdown-menu {
-        position: absolute !important;
-        top: 100% !important;
-        right: 0 !important;
-        bottom: auto !important;
-        margin-top: 5px !important;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        animation: slideDown 0.3s ease-out;
-        z-index: 9999 !important;
-        transform: translateY(0) !important;
-        display: none;
-    }
-
-    .topbar-right .btn-group .dropdown-menu.show,
-    .scrolling-topbar .btn-group .dropdown-menu.show {
-        display: block !important;
-    }
-
-    .topbar-right .btn-group .dropdown-item,
-    .scrolling-topbar .btn-group .dropdown-item {
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-
-    .topbar-right .btn-group .dropdown-item:hover,
-    .scrolling-topbar .btn-group .dropdown-item:hover {
-        background-color: rgba(0, 123, 255, 0.08) !important;
-    }
-
-    .topbar-right .btn-group .dropdown-item.active,
-    .scrolling-topbar .btn-group .dropdown-item.active {
-        background-color: rgba(0, 123, 255, 0.12) !important;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .scrolling-topbar .dropdown {
-            position: relative;
-        }
-
-        .scrolling-topbar .dropdown-menu {
-            position: absolute;
-            left: auto;
-            right: 0;
-            transform: none;
-            width: max-content;
-            min-width: 100%;
-            max-width: calc(100vw - 24px);
-            z-index: 1000;
-        }
-
-        .topbar-right .btn-group .dropdown-menu,
-        .scrolling-topbar .btn-group .dropdown-menu {
-            position: absolute !important;
-            top: 100% !important;
-            bottom: auto !important;
-            transform: translateY(0) !important;
-            margin-top: 5px !important;
-        }
-    }
-
-    /* ── Google Translate ── */
-    .skiptranslate,
-    .goog-te-banner-frame,
-    body>.skiptranslate,
-    .goog-te-banner-frame.skiptranslate {
-        display: none !important;
-        visibility: hidden !important;
-    }
-
-    body {
-        top: 0 !important;
-    }
-
-    .btn-head-menus .btn-text.text-white {
-        color: #ffffff !important;
-    }
-
-    /* ── Desktop nav scroll wrapper ── */
-    .bg-menu,
-    .bg-menu .container-fluid,
-    .bg-menu .min-height-45 {
-        overflow: visible;
-    }
-
-    .nav-scroll-wrapper {
-        position: relative;
-        display: flex;
-        align-items: stretch;
-        overflow: visible;
-        width: 100%;
-    }
-
-    .nav-scroll-inner {
-        display: flex;
-        overflow-x: auto;
-        overflow-y: visible;
-        scroll-behavior: smooth;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        flex: 1;
-        min-width: 0;
-    }
-    .nav-scroll-inner::-webkit-scrollbar { display: none; }
-
-    .nav-scroll-btn {
-        flex-shrink: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        background: transparent;
-        border: none;
-        color: #fff;
-        font-size: 20px;
-        cursor: pointer;
-        z-index: 10;
-    }
-    .nav-scroll-btn:hover { color: #f18b32; }
-    .nav-scroll-btn.visible { display: flex; }
-
-    /* ── Desktop nav menu ── */
-    .desktop-category-menu {
-        display: flex;
-        justify-content: center;
-        align-items: stretch;
-        flex-wrap: nowrap;
-        min-width: max-content;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    .desktop-category-item {
-        position: relative;
-        display: flex;
-        align-items: stretch;
-        flex: 0 0 auto;
-    }
-
-    .desktop-category-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.28rem;
-        min-height: 52px;
-        padding: 0.95rem clamp(0.7rem, 0.45rem + 0.45vw, 1.15rem);
-        border-right: 1px solid rgba(255, 255, 255, 0.18);
-        color: #fff;
-        font-size: clamp(0.8rem, 0.68rem + 0.28vw, 1rem);
-        font-weight: 600;
-        line-height: 1;
-        white-space: nowrap;
-        text-decoration: none;
-        transition: background-color 0.2s ease;
-    }
-
-    .desktop-category-item:first-child .desktop-category-link {
-        border-left: 1px solid rgba(255, 255, 255, 0.18);
-    }
-
-    .desktop-category-link:hover,
-    .desktop-category-item:hover>.desktop-category-link {
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        text-decoration: none;
-    }
-
-    .desktop-category-link .caret-icon {
-        font-size: 11px;
-        transition: transform 0.2s;
-    }
-
-    .desktop-category-item:hover>.desktop-category-link .caret-icon {
-        transform: rotate(180deg);
-    }
-
-    /* ── Mega Panel ── */
-    .mega-dropdown-panel {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 860px;
-        background: #fff;
-        border-top: 3px solid #f97316;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.13);
-        z-index: 1100;
-        overflow: hidden;
-    }
-
-    .desktop-category-item:hover>.mega-dropdown-panel,
-    .desktop-category-item:hover>.simple-dropdown-panel {
-        display: block;
-        position: fixed;
-    }
-
-    .mega-panel-body {
-        padding: 20px 22px 6px;
-        max-height: 420px;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(249, 115, 22, 0.4) transparent;
-    }
-
-    .mega-panel-body::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .mega-panel-body::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .mega-panel-body::-webkit-scrollbar-thumb {
-        background: rgba(249, 115, 22, 0.4);
-        border-radius: 99px;
-    }
-
-    .mega-row-label {
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .6px;
-        color: #bbb;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .mega-row-label::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: #f0f0f0;
-    }
-
-    .mega-cols-row {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 18px 22px;
-        margin-bottom: 20px;
-    }
-
-    .mega-sub-col {}
-
-    .mega-sub-title {
-        display: block;
-        font-size: 14px;
-        font-weight: 700;
-        color: #1a3a5c;
-        padding-bottom: 6px;
-        border-bottom: 2px solid #f97316;
-        margin-bottom: 8px;
-        text-decoration: none;
-        line-height: 1.3;
-        transition: color 0.15s;
-    }
-
-    .mega-sub-title:hover {
-        color: #f97316;
-    }
-
-    .mega-subsub-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .mega-subsub-list li {
-        padding: 2px 0;
-    }
-
-    .mega-subsub-list li a {
-        font-size: 13px;
-        color: #666;
-        text-decoration: none;
-        display: block;
-        line-height: 1.5;
-        transition: color 0.15s;
-    }
-
-    .mega-subsub-list li a:hover {
-        color: #f97316;
-    }
-
-    .mega-subsub-list li.more-link a {
-        color: #f97316;
-        font-weight: 700;
-        font-size: 12px;
-    }
-
-    .mega-panel-footer {
-        padding: 10px 22px 12px;
-        border-top: 1px solid #f0f0f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fafafa;
-    }
-
-    .mega-view-all {
-        font-size: 12px;
-        color: #f97316;
-        font-weight: 600;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .mega-view-all:hover {
-        text-decoration: underline;
-        color: #f97316;
-    }
-
-    .mega-count-pill {
-        font-size: 11px;
-        background: #eee;
-        color: #888;
-        padding: 2px 10px;
-        border-radius: 20px;
-    }
-
-    /* Simple dropdown for cats with no sub-sub (fallback) */
-    .simple-dropdown-panel {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        min-width: 220px;
-        background: #fff;
-        border-top: 3px solid #f97316;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.13);
-        z-index: 1100;
-        padding: 6px 0;
-    }
-
-    .simple-dropdown-panel a {
-        display: block;
-        padding: 8px 16px;
-        font-size: 13px;
-        color: #1a3a5c;
-        text-decoration: none;
-        transition: background 0.15s, color 0.15s;
-    }
-
-    .simple-dropdown-panel a:hover {
-        background: #f3f7fb;
-        color: #f97316;
-    }
-
-    .hire-freelancer-panel {
-        width: min(1040px, calc(100vw - 24px));
-    }
-
-    .desktop-category-item.hire-menu-open>.hire-freelancer-panel,
-    .desktop-category-item:focus-within>.hire-freelancer-panel {
-        display: block;
-        position: fixed;
-    }
-
-    .hire-mega-layout {
-        display: grid;
-        grid-template-columns: minmax(190px, 250px) 1fr;
-        min-height: 330px;
-    }
-
-    .hire-mega-categories {
-        border-right: 1px solid #edf0f4;
-        background: #fbfcfe;
-        padding: 14px 0;
-    }
-
-    .hire-mega-category {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 11px 18px;
-        color: #4b5563;
-        font-weight: 700;
-        text-decoration: none;
-        line-height: 1.25;
-    }
-
-    .hire-mega-category:hover,
-    .hire-mega-category:focus,
-    .hire-mega-category.active {
-        color: #17395e;
-        background: #eef3f8;
-        text-decoration: none;
-        outline: none;
-    }
-
-    .hire-mega-services {
-        display: none;
-        padding: 24px 28px;
-    }
-
-    .hire-mega-services.active,
-    .hire-mega-category:focus+.hire-mega-services {
-        display: block;
-    }
-
-    .hire-mega-group-title {
-        color: #17395e;
-        font-weight: 800;
-        font-size: 15px;
-        text-transform: uppercase;
-        margin-bottom: 18px;
-    }
-
-    .hire-mega-service-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 22px 42px;
-    }
-
-    .hire-mega-service {
-        display: block;
-        color: #1f2937;
-        text-decoration: none;
-    }
-
-    .hire-mega-service:hover,
-    .hire-mega-service:focus {
-        color: #f97316;
-        text-decoration: none;
-        outline: none;
-    }
-
-    .hire-mega-service-title {
-        display: block;
-        font-size: 15px;
-        font-weight: 800;
-        line-height: 1.35;
-    }
-
-    .hire-mega-service-desc {
-        display: block;
-        color: #6b7280;
-        font-size: 13px;
-        line-height: 1.45;
-        margin-top: 5px;
-    }
-
-    .hire-mobile-desc {
-        display: block;
-        color: #7b8794;
-        font-size: 11px;
-        line-height: 1.4;
-        margin-top: 2px;
-        white-space: normal;
-    }
-
-    @media (max-width: 767.98px) {
-        .hire-mega-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .hire-mega-service-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 1399.98px) {
-        .desktop-category-link {
-            font-size: clamp(0.76rem, 0.66rem + 0.2vw, 0.92rem);
-            padding-left: 0.8rem;
-            padding-right: 0.8rem;
-        }
-    }
-
-    .mega-panel-footer {
-        padding: 10px 22px 12px;
-        border-top: 1px solid #f0f0f0;
-        background: #fafafa;
-    }
+/* ================= fx header — navy marketplace ================= */
+.fx .fxh { position: sticky; top: 0; z-index: 80; background: #1d2a7a; border-bottom: 0; }
+/* Sticky header is in normal flow: cancel the old fixed-header compensation. */
+body.fx main.main-content { margin-top: 0 !important; }
+
+.fx .fxh-bar-inner { display: flex; align-items: center; gap: var(--fx-s3); padding-top: var(--fx-s3); padding-bottom: var(--fx-s3); }
+.fx .fxh-logo { display: inline-flex; align-items: center; flex-shrink: 0; background: #fff; border-radius: 12px; padding: 6px 14px; line-height: 0; }
+.fx .fxh-logo img { display: block; height: 34px; width: auto; max-width: 180px; object-fit: contain; }
+
+/* desktop search (flexes between logo and actions) */
+.fx .fxh-search { display: none; flex: 1 1 auto; min-width: 0; }
+@media (min-width: 1024px) { .fx .fxh-search { display: flex; } }
+.fx .fxh-search .fx-search__input { min-width: 0; }
+
+/* mobile search row: full-width beneath the compact bar */
+.fx .fxh-msearch { display: none; padding-bottom: var(--fx-s3); }
+.fx .fxh-msearch .fx-search { max-width: none; }
+@media (max-width: 1023.98px) { .fx .fxh-msearch--on { display: block; } }
+
+/* icon actions */
+.fx .fxh-actions { display: flex; align-items: center; gap: var(--fx-s1); margin-left: auto; flex-shrink: 0; }
+.fx .fxh-action { position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 48px; min-height: 48px; padding: 4px 8px; border: 0; border-radius: var(--fx-radius-md); background: none; color: rgba(255,255,255,.94); font-size: 11px; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; }
+.fx .fxh-action svg { width: 24px; height: 24px; }
+.fx .fxh-action:hover { background: rgba(255,255,255,.14); color: #fff; }
+.fx .fxh-count { position: absolute; top: 1px; inset-inline-end: 4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--fx-radius-pill); background: var(--fx-amber); color: #1A1A1A; font-size: 12px; font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+
+/* burger (mobile) */
+.fx .fxh-burger { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: 0; border-radius: var(--fx-radius-md); background: none; color: #fff; cursor: pointer; flex-shrink: 0; }
+.fx .fxh-burger svg { width: 26px; height: 26px; }
+.fx .fxh-burger:hover { background: rgba(255,255,255,.14); }
+@media (min-width: 1024px) { .fx .fxh-burger { display: none; } }
+
+/* account dropdown */
+.fx .fxh-acct { position: relative; }
+.fx .fxh-acct-btn { display: inline-flex; align-items: center; gap: var(--fx-s2); min-height: 48px; padding: 4px 8px; border: 0; border-radius: var(--fx-radius-md); background: none; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; max-width: 168px; }
+.fx .fxh-acct-btn:hover { background: rgba(255,255,255,.14); }
+.fx .fxh-acct-btn .fxh-acct-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx .fxh-acct-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
+.fx .fxh-acct-menu { position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 85; min-width: 248px; max-width: calc(100vw - 32px); padding: var(--fx-s2); border: 1px solid var(--fx-border); border-radius: var(--fx-radius-md); background: var(--fx-surface); box-shadow: 0 12px 32px rgba(23, 43, 66, 0.14); }
+.fx .fxh-acct-menu[hidden] { display: none; }
+.fx .fxh-acct-head { padding: var(--fx-s3); border-bottom: 1px solid var(--fx-border); margin-bottom: var(--fx-s1); }
+.fx .fxh-acct-head strong { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; }
+.fx .fxh-acct-head span { font-size: 13px; color: var(--fx-muted); }
+.fx .fxh-acct-link { display: flex; align-items: center; gap: var(--fx-s3); min-height: 48px; padding: var(--fx-s2) var(--fx-s3); border-radius: var(--fx-radius-sm); color: var(--fx-text); font-size: 15px; text-decoration: none; }
+.fx .fxh-acct-link:hover { background: rgba(32, 63, 96, 0.06); }
+.fx .fxh-acct-link svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--fx-muted); }
+.fx .fxh-acct-link--danger { color: var(--fx-danger); }
+.fx .fxh-acct-link--danger svg { color: var(--fx-danger); }
+.fx .fxh-acct-link .fxh-acct-badge { margin-inline-start: auto; font-size: 13px; font-weight: 700; color: var(--fx-navy); }
+
+/* notification bell dropdown (same IDs as legacy: poll script depends on them) */
+.fx .fxh-notif-menu { max-height: 400px; overflow-y: auto; }
+
+.fx .fxh-acct .fx-btn { background: #fff; color: #1d2a7a; font-weight: 700; }
+.fx .fxh-acct .fx-btn:hover { background: #f0f2ff; color: #1d2a7a; }
+
+/* ================= secondary nav (desktop) — darker navy ================= */
+.fx .fxh-nav { display: none; border-top: 1px solid rgba(255,255,255,.14); background: #16205e; position: relative; }
+@media (min-width: 1024px) { .fx .fxh-nav { display: block; } }
+.fx .fxh-navlist { display: flex; align-items: stretch; gap: var(--fx-s1); list-style: none; margin: 0; padding: 0; }
+.fx .fxh-navitem { display: flex; align-items: center; position: static; }
+.fx .fxh-navlink { display: inline-flex; align-items: center; min-height: 52px; padding: 0 var(--fx-s3); border-bottom: 3px solid transparent; color: rgba(255,255,255,.88); font-size: 16px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.fx .fxh-navlink:hover { color: #fff; }
+.fx .fxh-navlink[aria-current="page"] { color: #fff; border-bottom-color: var(--fx-amber); }
+.fx .fxh-navtoggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-inline-start: -8px; border: 0; border-radius: var(--fx-radius-sm); background: none; color: rgba(255,255,255,.72); cursor: pointer; }
+.fx .fxh-navtoggle svg { width: 18px; height: 18px; }
+.fx .fxh-navtoggle:hover { background: rgba(255,255,255,.14); color: #fff; }
+.fx .fxh-navtoggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* dropdown + mega panels */
+.fx .fxh-drop, .fx .fxh-mega { position: absolute; top: 100%; left: 0; right: 0; z-index: 84; background: var(--fx-surface); border-bottom: 1px solid var(--fx-border); box-shadow: 0 16px 32px rgba(23, 43, 66, 0.10); }
+.fx .fxh-drop[hidden], .fx .fxh-mega[hidden] { display: none; }
+.fx .fxh-drop-inner { padding: var(--fx-s3) 0 var(--fx-s4); max-width: 720px; }
+.fx .fxh-drop a { display: flex; align-items: center; min-height: 44px; padding: var(--fx-s2) var(--fx-s1); color: var(--fx-text); font-size: 15px; text-decoration: none; border-radius: var(--fx-radius-sm); }
+.fx .fxh-drop a:hover { background: rgba(32, 63, 96, 0.06); color: var(--fx-navy); }
+.fx .fxh-drop-all { font-weight: 700 !important; color: var(--fx-navy) !important; }
+.fx .fxh-drop hr { border: 0; border-top: 1px solid var(--fx-border); margin: var(--fx-s2) 0; }
+
+.fx .fxh-mega-inner { padding: var(--fx-s4) 0 var(--fx-s6); max-height: min(68vh, 600px); overflow-y: auto; }
+.fx .fxh-mega-quick { display: flex; flex-wrap: wrap; gap: var(--fx-s2); margin-bottom: var(--fx-s4); }
+.fx .fxh-mega-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--fx-s6) var(--fx-s4); }
+.fx .fxh-mega-head { display: block; margin-bottom: var(--fx-s2); color: var(--fx-navy); font-size: 15px; font-weight: 700; text-decoration: none; }
+.fx .fxh-mega-head:hover { text-decoration: underline; }
+.fx .fxh-mega-col ul { list-style: none; margin: 0; padding: 0; }
+.fx .fxh-mega-col li a { display: block; padding: 6px 0; color: var(--fx-muted); font-size: 14px; text-decoration: none; }
+.fx .fxh-mega-col li a:hover { color: var(--fx-navy); }
+.fx .fxh-mega-all { display: inline-block; margin-top: var(--fx-s2); font-size: 14px; font-weight: 700; color: var(--fx-navy); text-decoration: none; }
+.fx .fxh-mega-all:hover { text-decoration: underline; }
+
+/* announcement bar */
+.fx .fxh-announce { position: relative; text-align: center; padding: 8px 44px 8px 16px; font-size: 14px; }
+.fx .fxh-announce-close { position: absolute; inset-inline-end: 12px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; background: none; color: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+
+/* screen-reader text */
+.fx .fx-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* focus visibility */
+.fx .fxh a:focus-visible, .fx .fxh button:focus-visible, .fx .fxh input:focus-visible, .fx .fxh select:focus-visible {
+    outline: 3px solid rgba(32, 63, 96, 0.45); outline-offset: 2px;
+}
+
+/* ================= drawer ================= */
+.fx .fxd-scrim { position: fixed; inset: 0; z-index: 90; background: rgba(23, 43, 66, 0.5); }
+.fx .fxd-scrim[hidden] { display: none; }
+.fx .fxd { position: fixed; top: 0; bottom: 0; inset-inline-start: 0; z-index: 91; display: flex; flex-direction: column; width: min(400px, 92vw); background: var(--fx-surface); border-start-end-radius: var(--fx-radius-lg); border-end-end-radius: var(--fx-radius-lg); }
+.fx .fxd[hidden] { display: none; }
+.fx .fxd-head { display: flex; align-items: center; gap: var(--fx-s2); padding: var(--fx-s3) var(--fx-s4); border-bottom: 1px solid var(--fx-border); }
+.fx .fxd-title { flex: 1 1 auto; margin: 0; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx .fxd-iconbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 48px; min-height: 48px; padding: 4px 8px; border: 0; border-radius: var(--fx-radius-md); background: none; color: var(--fx-text); font-size: 14px; font-weight: 600; cursor: pointer; }
+.fx .fxd-iconbtn:hover { background: rgba(32, 63, 96, 0.06); }
+.fx .fxd-iconbtn svg { width: 22px; height: 22px; }
+.fx .fxd-body { flex: 1 1 auto; overflow-y: auto; padding: var(--fx-s2) var(--fx-s4) var(--fx-s6); -webkit-overflow-scrolling: touch; }
+.fx .fxd-panel[hidden] { display: none; }
+.fx .fxd-sec { margin: 0 0 var(--fx-s4); padding: 0 0 var(--fx-s4); border-bottom: 1px solid var(--fx-border); }
+.fx .fxd-sec:last-child { border-bottom: 0; }
+.fx .fxd-sec-title { margin: 0 0 var(--fx-s2); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fx-muted); }
+.fx .fxd-row { display: flex; align-items: center; gap: var(--fx-s3); width: 100%; min-height: 52px; padding: var(--fx-s2) var(--fx-s1); border: 0; border-radius: var(--fx-radius-sm); background: none; color: var(--fx-text); font-size: 16px; font-weight: 600; text-align: start; text-decoration: none; cursor: pointer; }
+.fx .fxd-row:hover { background: rgba(32, 63, 96, 0.06); }
+.fx .fxd-row svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--fx-muted); }
+.fx .fxd-row .fxd-chev { margin-inline-start: auto; }
+.fx .fxd-row .fxd-count { margin-inline-start: auto; min-width: 24px; height: 24px; padding: 0 7px; border-radius: var(--fx-radius-pill); background: var(--fx-amber); color: #1A1A1A; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.fx .fxd-viewall { display: flex; align-items: center; min-height: 48px; padding: var(--fx-s2) var(--fx-s1); font-size: 15px; font-weight: 700; color: var(--fx-navy); text-decoration: none; }
+.fx .fxd-select { width: 100%; min-height: 48px; font-size: 16px; padding: var(--fx-s2) var(--fx-s3); border: 1px solid var(--fx-border); border-radius: var(--fx-radius-md); background: var(--fx-surface); color: var(--fx-text); }
+.fx .fxd-lang { margin-top: var(--fx-s2); }
+
+/* scroll lock while drawer open */
+html.fx-lock { overflow: hidden; }
+
+@keyframes fxd-in { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
+html[dir="rtl"] .fx .fxd { animation-name: fxd-in-rtl; }
+@keyframes fxd-in-rtl { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+
+@media (prefers-reduced-motion: no-preference) {
+    .fx .fxh-action, .fx .fxh-burger, .fx .fxh-navlink, .fx .fxh-navtoggle,
+    .fx .fxh-acct-link, .fx .fxd-row, .fx .fxd-iconbtn, .fx .fxh-mega-col li a {
+        transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+    }
+    .fx .fxd:not([hidden]) { animation: fxd-in 220ms ease; }
+    html[dir="rtl"] .fx .fxd:not([hidden]) { animation-name: fxd-in-rtl; }
+    .fx .fxd-scrim:not([hidden]) { animation: fx-fade 200ms ease; }
+}
 </style>
 
-{{-- ========== HEADER ========== --}}
-<header id="header" class="u-header u-header-left-aligned-nav">
+{{-- ============ HEADER ============ --}}
+<header class="fxh" id="fxHeader">
 
-    {{-- ========== ANNOUNCEMENT BAR ========== --}}
-    @if (isset($announcement) && $announcement['status'] == 1)
-        <div class="text-center position-relative px-4 py-1" id="announcement"
-            style="background-color: {{ $announcement['color'] }}; color: {{ $announcement['text_color'] }}; margin-bottom: 6px;">
-            <span>{{ str_ireplace(['FinXCart', 'FINXCART'], $web_config['company_name'] ?? 'Finxcart', $announcement['announcement']) }}</span>
-            <span class="__close-announcement web-announcement-slideUp">X</span>
+    {{-- announcement bar (kept: same id/classes the close script expects) --}}
+    @if (isset($fxAnnouncement) && ($fxAnnouncement['status'] ?? 0) == 1)
+        <div class="fxh-announce" id="announcement"
+             style="background-color: {{ $fxAnnouncement['color'] }}; color: {{ $fxAnnouncement['text_color'] }};">
+            <span>{{ str_ireplace(['FinXCart', 'FINXCART'], $fxCompany, $fxAnnouncement['announcement']) }}</span>
+            <button type="button" class="fxh-announce-close __close-announcement" aria-label="{{ translate('close') }}">&times;</button>
         </div>
     @endif
 
-    <div class="u-header__section">
+    <div class="fx-container fxh-bar-inner">
+        {{-- mobile: drawer opener --}}
+        <button type="button" class="fxh-burger" id="fxDrawerOpen"
+                aria-label="{{ translate('open_menu') }}" aria-controls="fxDrawer" aria-expanded="false"
+                aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
 
-        {{-- ===== LOGO + SEARCH + ICONS BAR ===== --}}
-        <div class="py-3 py-xl-2 bg-primary">
-            <div class="container">
-                <div class="row header-inner-row">
+        {{-- logo (existing asset; clear space only) --}}
+        <a class="fxh-logo" href="{{ route('home') }}" aria-label="{{ $fxCompany }} — {{ translate('home') }}">
+            <img src="{{ getStorageImages(path: $web_config['web_logo'], type: 'logo') }}" alt="{{ $fxCompany }}">
+        </a>
 
-                    {{-- ── Logo + Offcanvas ── --}}
-                    <div class="col-logo">
-                        <nav
-                            class="navbar navbar-expand u-header__navbar py-0 justify-content-xl-between max-width-270 min-width-270">
-                            <a class="order-1 order-xl-0 navbar-brand u-header__navbar-brand u-header__navbar-brand-center ps-3"
-                                href="{{ route('home') }}">
-                                <img class="__inline-11"
-                                    src="{{ getStorageImages(path: $web_config['web_logo'], type: 'logo') }}"
-                                    alt="{{ $web_config['company_name'] }}">
-                            </a>
-                            <button id="sidebarHeaderInvokerMenu" type="button"
-                                class="navbar-toggler d-block d-xl-none btn u-hamburger mr-3 mr-xl-0" data-unfold-event="click"
-                                data-unfold-hide-on-scroll="false" data-unfold-target="#sidebarHeader1"
-                                data-unfold-type="css-animation" data-unfold-animation-in="fadeInLeft"
-                                data-unfold-animation-out="fadeOutLeft" data-unfold-duration="500">
-                                <span id="hamburgerTriggerMenu" class="u-hamburger__box">
-                                    <span class="u-hamburger__inner"></span>
-                                </span>
-                            </button>
-                        </nav>
+        {{-- desktop search --}}
+        <form class="fx-search fxh-search" role="search" action="{{ route('products') }}" method="GET">
+            <label class="fx-sr" for="fxSearchDesktop">{{ translate('search_for_products') }}</label>
+            <input class="fx-search__input" id="fxSearchDesktop" type="search" name="name"
+                   placeholder="{{ translate('search_for_products') }}" value="{{ request('name') }}"
+                   autocomplete="off" aria-label="{{ translate('search_for_products') }}">
+            <input type="hidden" name="global_search_input" value="1">
+            <button class="fx-search__btn" type="submit">{{ translate('search') }}</button>
+        </form>
 
-                        {{-- ── Sidebar ── --}}
-                    <aside id="sidebarHeader1" class="u-sidebar u-sidebar--left"
-                           aria-labelledby="sidebarHeaderInvokerMenu"
-                           aria-hidden="true">
-                            <div class="u-sidebar__scroller">
-                                <div class="u-sidebar__container">
-                                    <div class="u-header-sidebar__footer-offset pb-0">
-                                        <div class="position-absolute top-0 right-0 z-index-2 pt-4 pr-7">
-                                            <button type="button" class="close ml-auto" data-unfold-event="click"
-                                                data-unfold-hide-on-scroll="false" data-unfold-target="#sidebarHeader1"
-                                                data-unfold-type="css-animation" data-unfold-animation-in="fadeInLeft"
-                                                data-unfold-animation-out="fadeOutLeft" data-unfold-duration="500">
-                                                <span aria-hidden="true">
-                                                    <i class="ec ec-close-remove text-gray-90 font-size-20"></i>
-                                                </span>
-                                            </button>
-                                        </div>
-                                        <div class="js-scrollbar u-sidebar__body">
-                                            <div id="headerSidebarContent"
-                                                class="u-sidebar__content u-header-sidebar__content">
-                                                <a class="d-flex ml-0 navbar-brand u-header__navbar-brand u-header__navbar-brand-vertical"
-                                                    href="{{ route('home') }}">
-                                                    <img class="{{ Session::get('direction') === 'rtl' ? 'right-align' : '' }}"
-                                                        src="{{ getStorageImages(path: $web_config['footer_logo'], type: 'logo') }}"
-                                                        alt="{{ $web_config['company_name'] }}" />
-                                                </a>
-                                                <hr />
-                                                <ul id="headerSidebarList" class="u-header-collapse__nav">
-                                                    <?php $hireFreelancerMobileInserted = false; ?>
-                                                    @foreach ($categorie as $cat)
-                                                        <li class="u-has-submenu u-header-collapse__submenu">
-                                                            <a class="u-header-collapse__nav-link u-header-collapse__nav-pointer"
-                                                                href="javascript:;" role="button"
-                                                                data-toggle="collapse"
-                                                                aria-controls="headerSidebarCollapse-{{ $cat->id }}"
-                                                                data-target="#headerSidebarCollapse-{{ $cat->id }}">
-                                                                {{ $cat->name }}
-                                                            </a>
-                                                            @if ($productCatRootCategory && $cat->id == $productCatRootCategory->id && !empty($productCatWithProducts))
-                                                                <div id="headerSidebarCollapse-{{ $cat->id }}"
-                                                                    class="collapse"
-                                                                    data-parent="#headerSidebarContent">
-                                                                    <ul class="u-header-collapse__nav-list">
-                                                                        @foreach ($productCatWithProducts as $group)
-                                                                            <li class="u-has-submenu">
-                                                                                <a class="u-header-collapse__submenu-nav-link"
-                                                                                    href="javascript:;">
-                                                                                    {{ $group['subcategory']->name }}
-                                                                                </a>
-                                                                                @if (count($group['products']) > 0)
-                                                                                    <ul class="pl-3">
-                                                                                        @foreach ($group['products'] as $product)
-                                                                                            <li>
-                                                                                                <a class="u-header-collapse__submenu-nav-link"
-                                                                                                    href="{{ route('product', $product->slug) }}">
-                                                                                                    {{ $product->name }}
-                                                                                                </a>
-                                                                                            </li>
-                                                                                        @endforeach
-                                                                                    </ul>
-                                                                                @endif
-                                                                            </li>
-                                                                        @endforeach
-                                                                    </ul>
-                                                                </div>
-                                                            @elseif($cat->childes->count())
-                                                                <div id="headerSidebarCollapse-{{ $cat->id }}"
-                                                                    class="collapse"
-                                                                    data-parent="#headerSidebarContent">
-                                                                    <ul class="u-header-collapse__nav-list">
-                                                                        @foreach ($cat->childes as $subcat)
-                                                                            <li>
-                                                                                <a class="u-header-collapse__submenu-nav-link"
-                                                                                    href="{{ $subcat->slug === 'latest-listings' ? route('products', ['data_from' => 'latest', 'page' => 1]) : route('products', ['sub_category_id' => $subcat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                                                                    {{ $subcat->name }}
-                                                                                </a>
-                                                                            </li>
-                                                                        @endforeach
-                                                                    </ul>
-                                                                </div>
-                                                            @endif
-                                                        </li>
-                                                        @if (!$hireFreelancerMobileInserted && ($cat->slug ?? null) === 'events' && isset($hireFreelancerMenu))
-                                                            <?php $hireFreelancerMobileInserted = true; ?>
-                                                            <li class="u-has-submenu u-header-collapse__submenu">
-                                                                <a class="u-header-collapse__nav-link u-header-collapse__nav-pointer"
-                                                                   href="javascript:;" role="button"
-                                                                   data-toggle="collapse"
-                                                                   aria-controls="hireFreelancerMobileCollapse"
-                                                                   data-target="#hireFreelancerMobileCollapse"
-                                                                   aria-expanded="false">
-                                                                    {{ translate('hire_freelancer') }}
-                                                                </a>
-                                                                <div id="hireFreelancerMobileCollapse" class="collapse" data-parent="#headerSidebarContent">
-                                                                    <ul class="u-header-collapse__nav-list">
-                                                                        @foreach($hireFreelancerMenu as $freelancerCategory)
-                                                                            <li class="u-has-submenu">
-                                                                                <a class="u-header-collapse__submenu-nav-link"
-                                                                                   href="javascript:;"
-                                                                                   data-toggle="collapse"
-                                                                                   aria-controls="hireFreelancerCategoryCollapse-{{ $freelancerCategory->id }}"
-                                                                                   data-target="#hireFreelancerCategoryCollapse-{{ $freelancerCategory->id }}"
-                                                                                   aria-expanded="false">
-                                                                                    {{ $freelancerCategory->name }}
-                                                                                </a>
-                                                                                <div id="hireFreelancerCategoryCollapse-{{ $freelancerCategory->id }}" class="collapse">
-                                                                                    <ul class="pl-3">
-                                                                                        @forelse($freelancerCategory->activeSpecializations as $specialization)
-                                                                                            <li>
-                                                                                                <a class="u-header-collapse__submenu-nav-link"
-                                                                                                   href="{{ route('hire-freelancer', ['specialization' => $specialization->slug]) }}">
-                                                                                                    {{ $specialization->name }}
-                                                                                                    @if(filled($specialization->description))
-                                                                                                        <span class="hire-mobile-desc">{{ \Illuminate\Support\Str::limit(strip_tags($specialization->description), 76) }}</span>
-                                                                                                    @endif
-                                                                                                </a>
-                                                                                            </li>
-                                                                                        @empty
-                                                                                            <li>
-                                                                                                <a class="u-header-collapse__submenu-nav-link"
-                                                                                                   href="{{ route('hire-freelancer', ['category' => $freelancerCategory->slug]) }}">
-                                                                                                    {{ translate('all_freelancer_services') }}
-                                                                                                </a>
-                                                                                            </li>
-                                                                                        @endforelse
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </li>
-                                                                        @endforeach
-                                                                        <li>
-                                                                            <a class="u-header-collapse__submenu-nav-link"
-                                                                               href="{{ route('hire-freelancer') }}">
-                                                                                {{ translate('all_freelancer_services') }}
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </div>
-                                                            </li>
-                                                        @endif
-                                                    @endforeach
-                                                    @if (!$hireFreelancerMobileInserted && isset($hireFreelancerMenu))
-                                                        <li class="u-has-submenu u-header-collapse__submenu">
-                                                            <a class="u-header-collapse__nav-link u-header-collapse__nav-pointer"
-                                                               href="javascript:;" role="button"
-                                                               data-toggle="collapse"
-                                                               aria-controls="hireFreelancerMobileCollapseFallback"
-                                                               data-target="#hireFreelancerMobileCollapseFallback"
-                                                               aria-expanded="false">
-                                                                {{ translate('hire_freelancer') }}
-                                                            </a>
-                                                            <div id="hireFreelancerMobileCollapseFallback" class="collapse" data-parent="#headerSidebarContent">
-                                                                <ul class="u-header-collapse__nav-list">
-                                                                    @foreach($hireFreelancerMenu as $freelancerCategory)
-                                                                        <li>
-                                                                            <a class="u-header-collapse__submenu-nav-link"
-                                                                               href="{{ route('hire-freelancer', ['category' => $freelancerCategory->slug]) }}">
-                                                                                {{ $freelancerCategory->name }}
-                                                                            </a>
-                                                                        </li>
-                                                                    @endforeach
-                                                                </ul>
-                                                            </div>
-                                                        </li>
-                                                    @endif
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-                        {{-- ── End Sidebar ── --}}
-                    </div>
-                    {{-- ── End Logo + Offcanvas ── --}}
-
-                    {{-- ── Search Bar (Desktop Only) ── --}}
-                    <div class="col-search d-none d-xl-flex align-items-center px-3">
-                        <form action="{{ route('products') }}" class="search_form js-focus-state w-100" novalidate>
-                            <label class="sr-only" for="searchproduct-item">{{ translate('search') }}</label>
-                            <div class="input-group">
-                                <input type="text"
-                                    class="form-control py-2 pl-5 font-size-15 border-right-0 height-40 border-width-2 rounded-left-pill border-primary"
-                                    name="name" id="searchproduct-item"
-                                    placeholder="{{ translate('search_for_products') }}"
-                                    aria-label="Search for Products" aria-describedby="searchProduct1" required
-                                    value="{{ request('name') }}" />
-                                <input type="hidden" name="global_search_input" value="1">
-                                <div class="input-group-append">
-                                    <div
-                                        class="dropdown bootstrap-select js-select dropdown-select custom-search-categories-select bg-white">
-                                        <select
-                                            name="category_ids[]"
-                                            class="js-select selectpicker dropdown-select custom-search-categories-select"
-                                            data-style="btn height-40 text-gray-60 font-weight-normal border-top border-bottom border-left-0 rounded-0 border-primary border-width-2 pl-0 pr-5 py-2">
-                                            <option value="all" {{ empty(request('category_ids')) ? 'selected' : '' }}>{{ translate('all_categories') }}</option>
-                                            @foreach ($categorie as $cat)
-                                                <option value="{{ $cat->id }}" {{ in_array((string) $cat->id, (array) request('category_ids', [])) ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <button class="btn btn-dark height-40 py-2 px-3 rounded-right-pill" type="submit"
-                                        id="searchProduct1">
-                                        <span class="ec ec-search font-size-24"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    {{-- ── End Search Bar ── --}}
-
-                    {{-- ── Header Icons ── --}}
-                    <div class="col-icons text-right pl-0 pl-xl-3 position-static">
-                        <div class="d-inline-flex">
-                            <ul class="d-flex list-unstyled mb-0 align-items-center">
-
-                                {{-- Notifications --}}
-                                @if(auth('customer')->check())
-                                    <li class="col px-2 px-sm-3 dropdown position-relative">
-                                        <a href="javascript:void(0)" class="customer-notification-toggle text-gray-90 position-relative d-flex dropdown-toggle no-caret"
-                                            id="customerNotificationDropdown" data-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false" data-placement="top"
-                                            title="{{ translate('notifications') }}">
-                                            <i class="fi fi-rr-bell"></i>
-                                            @if($customerUnreadNotificationCount > 0)
-                                                <span
-                                                    class="notification-badge width-22 height-22 bg-primary position-absolute d-flex align-items-center justify-content-center rounded-circle left-12 top-8 font-weight-bold font-size-12">
-                                                    {{ $customerUnreadNotificationCount }}
-                                                </span>
-                                            @endif
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right customer-notification-menu p-0 shadow-sm"
-                                            aria-labelledby="customerNotificationDropdown"
-                                            style="min-width:320px;max-height:400px;overflow-y:auto;">
-                                            <div class="customer-notification-menu-header d-flex align-items-center justify-content-between px-3 py-2">
-                                                <span class="font-weight-bold font-size-14 text-dark">{{ translate('notifications') }}</span>
-                                            </div>
-                                            <div id="customerNotificationItems">
-                                                @include('web-views.partials._customer-notification-items')
-                                            </div>
-                                        </div>
-                                    </li>
-                                @endif
-
-                                {{-- Wishlist --}}
-                                <li class="col px-2 px-sm-3">
-                                    <a href="{{ route('wishlists') }}" class="text-gray-90" data-toggle="tooltip"
-                                        data-placement="top" title="Favorites">
-                                        <i class="font-size-22 ec ec-favorites"></i>
-                                        <span id="wish_count"
-                                            class="width-22 height-22 bg-primary position-absolute d-flex align-items-center justify-content-center rounded-circle left-12 top-8 font-weight-bold font-size-12">
-                                            {{ session()->has('wish_list') ? count(session('wish_list')) : 0 }}
-                                        </span>
-                                    </a>
-                                </li>
-
-                                {{-- Cart --}}
-                                <li class="col pr-xl-0 px-2 px-sm-3">
-                                    <a href="{{ route('shop-cart') }}"
-                                        class="text-gray-90 position-relative d-flex" data-toggle="tooltip"
-                                        data-placement="top" title="Cart">
-                                        <i class="font-size-22 ec ec-shopping-bag"></i>
-                                        <span id="user_cart_count"
-                                            class="width-22 height-22 bg-primary position-absolute d-flex align-items-center justify-content-center rounded-circle left-12 top-8 font-weight-bold font-size-12">
-                                            {{ $cart->count() }}
-                                        </span>
-                                    </a>
-                                </li>
-
-                                {{-- ══════════════════════════════════════════
-                                 CURRENCY + TRANSLATE + USER
-                            ══════════════════════════════════════════ --}}
-                                <li class="px-1">
-
-                                    {{-- ── MOBILE BURGER (xs only, below 576px) ── --}}
-                                    <div class="d-flex d-sm-none">
-                                        <div class="btn-group">
-                                            <button type="button"
-                                                class="btn btn-outline-secondary dropdown-toggle btn-head-menus"
-                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="ec ec-menu" style="flex-shrink:0;"></i>
-                                            </button>
-
-                                            <div class="dropdown-menu dropdown-menu-right p-0 mobile-menu-panel">
-
-                                                {{-- USER HEADER --}}
-                                                <?php if(auth('customer')->check()): ?>
-                                                    <?php
-                                                        $profileImg = auth('customer')->user()->image
-                                                            && file_exists(storage_path('app/public/profile/' . auth('customer')->user()->image))
-                                                                ? asset('storage/app/public/profile/' . auth('customer')->user()->image)
-                                                                : asset('public/assets/back-end/img/customer-info.png');
-                                                    ?>
-                                                    <div class="panel-user-header">
-                                                        <img src="{{ $profileImg }}" alt="Profile">
-                                                        <div style="overflow:hidden;">
-                                                            <div class="panel-user-name">
-                                                                {{ ucwords(auth('customer')->user()->f_name) }}
-                                                            </div>
-                                                            @if (!empty(auth('customer')->user()->phone))
-                                                                <div class="panel-user-sub">
-                                                                    {{ auth('customer')->user()->phone }}
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <a class="panel-item" href="{{ route('wallet') }}">
-                                                        <i class="fi fi-sr-wallet mr-2"></i>
-                                                        {{ translate('my_wallet') }}
-                                                        <span class="item-badge">
-                                                            {{ webCurrencyConverter(auth('customer')->user()->wallet_balance ?? 0) }}
-                                                        </span>
-                                                    </a>
-                                                    <a class="panel-item" href="{{ route('account-oder') }}">
-                                                        <i class="fi fi-sr-box mr-2"></i>
-                                                        {{ translate('my_Order') }}
-                                                    </a>
-                                                    <a class="panel-item" href="{{ route('user-account') }}">
-                                                        <i class="ec ec-user mr-2"></i>
-                                                        {{ translate('my_Profile') }}
-                                                    </a>
-                                                    <a class="panel-item danger"
-                                                        href="{{ route('customer.auth.logout') }}">
-                                                        <i class="fi fi-sr-sign-out-alt mr-2"></i>
-                                                        {{ translate('logout') }}
-                                                    </a>
-                                                <?php endif; ?>
-                                                <?php if(auth('seller')->check()): ?>
-                                                    <div class="panel-user-header">
-                                                        <img src="{{ asset('public/assets/back-end/img/customer-info.png') }}" alt="Profile">
-                                                        <div style="overflow:hidden;">
-                                                            <div class="panel-user-name">
-                                                                {{ optional(auth('seller')->user()->shop)->name ?? ucwords(auth('seller')->user()->f_name) }}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <a class="panel-item" href="{{ route('vendor.dashboard.index') }}">
-                                                        <i class="ec ec-user mr-2"></i>
-                                                        {{ translate('vendor_dashboard') }}
-                                                    </a>
-                                                    <a class="panel-item danger" href="{{ route('vendor.auth.logout') }}">
-                                                        <i class="fi fi-sr-sign-out-alt mr-2"></i>
-                                                        {{ translate('logout') }}
-                                                    </a>
-                                                <?php endif; ?>
-                                                <?php if(auth('freelancer')->check()): ?>
-                                                    <div class="panel-user-header">
-                                                        <img src="{{ asset('public/assets/back-end/img/customer-info.png') }}" alt="Profile">
-                                                        <div style="overflow:hidden;">
-                                                            <div class="panel-user-name">
-                                                                {{ ucwords(auth('freelancer')->user()->f_name) }}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <a class="panel-item" href="{{ route('freelancer.dashboard.index') }}">
-                                                        <i class="ec ec-user mr-2"></i>
-                                                        {{ translate('freelancer_dashboard') }}
-                                                    </a>
-                                                    <a class="panel-item danger" href="{{ route('freelancer.auth.logout') }}">
-                                                        <i class="fi fi-sr-sign-out-alt mr-2"></i>
-                                                        {{ translate('logout') }}
-                                                    </a>
-                                                <?php endif; ?>
-                                                <?php if(!auth('customer')->check() && !auth('seller')->check() && !auth('freelancer')->check()): ?>
-                                                    <div class="panel-section-header">{{ translate('account') }}</div>
-                                                    <a class="panel-item" href="{{ route('customer.auth.login') }}">
-                                                        <i class="ec ec-user mr-2"></i>
-                                                        {{ __('Customer Login') }}
-                                                    </a>
-                                                    <a class="panel-item"
-                                                        href="{{ route('vendor.auth.registration.index') }}">
-                                                        <i class="ec ec-user mr-2"></i>
-                                                        {{ __('Vendor Login') }}
-                                                    </a>
-                                                    <a class="panel-item"
-                                                        href="{{ route('freelancer.auth.login.index') }}">
-                                                        <i class="ec ec-user mr-2"></i>
-                                                        {{ __('Freelancer Login') }}
-                                                    </a>
-                                                <?php endif; ?>
-
-                                                {{-- CURRENCY --}}
-                                                @if ($currency_model == 'multi_currency' && $currencies->count())
-                                                    <div class="panel-divider"></div>
-                                                    <div class="panel-section-header">{{ translate('currency') }}
-                                                    </div>
-                                                    <div class="currency-scroll">
-                                                        @foreach ($currencies as $currency)
-                                                            <a class="currency-item get-currency-change-function {{ session('currency_code') == $currency->code ? 'active' : '' }}"
-                                                                href="javascript:void(0)"
-                                                                data-code="{{ $currency->code }}">
-                                                                <span class="currency-sym">
-                                                                    @if (!empty($currency->symbol_svg))
-                                                                        {!! $currency->symbol_svg !!}
-                                                                    @else
-                                                                        {{ $currency->symbol }}
-                                                                    @endif
-                                                                </span>
-                                                                {{ $currency->name }}
-                                                                @if (session('currency_code') == $currency->code)
-                                                                    <i class="fi fi-sr-check check-icon"></i>
-                                                                @endif
-                                                            </a>
-                                                        @endforeach
-                                                    </div>
-                                                @endif
-
-                                                {{-- LANGUAGE --}}
-                                                <div class="panel-divider"></div>
-                                                <div class="panel-section-header">{{ translate('Language') }}</div>
-                                                <div class="lang-wrap">
-                                                    @include('layouts.front-end.partials.gtranslater')
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{-- ── END MOBILE BURGER ── --}}
-
-                                    {{-- ── DESKTOP / TABLET INLINE (sm and above) ── --}}
-                                    <div class="d-none d-sm-flex flex-nowrap align-items-center ml-2"
-                                        style="gap: 6px;">
-
-                                        {{-- Currency --}}
-                                        @if ($currency_model == 'multi_currency' && $currencies->count())
-                                            <div class="btn-group">
-                                                <button type="button"
-                                                    class="btn btn-outline-secondary dropdown-toggle btn-head-menus"
-                                                    data-toggle="dropdown" aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                    <span class="btn-text text-white">
-                                                        {{ session('currency_code') }}
-                                                        ({{ session('currency_symbol') }})
-                                                    </span>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-right shadow-sm"
-                                                    style="min-width: 200px; border-radius: 8px; padding: 0.5rem;">
-                                                    @foreach ($currencies as $currency)
-                                                        <a class="dropdown-item get-currency-change-function currency-dropdown-item {{ session('currency_code') == $currency->code ? 'active bg-light font-weight-bold' : '' }}"
-                                                            href="javascript:void(0)"
-                                                            data-code="{{ $currency->code }}">
-                                                            <span class="currency-icon-wrapper">
-                                                                <span class="currency-symbol">
-                                                                    @if (!empty($currency->symbol_svg))
-                                                                        {!! $currency->symbol_svg !!}
-                                                                    @else
-                                                                        {{ $currency->symbol }}
-                                                                    @endif
-                                                                </span>
-                                                            </span>
-                                                            <div class="d-flex flex-column ml-2">
-                                                                <span
-                                                                    class="currency-name">{{ $currency->name }}</span>
-                                                            </div>
-                                                        </a>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endif
-
-                                        {{-- Google Translate --}}
-                                        @include('layouts.front-end.partials.gtranslater')
-
-                                        {{-- Auth: Logged In --}}
-                                        <?php if(auth('customer')->check()): ?>
-                                            <?php
-                                                $profileImgDesktop = auth('customer')->user()->image
-                                                    && file_exists(storage_path('app/public/profile/' . auth('customer')->user()->image))
-                                                        ? asset('storage/app/public/profile/' . auth('customer')->user()->image)
-                                                        : asset('public/assets/back-end/img/customer-info.png');
-                                            ?>
-                                            <div class="dropdown flex-shrink-0 position-relative">
-                                                <button class="btn btn-outline-secondary dropdown-toggle btn-head-menus"
-                                                    data-toggle="dropdown" type="button">
-                                                    <img src="{{ $profileImgDesktop }}" alt="Profile">
-                                                    <span class="btn-text text-white">
-                                                        {{ ucwords(auth('customer')->user()->f_name) }}
-                                                    </span>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-right">
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('wallet') }}">
-                                                            <i class="fi fi-sr-wallet mr-2"></i>
-                                                            {{ translate('my_wallet') }}<br>
-                                                            <small style="margin-left:22px;">
-                                                                ({{ webCurrencyConverter(auth('customer')->user()->wallet_balance ?? 0) }})
-                                                            </small>
-                                                        </a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('account-oder') }}">
-                                                            <i class="fi fi-sr-box mr-2"></i>
-                                                            {{ translate('my_Order') }}
-                                                        </a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('user-account') }}">
-                                                            <i class="ec ec-user mr-2"></i>
-                                                            {{ translate('my_Profile') }}
-                                                        </a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('customer.auth.logout') }}">
-                                                            <i class="fi fi-sr-sign-out-alt mr-2"></i>
-                                                            {{ translate('logout') }}
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-
-                                        <?php endif; ?>
-                                        <?php if(auth('seller')->check()): ?>
-                                            <div class="dropdown flex-shrink-0 position-relative">
-                                                <button class="btn btn-outline-secondary dropdown-toggle btn-head-menus"
-                                                    data-toggle="dropdown" type="button">
-                                                    <i class="ec ec-user" style="flex-shrink:0;"></i>
-                                                    <span class="btn-text text-white">
-                                                        {{ optional(auth('seller')->user()->shop)->name ?? ucwords(auth('seller')->user()->f_name) }}
-                                                    </span>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-right">
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('vendor.dashboard.index') }}">
-                                                            <i class="ec ec-user mr-2"></i>
-                                                            {{ translate('vendor_dashboard') }}
-                                                        </a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('vendor.auth.logout') }}">
-                                                            <i class="fi fi-sr-sign-out-alt mr-2"></i>
-                                                            {{ translate('logout') }}
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-
-                                            {{-- Auth: Guest --}}
-                                        <?php endif; ?>
-                                        <?php if(auth('freelancer')->check()): ?>
-                                            <div class="dropdown flex-shrink-0 position-relative">
-                                                <button class="btn btn-outline-secondary dropdown-toggle btn-head-menus"
-                                                    data-toggle="dropdown" type="button">
-                                                    <i class="ec ec-user" style="flex-shrink:0;"></i>
-                                                    <span class="btn-text text-white">
-                                                        {{ ucwords(auth('freelancer')->user()->f_name) }}
-                                                    </span>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-right">
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('freelancer.dashboard.index') }}">
-                                                            <i class="ec ec-user mr-2"></i>
-                                                            {{ translate('freelancer_dashboard') }}
-                                                        </a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <a href="{{ route('freelancer.auth.logout') }}">
-                                                            <i class="fi fi-sr-sign-out-alt mr-2"></i>
-                                                            {{ translate('logout') }}
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-
-                                            {{-- Auth: Guest --}}
-                                        <?php endif; ?>
-                                        <?php if(!auth('customer')->check() && !auth('seller')->check() && !auth('freelancer')->check()): ?>
-                                            <div class="dropdown flex-shrink-0 position-relative">
-                                                <button class="btn btn-outline-secondary dropdown-toggle btn-head-menus"
-                                                    type="button" data-toggle="dropdown">
-                                                    <i class="ec ec-user" style="flex-shrink:0;"></i>
-                                                    <span class="btn-text text-white">{{ __('LogIn') }}</span>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-right">
-                                                    <li class="dropdown-item">
-                                                        <i class="ec ec-user mr-1"></i>
-                                                        <a
-                                                            href="{{ route('customer.auth.login') }}">{{ __('Customer') }}</a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <i class="ec ec-user mr-1"></i>
-                                                        <a
-                                                            href="{{ route('vendor.auth.login.index') }}">{{ __('Vendor') }}</a>
-                                                    </li>
-                                                    <li class="dropdown-item">
-                                                        <i class="ec ec-user mr-1"></i>
-                                                        <a
-                                                            href="{{ route('freelancer.auth.login.index') }}">{{ __('Freelancer') }}</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        <?php endif; ?>
-
-                                    </div>
-                                    {{-- ── END DESKTOP / TABLET INLINE ── --}}
-
-                                </li>
-                                {{-- ══ END CURRENCY + TRANSLATE + USER ══ --}}
-
-                            </ul>
+        {{-- actions --}}
+        <div class="fxh-actions">
+            @if ($fxIsCustomer)
+                {{-- notifications (IDs preserved for the live poll script below) --}}
+                <div class="fxh-acct">
+                    <a href="javascript:void(0)" class="fxh-action" id="customerNotificationDropdown"
+                       role="button" tabindex="0" aria-haspopup="true" aria-expanded="false"
+                       aria-label="{{ translate('notifications') }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+                        @if (($customerUnreadNotificationCount ?? 0) > 0)
+                            <span class="fxh-count notification-badge">{{ $customerUnreadNotificationCount }}</span>
+                        @endif
+                    </a>
+                    <div class="fxh-acct-menu fxh-notif-menu" id="fxNotifMenu" hidden role="menu" aria-label="{{ translate('notifications') }}">
+                        <div id="customerNotificationItems">
+                            @include('web-views.partials._customer-notification-items')
                         </div>
                     </div>
-                    {{-- ── End Header Icons ── --}}
-
-                </div>{{-- ── end .header-inner-row ── --}}
-            </div>
-        </div>
-        {{-- ===== END LOGO + SEARCH + ICONS BAR ===== --}}
-
-        {{-- ===== DESKTOP NAV MENU ===== --}}
-        <div class="d-none d-xl-block bg-menu border-color-6">
-            <div class="container-fluid">
-                <div class="min-height-45">
-                    <div class="nav-scroll-wrapper">
-                        <button class="nav-scroll-btn" id="navScrollLeft" aria-label="Scroll left">&#8249;</button>
-                        <div class="nav-scroll-inner" id="navScrollInner">
-                    <nav
-                        class="navbar navbar-expand-md u-header__navbar u-header__navbar--no-space desktop-category-scroll" style="width:100%;">
-                        <div id="navBar"
-                            class="collapse navbar-collapse u-header__navbar-collapse justify-content-center">
-                            <ul class="navbar-nav u-header__navbar-nav desktop-category-menu">
-
-                                <?php $hireFreelancerDesktopInserted = false; ?>
-                                @foreach ($megacategorie as $megacat)
-                                    @php
-                                        $hasSubs = $megacat->childes->count() > 0;
-                                        $hasMega =
-                                            $hasSubs && $megacat->childes->contains(fn($s) => $s->childes->count() > 0);
-                                        $subChunks = $hasSubs ? $megacat->childes->chunk(5) : collect();
-                                    @endphp
-
-                                    <li class="nav-item u-header__nav-item desktop-category-item">
-
-                                        <a id="megaMenu-{{ $megacat->id }}" class="nav-link desktop-category-link"
-                                            href="{{ route('products', ['category_id' => $megacat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                            {{ $megacat->name }}
-                                            @if ($hasSubs)
-                                                <span class="caret-icon">&#9662;</span>
-                                            @endif
-                                        </a>
-
-                                        @if ($hasMega)
-                                            <div class="mega-dropdown-panel">
-                                                <div class="mega-panel-body">
-                                                    @foreach ($subChunks as $chunkIndex => $chunk)
-                                                        @if ($chunkIndex > 0)
-                                                            <div
-                                                                style="border-top: 1px solid #f0f0f0; margin: 4px 0 18px;">
-                                                            </div>
-                                                        @endif
-                                                        <div class="mega-cols-row">
-                                                            @foreach ($chunk as $subcat)
-                                                                <div class="mega-sub-col">
-                                                                    <a class="mega-sub-title"
-                                                                        href="{{ $subcat->slug === 'latest-listings' ? route('products', ['data_from' => 'latest', 'page' => 1]) : route('products', ['sub_category_id' => $subcat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                                                        {{ $subcat->name }}
-                                                                    </a>
-                                                                    @if ($subcat->childes->count())
-                                                                        <ul class="mega-subsub-list">
-                                                                            @foreach ($subcat->childes->take(6) as $childcat)
-                                                                                <li>
-                                                                                    <a 
-                                                                                        href="{{ route('products', ['sub_sub_category_id' => $childcat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                                                                        {{ $childcat->name }}
-                                                                                    </a>
-                                                                                </li>
-                                                                            @endforeach
-                                                                            @if ($subcat->childes->count() > 6)
-                                                                                <li class="more-link">
-                                                                                    <a
-                                                                                        href="{{ $subcat->slug === 'latest-listings' ? route('products', ['data_from' => 'latest', 'page' => 1]) : route('products', ['sub_category_id' => $subcat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                                                                        +{{ $subcat->childes->count() - 6 }}
-                                                                                        more
-                                                                                    </a>
-                                                                                </li>
-                                                                            @endif
-                                                                        </ul>
-                                                                    @else
-                                                                        <ul class="mega-subsub-list">
-                                                                            <li><span
-                                                                                    style="color:#ccc; font-size:11px;">—</span>
-                                                                            </li>
-                                                                        </ul>
-                                                                    @endif
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-
-                                                {{-- "View all" footer — no count pill --}}
-                                                <div class="mega-panel-footer">
-                                                    <a class="mega-view-all"
-                                                        href="{{ route('products', ['category_id' => $megacat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                                        View all in {{ $megacat->name }} &rarr;
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        @elseif($hasSubs)
-                                            <div class="simple-dropdown-panel">
-                                                @foreach ($megacat->childes as $subcat)
-                                                    <a
-                                                        href="{{ $subcat->slug === 'latest-listings' ? route('products', ['data_from' => 'latest', 'page' => 1]) : route('products', ['sub_category_id' => $subcat->id, 'data_from' => 'category', 'page' => 1]) }}">
-                                                        {{ $subcat->name }}
-                                                    </a>
-                                                @endforeach
-                                            </div>
-                                        @endif
-
-                                    </li>
-                                    @if (!$hireFreelancerDesktopInserted && ($megacat->slug ?? null) === 'events' && isset($hireFreelancerMenu))
-                                        <?php $hireFreelancerDesktopInserted = true; ?>
-                                        <li class="nav-item u-header__nav-item desktop-category-item {{ $hireFreelancerMenu->count() ? 'hire-freelancer-nav-item' : '' }}">
-                                            <a id="hireFreelancerMegaMenu"
-                                               class="nav-link desktop-category-link {{ $hireFreelancerMenu->count() ? 'hire-freelancer-trigger' : '' }}"
-                                               href="{{ route('hire-freelancer') }}"
-                                               aria-haspopup="true"
-                                               aria-expanded="false">
-                                                {{ translate('hire_freelancer') }}
-                                                @if($hireFreelancerMenu->count())
-                                                    <span class="caret-icon">&#9662;</span>
-                                                @endif
-                                            </a>
-
-                                            <div class="mega-dropdown-panel hire-freelancer-panel {{ $hireFreelancerMenu->count() ? '' : 'd-none' }}" role="menu" aria-labelledby="hireFreelancerMegaMenu">
-                                                <div class="hire-mega-layout">
-                                                    <div class="hire-mega-categories" role="presentation">
-                                                        @foreach($hireFreelancerMenu as $freelancerCategory)
-                                                            <a class="hire-mega-category {{ $loop->first ? 'active' : '' }}"
-                                                               href="{{ route('hire-freelancer', ['category' => $freelancerCategory->slug]) }}"
-                                                               data-hire-category="{{ $freelancerCategory->id }}"
-                                                               role="menuitem">
-                                                                <span>{{ $freelancerCategory->name }}</span>
-                                                                <span aria-hidden="true">&#8250;</span>
-                                                            </a>
-                                                        @endforeach
-                                                    </div>
-                                                    <div class="hire-mega-content">
-                                                        @foreach($hireFreelancerMenu as $freelancerCategory)
-                                                            <div class="hire-mega-services {{ $loop->first ? 'active' : '' }}"
-                                                                 data-hire-category-panel="{{ $freelancerCategory->id }}">
-                                                                <div class="hire-mega-group-title">{{ $freelancerCategory->name }}</div>
-                                                                <div class="hire-mega-service-grid">
-                                                                    @forelse($freelancerCategory->activeSpecializations as $specialization)
-                                                                        <a class="hire-mega-service"
-                                                                           href="{{ route('hire-freelancer', ['specialization' => $specialization->slug]) }}"
-                                                                           role="menuitem">
-                                                                            <span class="hire-mega-service-title">{{ $specialization->name }}</span>
-                                                                            @if(filled($specialization->description))
-                                                                                <span class="hire-mega-service-desc">{{ \Illuminate\Support\Str::limit(strip_tags($specialization->description), 88) }}</span>
-                                                                            @endif
-                                                                        </a>
-                                                                    @empty
-                                                                        <a class="hire-mega-service"
-                                                                           href="{{ route('hire-freelancer', ['category' => $freelancerCategory->slug]) }}"
-                                                                           role="menuitem">
-                                                                            <span class="hire-mega-service-title">{{ translate('all_freelancer_services') }}</span>
-                                                                        </a>
-                                                                    @endforelse
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                                <div class="mega-panel-footer">
-                                                    <a class="mega-view-all" href="{{ route('hire-freelancer') }}">
-                                                        {{ translate('all_freelancer_services') }} &rarr;
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    @endif
-                                @endforeach
-                                @if (!$hireFreelancerDesktopInserted && isset($hireFreelancerMenu))
-                                    <li class="nav-item u-header__nav-item desktop-category-item {{ $hireFreelancerMenu->count() ? 'hire-freelancer-nav-item' : '' }}">
-                                        <a id="hireFreelancerMegaMenuFallback"
-                                           class="nav-link desktop-category-link {{ $hireFreelancerMenu->count() ? 'hire-freelancer-trigger' : '' }}"
-                                           href="{{ route('hire-freelancer') }}"
-                                           aria-haspopup="true"
-                                           aria-expanded="false">
-                                            {{ translate('hire_freelancer') }}
-                                            @if($hireFreelancerMenu->count())
-                                                <span class="caret-icon">&#9662;</span>
-                                            @endif
-                                        </a>
-
-                                        <div class="mega-dropdown-panel hire-freelancer-panel {{ $hireFreelancerMenu->count() ? '' : 'd-none' }}" role="menu" aria-labelledby="hireFreelancerMegaMenuFallback">
-                                            <div class="hire-mega-layout">
-                                                <div class="hire-mega-categories" role="presentation">
-                                                    @foreach($hireFreelancerMenu as $freelancerCategory)
-                                                        <a class="hire-mega-category {{ $loop->first ? 'active' : '' }}"
-                                                           href="{{ route('hire-freelancer', ['category' => $freelancerCategory->slug]) }}"
-                                                           data-hire-category="{{ $freelancerCategory->id }}"
-                                                           role="menuitem">
-                                                            <span>{{ $freelancerCategory->name }}</span>
-                                                            <span aria-hidden="true">&#8250;</span>
-                                                        </a>
-                                                    @endforeach
-                                                </div>
-                                                <div class="hire-mega-content">
-                                                    @foreach($hireFreelancerMenu as $freelancerCategory)
-                                                        <div class="hire-mega-services {{ $loop->first ? 'active' : '' }}"
-                                                             data-hire-category-panel="{{ $freelancerCategory->id }}">
-                                                            <div class="hire-mega-group-title">{{ $freelancerCategory->name }}</div>
-                                                            <div class="hire-mega-service-grid">
-                                                                @forelse($freelancerCategory->activeSpecializations as $specialization)
-                                                                    <a class="hire-mega-service"
-                                                                       href="{{ route('hire-freelancer', ['specialization' => $specialization->slug]) }}"
-                                                                       role="menuitem">
-                                                                        <span class="hire-mega-service-title">{{ $specialization->name }}</span>
-                                                                        @if(filled($specialization->description))
-                                                                            <span class="hire-mega-service-desc">{{ \Illuminate\Support\Str::limit(strip_tags($specialization->description), 88) }}</span>
-                                                                        @endif
-                                                                    </a>
-                                                                @empty
-                                                                    <a class="hire-mega-service"
-                                                                       href="{{ route('hire-freelancer', ['category' => $freelancerCategory->slug]) }}"
-                                                                       role="menuitem">
-                                                                        <span class="hire-mega-service-title">{{ translate('all_freelancer_services') }}</span>
-                                                                    </a>
-                                                                @endforelse
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                            <div class="mega-panel-footer">
-                                                <a class="mega-view-all" href="{{ route('hire-freelancer') }}">
-                                                    {{ translate('all_freelancer_services') }} &rarr;
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                @endif
-
-                            </ul>
-                        </div>
-                    </nav>
-                        </div>{{-- nav-scroll-inner --}}
-                        <button class="nav-scroll-btn" id="navScrollRight" aria-label="Scroll right">&#8250;</button>
-                    </div>{{-- nav-scroll-wrapper --}}
                 </div>
+            @endif
+
+            {{-- saved / wishlist --}}
+            <a class="fxh-action" href="{{ route('wishlists') }}" aria-label="{{ translate('saved_items') }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                @if ($fxIsCustomer)
+                    <span class="fxh-count" id="wish_count">{{ $fxWishCount }}</span>
+                @endif
+                <span aria-hidden="true">{{ translate('saved') }}</span>
+            </a>
+
+            {{-- cart --}}
+            <a class="fxh-action" href="{{ route('shop-cart') }}" aria-label="{{ translate('cart') }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h15l-1.5 9h-12z"/><path d="M6 7l-1-4H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
+                <span class="fxh-count" id="user_cart_count">{{ $fxCart->count() }}</span>
+                <span aria-hidden="true">{{ translate('cart') }}</span>
+            </a>
+
+            {{-- account --}}
+            <div class="fxh-acct">
+                @if ($fxSignedIn)
+                    <button type="button" class="fxh-acct-btn" id="fxAcctBtn" aria-haspopup="true" aria-expanded="false" aria-controls="fxAcctMenu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+                        <span class="fxh-acct-name">
+                            @if ($fxIsCustomer){{ ucwords(auth('customer')->user()->f_name ?? '') }}
+                            @elseif ($fxIsSeller){{ optional(auth('seller')->user()->shop)->name ?? ucwords(auth('seller')->user()->f_name ?? '') }}
+                            @else{{ ucwords(auth('freelancer')->user()->f_name ?? '') }}
+                            @endif
+                        </span>
+                    </button>
+                    <div class="fxh-acct-menu" id="fxAcctMenu" hidden role="menu" aria-label="{{ translate('account') }}">
+                        @if ($fxIsCustomer)
+                            <div class="fxh-acct-head">
+                                <strong>{{ ucwords(auth('customer')->user()->f_name ?? '') }} {{ ucwords(auth('customer')->user()->l_name ?? '') }}</strong>
+                                @if (!empty(auth('customer')->user()->phone))<span>{{ auth('customer')->user()->phone }}</span>@endif
+                            </div>
+                            <a class="fxh-acct-link" href="{{ route('wallet') }}" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                                {{ translate('my_wallet') }}
+                                <span class="fxh-acct-badge">{{ webCurrencyConverter(auth('customer')->user()->wallet_balance ?? 0) }}</span>
+                            </a>
+                            <a class="fxh-acct-link" href="{{ route('account-oder') }}" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
+                                {{ translate('my_Order') }}
+                            </a>
+                            <a class="fxh-acct-link" href="{{ route('user-account') }}" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+                                {{ translate('my_Profile') }}
+                            </a>
+                            <a class="fxh-acct-link fxh-acct-link--danger" href="{{ route('customer.auth.logout') }}" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                                {{ translate('logout') }}
+                            </a>
+                        @endif
+                        @if ($fxIsSeller)
+                            <div class="fxh-acct-head">
+                                <strong>{{ optional(auth('seller')->user()->shop)->name ?? ucwords(auth('seller')->user()->f_name ?? '') }}</strong>
+                            </div>
+                            <a class="fxh-acct-link" href="{{ route('vendor.dashboard.index') }}" role="menuitem">{{ translate('vendor_dashboard') }}</a>
+                            <a class="fxh-acct-link fxh-acct-link--danger" href="{{ route('vendor.auth.logout') }}" role="menuitem">{{ translate('logout') }}</a>
+                        @endif
+                        @if ($fxIsFreelancer)
+                            <div class="fxh-acct-head">
+                                <strong>{{ ucwords(auth('freelancer')->user()->f_name ?? '') }}</strong>
+                            </div>
+                            <a class="fxh-acct-link" href="{{ route('freelancer.dashboard.index') }}" role="menuitem">{{ translate('freelancer_dashboard') }}</a>
+                            <a class="fxh-acct-link fxh-acct-link--danger" href="{{ route('freelancer.auth.logout') }}" role="menuitem">{{ translate('logout') }}</a>
+                        @endif
+                    </div>
+                @else
+                    <a class="fx-btn fx-btn-sm" href="{{ route('customer.auth.login') }}">{{ translate('sign_in') }}</a>
+                @endif
             </div>
         </div>
-        {{-- ===== END DESKTOP NAV MENU ===== --}}
-
     </div>
+
+    {{-- mobile full-width search (discovery pages only) --}}
+    @if ($fxShowMobileSearch)
+        <div class="fx-container fxh-msearch fxh-msearch--on">
+            <form class="fx-search" role="search" action="{{ route('products') }}" method="GET">
+                <label class="fx-sr" for="fxSearchMobile">{{ translate('search_for_products') }}</label>
+                <input class="fx-search__input" id="fxSearchMobile" type="search" name="name"
+                       placeholder="{{ translate('search_for_products') }}" value="{{ request('name') }}"
+                       autocomplete="off" aria-label="{{ translate('search_for_products') }}">
+                <input type="hidden" name="global_search_input" value="1">
+                <button class="fx-search__btn" type="submit">{{ translate('search') }}</button>
+            </form>
+        </div>
+    @endif
+
+    {{-- ============ SECONDARY NAV: 5 destinations (desktop) ============ --}}
+    @php($fxSolutionsActive = $fxSolutionsCat && $fxActiveCatId === (int) $fxSolutionsCat->id)
+    @php($fxProvidersActive = $fxProvidersCat && $fxActiveCatId === (int) $fxProvidersCat->id)
+    <nav class="fxh-nav" aria-label="{{ translate('primary_navigation') }}">
+        <div class="fx-container">
+            <ul class="fxh-navlist">
+
+                {{-- Explore — grouped-categories mega menu --}}
+                <li class="fxh-navitem">
+                    <a class="fxh-navlink" href="{{ route('products') }}" @if ($fxExploreActive) aria-current="page" @endif>{{ translate('explore') }}</a>
+                    @if ($fxCategories->count())
+                        <button type="button" class="fxh-navtoggle" aria-expanded="false" aria-controls="fxMegaExplore" aria-label="{{ translate('browse_categories') }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                        <div class="fxh-mega" id="fxMegaExplore" hidden>
+                            <div class="fx-container fxh-mega-inner">
+                                <div class="fxh-mega-quick">
+                                    <a class="fx-chip" href="{{ route('categories') }}">{{ translate('all_categories') }}</a>
+                                    <a class="fx-chip" href="{{ route('products', ['data_from' => 'latest', 'page' => 1]) }}">{{ translate('latest_listings') }}</a>
+                                    <a class="fx-chip" href="{{ route('discounted-products') }}">{{ translate('discounted') }}</a>
+                                    <a class="fx-chip" href="{{ route('brands') }}">{{ translate('brands') }}</a>
+                                </div>
+                                <div class="fxh-mega-grid">
+                                    @foreach ($fxCategories->take(8) as $fxCat)
+                                        <div class="fxh-mega-col">
+                                            <a class="fxh-mega-head" href="{{ $fxCatUrl($fxCat) }}">{{ $fxCat->name }}</a>
+                                            @if ($fxCat->childes->count())
+                                                <ul>
+                                                    @foreach ($fxCat->childes->take(5) as $fxSub)
+                                                        <li><a href="{{ $fxCatUrl($fxSub, 'sub') }}">{{ $fxSub->name }}</a></li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
+                                            <a class="fxh-mega-all" href="{{ $fxCatUrl($fxCat) }}">{{ translate('view_all_in') }} {{ $fxCat->name }} &rarr;</a>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </li>
+
+                {{-- Solutions --}}
+                <li class="fxh-navitem">
+                    <a class="fxh-navlink" href="{{ $fxSolutionsCat ? $fxCatUrl($fxSolutionsCat) : route('products') }}" @if ($fxSolutionsActive) aria-current="page" @endif>{{ translate('solutions') }}</a>
+                    @if ($fxSolutionsCat && $fxSolutionsCat->childes->count())
+                        <button type="button" class="fxh-navtoggle" aria-expanded="false" aria-controls="fxDropSolutions" aria-label="{{ translate('browse_solutions') }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                        <div class="fxh-drop" id="fxDropSolutions" hidden>
+                            <div class="fx-container fxh-drop-inner">
+                                @foreach ($fxSolutionsCat->childes->take(8) as $fxSub)
+                                    <a href="{{ $fxCatUrl($fxSub, 'sub') }}">{{ $fxSub->name }}</a>
+                                @endforeach
+                                <a class="fxh-drop-all" href="{{ $fxCatUrl($fxSolutionsCat) }}">{{ translate('view_all_solutions') }} &rarr;</a>
+                            </div>
+                        </div>
+                    @endif
+                </li>
+
+                {{-- Providers --}}
+                <li class="fxh-navitem">
+                    <a class="fxh-navlink" href="{{ $fxProvidersCat ? $fxCatUrl($fxProvidersCat) : route('vendors') }}" @if ($fxProvidersActive) aria-current="page" @endif>{{ translate('providers') }}</a>
+                    <button type="button" class="fxh-navtoggle" aria-expanded="false" aria-controls="fxDropProviders" aria-label="{{ translate('browse_providers') }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div class="fxh-drop" id="fxDropProviders" hidden>
+                        <div class="fx-container fxh-drop-inner">
+                            @if ($fxProvidersCat)
+                                @foreach ($fxProvidersCat->childes->take(6) as $fxSub)
+                                    <a href="{{ $fxCatUrl($fxSub, 'sub') }}">{{ $fxSub->name }}</a>
+                                @endforeach
+                                <a class="fxh-drop-all" href="{{ $fxCatUrl($fxProvidersCat) }}">{{ translate('view_all_providers') }} &rarr;</a>
+                                <hr>
+                            @endif
+                            <a href="{{ route('vendors') }}">{{ translate('all_vendors') }}</a>
+                            <a href="{{ route('brokers.index') }}">{{ translate('brokers') }}</a>
+                            <a href="{{ route('influencers.index') }}">{{ translate('influencers') }}</a>
+                            <a href="{{ route('vendor.auth.registration.index') }}">{{ translate('become_a_provider') }}</a>
+                        </div>
+                    </div>
+                </li>
+
+                {{-- Freelancers --}}
+                <li class="fxh-navitem">
+                    <a class="fxh-navlink" href="{{ route('hire-freelancer') }}" @if ($fxRoute === 'hire-freelancer' || $fxRoute === 'hire-freelancer.show' || $fxRoute === 'hire-freelancer.service-show') aria-current="page" @endif>{{ translate('freelancers') }}</a>
+                    @if (isset($hireFreelancerMenu) && $hireFreelancerMenu->count())
+                        <button type="button" class="fxh-navtoggle" aria-expanded="false" aria-controls="fxDropFreelancers" aria-label="{{ translate('browse_freelancers') }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                        <div class="fxh-drop" id="fxDropFreelancers" hidden>
+                            <div class="fx-container fxh-drop-inner">
+                                @foreach ($hireFreelancerMenu->take(8) as $fxFc)
+                                    <a href="{{ route('hire-freelancer', ['category' => $fxFc->slug]) }}">{{ $fxFc->name }}</a>
+                                @endforeach
+                                <a class="fxh-drop-all" href="{{ route('hire-freelancer') }}">{{ translate('view_all_freelancers') }} &rarr;</a>
+                            </div>
+                        </div>
+                    @endif
+                </li>
+
+                {{-- Resources (Events lives here) --}}
+                <li class="fxh-navitem">
+                    <a class="fxh-navlink" href="{{ route('helpTopic') }}" @if (in_array($fxRoute, ['helpTopic', 'contacts', 'my.account.help', 'customer.service', 'product.support'], true)) aria-current="page" @endif>{{ translate('resources') }}</a>
+                    <button type="button" class="fxh-navtoggle" aria-expanded="false" aria-controls="fxDropResources" aria-label="{{ translate('browse_resources') }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div class="fxh-drop" id="fxDropResources" hidden>
+                        <div class="fx-container fxh-drop-inner">
+                            @if ($fxEventsCat)
+                                <a href="{{ $fxCatUrl($fxEventsCat) }}">{{ translate('events') }}</a>
+                            @endif
+                            <a href="{{ route('helpTopic') }}">{{ translate('help_topics') }}</a>
+                            <a href="{{ route('contacts') }}">{{ translate('contact_us') }}</a>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+        </div>
+    </nav>
 </header>
-{{-- ========== END HEADER ========== --}}
+{{-- ============ /HEADER ============ --}}
 
-{{-- ========== SCRIPTS ========== --}}
+{{-- ============ MOBILE DRAWER ============ --}}
+<div class="fxd-scrim" id="fxDrawerScrim" hidden></div>
+<aside class="fxd" id="fxDrawer" role="dialog" aria-modal="true" aria-labelledby="fxDrawerTitle" hidden>
+    <div class="fxd-head">
+        <button type="button" class="fxd-iconbtn" id="fxDrawerBack" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span>{{ translate('back') }}</span>
+        </button>
+        <h2 class="fxd-title" id="fxDrawerTitle" tabindex="-1">{{ translate('menu') }}</h2>
+        <button type="button" class="fxd-iconbtn" id="fxDrawerClose" aria-label="{{ translate('close_menu') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    </div>
+
+    <div class="fxd-body" id="fxDrawerBody">
+        {{-- LEVEL: root --}}
+        <div class="fxd-panel" data-fxd-panel="root">
+            <div class="fxd-sec">
+                <p class="fxd-sec-title">{{ translate('account') }}</p>
+                @if ($fxSignedIn)
+                    @if ($fxIsCustomer)
+                        <a class="fxd-row" href="{{ route('wallet') }}">{{ translate('my_wallet') }}</a>
+                        <a class="fxd-row" href="{{ route('account-oder') }}">{{ translate('my_Order') }}</a>
+                        <a class="fxd-row" href="{{ route('user-account') }}">{{ translate('my_Profile') }}</a>
+                        <a class="fxd-row" href="{{ route('customer.auth.logout') }}">{{ translate('logout') }}</a>
+                    @elseif ($fxIsSeller)
+                        <a class="fxd-row" href="{{ route('vendor.dashboard.index') }}">{{ translate('vendor_dashboard') }}</a>
+                        <a class="fxd-row" href="{{ route('vendor.auth.logout') }}">{{ translate('logout') }}</a>
+                    @else
+                        <a class="fxd-row" href="{{ route('freelancer.dashboard.index') }}">{{ translate('freelancer_dashboard') }}</a>
+                        <a class="fxd-row" href="{{ route('freelancer.auth.logout') }}">{{ translate('logout') }}</a>
+                    @endif
+                @else
+                    <a class="fx-btn" href="{{ route('customer.auth.login') }}" style="width:100%;">{{ translate('sign_in') }}</a>
+                    <a class="fxd-row" href="{{ route('vendor.auth.login.index') }}">{{ translate('vendor_login') }}</a>
+                    <a class="fxd-row" href="{{ route('freelancer.auth.login.index') }}">{{ translate('freelancer_login') }}</a>
+                @endif
+            </div>
+
+            <div class="fxd-sec">
+                <p class="fxd-sec-title">{{ translate('browse') }}</p>
+                <button type="button" class="fxd-row" data-fxd-go="p-explore">
+                    <span>{{ translate('explore') }}</span>
+                    <svg class="fxd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button type="button" class="fxd-row" data-fxd-go="p-solutions">
+                    <span>{{ translate('solutions') }}</span>
+                    <svg class="fxd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button type="button" class="fxd-row" data-fxd-go="p-providers">
+                    <span>{{ translate('providers') }}</span>
+                    <svg class="fxd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button type="button" class="fxd-row" data-fxd-go="p-freelancers">
+                    <span>{{ translate('freelancers') }}</span>
+                    <svg class="fxd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button type="button" class="fxd-row" data-fxd-go="p-resources">
+                    <span>{{ translate('resources') }}</span>
+                    <svg class="fxd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+
+            <div class="fxd-sec">
+                <p class="fxd-sec-title">{{ translate('saved') }}</p>
+                <a class="fxd-row" href="{{ route('wishlists') }}">
+                    <span>{{ translate('saved_items') }}</span>
+                    <span class="fxd-count" id="fxWishCountM" @if (!$fxIsCustomer) hidden @endif>{{ $fxWishCount }}</span>
+                </a>
+                <a class="fxd-row" href="{{ route('shop-cart') }}">
+                    <span>{{ translate('cart') }}</span>
+                    <span class="fxd-count" id="fxCartCountM">{{ $fxCart->count() }}</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- LEVEL: explore --}}
+        <div class="fxd-panel" data-fxd-panel="p-explore" data-fxd-title="{{ translate('explore') }}" hidden>
+            <div class="fxd-sec">
+                <a class="fxd-row" href="{{ route('categories') }}">{{ translate('all_categories') }}</a>
+                <a class="fxd-row" href="{{ route('products', ['data_from' => 'latest', 'page' => 1]) }}">{{ translate('latest_listings') }}</a>
+                <a class="fxd-row" href="{{ route('discounted-products') }}">{{ translate('discounted') }}</a>
+                <a class="fxd-row" href="{{ route('brands') }}">{{ translate('brands') }}</a>
+            </div>
+            @foreach ($fxCategories as $fxCat)
+                <div class="fxd-sec">
+                    <a class="fxd-row" href="{{ $fxCatUrl($fxCat) }}"><span>{{ $fxCat->name }}</span></a>
+                    @foreach ($fxCat->childes->take(4) as $fxSub)
+                        <a class="fxd-row" href="{{ $fxCatUrl($fxSub, 'sub') }}" style="padding-inline-start: var(--fx-s6); font-weight:400;"><span>{{ $fxSub->name }}</span></a>
+                    @endforeach
+                </div>
+            @endforeach
+        </div>
+
+        {{-- LEVEL: solutions --}}
+        <div class="fxd-panel" data-fxd-panel="p-solutions" data-fxd-title="{{ translate('solutions') }}" hidden>
+            <div class="fxd-sec">
+                @if ($fxSolutionsCat)
+                    @foreach ($fxSolutionsCat->childes as $fxSub)
+                        <a class="fxd-row" href="{{ $fxCatUrl($fxSub, 'sub') }}"><span>{{ $fxSub->name }}</span></a>
+                    @endforeach
+                    <a class="fxd-viewall" href="{{ $fxCatUrl($fxSolutionsCat) }}">{{ translate('view_all_solutions') }} &rarr;</a>
+                @else
+                    <a class="fxd-row" href="{{ route('products') }}"><span>{{ translate('all_products') }}</span></a>
+                @endif
+            </div>
+        </div>
+
+        {{-- LEVEL: providers --}}
+        <div class="fxd-panel" data-fxd-panel="p-providers" data-fxd-title="{{ translate('providers') }}" hidden>
+            <div class="fxd-sec">
+                @if ($fxProvidersCat)
+                    @foreach ($fxProvidersCat->childes->take(8) as $fxSub)
+                        <a class="fxd-row" href="{{ $fxCatUrl($fxSub, 'sub') }}"><span>{{ $fxSub->name }}</span></a>
+                    @endforeach
+                    <a class="fxd-viewall" href="{{ $fxCatUrl($fxProvidersCat) }}">{{ translate('view_all_providers') }} &rarr;</a>
+                @endif
+                <a class="fxd-row" href="{{ route('vendors') }}"><span>{{ translate('all_vendors') }}</span></a>
+                <a class="fxd-row" href="{{ route('brokers.index') }}"><span>{{ translate('brokers') }}</span></a>
+                <a class="fxd-row" href="{{ route('influencers.index') }}"><span>{{ translate('influencers') }}</span></a>
+                <a class="fxd-row" href="{{ route('vendor.auth.registration.index') }}"><span>{{ translate('become_a_provider') }}</span></a>
+            </div>
+        </div>
+
+        {{-- LEVEL: freelancers --}}
+        <div class="fxd-panel" data-fxd-panel="p-freelancers" data-fxd-title="{{ translate('freelancers') }}" hidden>
+            <div class="fxd-sec">
+                @if (isset($hireFreelancerMenu) && $hireFreelancerMenu->count())
+                    @foreach ($hireFreelancerMenu as $fxFc)
+                        <a class="fxd-row" href="{{ route('hire-freelancer', ['category' => $fxFc->slug]) }}"><span>{{ $fxFc->name }}</span></a>
+                    @endforeach
+                @endif
+                <a class="fxd-viewall" href="{{ route('hire-freelancer') }}">{{ translate('view_all_freelancers') }} &rarr;</a>
+                <a class="fxd-row" href="{{ route('freelancer.auth.login.index') }}"><span>{{ translate('join_as_freelancer') }}</span></a>
+            </div>
+        </div>
+
+        {{-- LEVEL: resources --}}
+        <div class="fxd-panel" data-fxd-panel="p-resources" data-fxd-title="{{ translate('resources') }}" hidden>
+            <div class="fxd-sec">
+                @if ($fxEventsCat)
+                    <a class="fxd-row" href="{{ $fxCatUrl($fxEventsCat) }}"><span>{{ translate('events') }}</span></a>
+                @endif
+                <a class="fxd-row" href="{{ route('helpTopic') }}"><span>{{ translate('help_topics') }}</span></a>
+                <a class="fxd-row" href="{{ route('contacts') }}"><span>{{ translate('contact_us') }}</span></a>
+            </div>
+            <div class="fxd-sec">
+                <p class="fxd-sec-title">{{ translate('currency') }}</p>
+                <label class="fx-sr" for="fxDrawerCurrency">{{ translate('currency') }}</label>
+                <select class="fxd-select js-fx-currency" id="fxDrawerCurrency">
+                    @foreach ($fxCurrencies ?? [] as $fxCur)
+                        <option value="{{ $fxCur->code }}" {{ session('currency_code') == $fxCur->code ? 'selected' : '' }}>{{ $fxCur->name }} ({{ $fxCur->code }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="fxd-sec">
+                <p class="fxd-sec-title">{{ translate('language') }}</p>
+                <div class="fxd-lang">@include('layouts.front-end.partials.gtranslater')</div>
+            </div>
+        </div>
+    </div>
+</aside>
+{{-- ============ /MOBILE DRAWER ============ --}}
+
+{{-- ============ HEADER SCRIPTS ============ --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var sidebar = document.getElementById('sidebarHeader1');
-        var sidebarInvoker = document.getElementById('sidebarHeaderInvokerMenu');
-        if (sidebar && sidebarInvoker) {
-            var setSidebarAriaHidden = function(hidden) {
-                sidebar.setAttribute('aria-hidden', hidden ? 'true' : 'false');
-            };
-            setSidebarAriaHidden(true);
-            sidebarInvoker.addEventListener('click', function() {
-                setTimeout(function() {
-                    var isOpen = sidebar.classList.contains('u-unfold--shown');
-                    setSidebarAriaHidden(!isOpen);
-                }, 50);
-            });
-            document.querySelectorAll('[data-unfold-target="#sidebarHeader1"]').forEach(function(el) {
-                el.addEventListener('click', function() {
-                    if (el === sidebarInvoker) {
-                        return;
-                    }
-                    setTimeout(function() {
-                        var isOpen = sidebar.classList.contains('u-unfold--shown');
-                        setSidebarAriaHidden(!isOpen);
-                    }, 50);
-                });
-            });
+(function () {
+    'use strict';
+
+    /* ---- announcement close ---- */
+    var annClose = document.querySelector('#fxHeader .__close-announcement');
+    if (annClose) {
+        annClose.addEventListener('click', function () {
+            var bar = document.getElementById('announcement');
+            if (bar) bar.style.display = 'none';
+        });
+    }
+
+    /* ---- generic disclosure helper (account menu, notification bell) ---- */
+    function wireDisclosure(btnId, menuId) {
+        var btn = document.getElementById(btnId);
+        var menu = document.getElementById(menuId);
+        if (!btn || !menu) return;
+        function close() { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); }
+        function toggle(e) {
+            e.preventDefault(); e.stopPropagation();
+            menu.hidden ? open() : close();
         }
-
-        document.querySelectorAll('.js-dropdown-toggle').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                var wrapper = btn.closest('.dropdown-wrapper');
-                document.querySelectorAll('.dropdown-wrapper.active').forEach(function(el) {
-                    if (el !== wrapper) el.classList.remove('active');
-                });
-                wrapper.classList.toggle('active');
-            });
+        btn.addEventListener('click', toggle);
+        btn.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') toggle(e);
         });
-        document.body.addEventListener('click', function() {
-            document.querySelectorAll('.dropdown-wrapper.active').forEach(function(el) {
-                el.classList.remove('active');
-            });
+        document.addEventListener('click', function (e) {
+            if (!menu.hidden && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) close();
         });
-
-        // ── Announcement close ──
-        var closeBtn = document.querySelector('.__close-announcement');
-        if (closeBtn) {
-            closeBtn.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:700;padding:2px 8px;';
-            closeBtn.addEventListener('click', function() {
-                var bar = document.getElementById('announcement');
-                if (bar) bar.style.display = 'none';
-            });
-        }
-
-        // ── Category bar mega menus (fixed position below hovered item) ──
-        function positionCategoryDropdown(item) {
-            var panel = item.querySelector('.mega-dropdown-panel, .simple-dropdown-panel');
-            var isOpen = item.matches(':hover') || item.matches(':focus-within') || item.classList.contains('hire-menu-open');
-            if (!panel || !isOpen) {
-                return;
-            }
-            var rect = item.getBoundingClientRect();
-            var panelWidth = panel.offsetWidth || (panel.classList.contains('mega-dropdown-panel') ? 860 : 220);
-            var left = Math.max(8, Math.min(rect.left, window.innerWidth - panelWidth - 8));
-            panel.style.top = rect.bottom + 'px';
-            panel.style.left = left + 'px';
-        }
-
-        document.querySelectorAll('.desktop-category-item').forEach(function(item) {
-            if (!item.querySelector('.mega-dropdown-panel, .simple-dropdown-panel')) {
-                return;
-            }
-            item.addEventListener('mouseenter', function() {
-                requestAnimationFrame(function() {
-                    positionCategoryDropdown(item);
-                });
-            });
-            item.addEventListener('mouseleave', function() {
-                var panel = item.querySelector('.mega-dropdown-panel, .simple-dropdown-panel');
-                if (panel) {
-                    panel.style.top = '';
-                    panel.style.left = '';
-                }
-            });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !menu.hidden) { close(); btn.focus(); }
         });
+    }
+    wireDisclosure('fxAcctBtn', 'fxAcctMenu');
+    wireDisclosure('customerNotificationDropdown', 'fxNotifMenu');
 
-        document.querySelectorAll('.hire-freelancer-nav-item').forEach(function(item) {
-            var trigger = item.querySelector('.hire-freelancer-trigger');
-            if (!trigger) {
-                return;
-            }
-
-            function closeMenu() {
-                item.classList.remove('hire-menu-open');
-                trigger.setAttribute('aria-expanded', 'false');
-            }
-
-            function openMenu() {
-                item.classList.add('hire-menu-open');
-                trigger.setAttribute('aria-expanded', 'true');
-                requestAnimationFrame(function() {
-                    positionCategoryDropdown(item);
-                });
-            }
-
-            trigger.addEventListener('click', function(event) {
-                if (!item.classList.contains('hire-menu-open')) {
-                    event.preventDefault();
-                    openMenu();
-                }
-            });
-
-            item.addEventListener('focusin', openMenu);
-            item.addEventListener('mouseenter', openMenu);
-            item.addEventListener('mouseleave', function() {
-                if (!item.matches(':focus-within')) {
-                    closeMenu();
-                }
-            });
-            item.addEventListener('focusout', function() {
-                setTimeout(function() {
-                    if (!item.matches(':focus-within')) {
-                        closeMenu();
-                    }
-                }, 0);
-            });
-            item.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape') {
-                    closeMenu();
-                    trigger.focus();
-                }
-            });
-
-            item.querySelectorAll('.hire-mega-category').forEach(function(categoryLink) {
-                function activateCategory() {
-                    var categoryId = categoryLink.getAttribute('data-hire-category');
-                    item.querySelectorAll('.hire-mega-category').forEach(function(link) {
-                        link.classList.toggle('active', link === categoryLink);
-                    });
-                    item.querySelectorAll('.hire-mega-services').forEach(function(panel) {
-                        panel.classList.toggle('active', panel.getAttribute('data-hire-category-panel') === categoryId);
-                    });
-                }
-
-                categoryLink.addEventListener('mouseenter', activateCategory);
-                categoryLink.addEventListener('focus', activateCategory);
-            });
+    /* ---- desktop mega menu toggles (click/tap; keyboard-native buttons) ---- */
+    var navToggles = document.querySelectorAll('.fxh-navtoggle');
+    function closeAllMegas(except) {
+        navToggles.forEach(function (t) {
+            if (t === except) return;
+            t.setAttribute('aria-expanded', 'false');
+            var panel = document.getElementById(t.getAttribute('aria-controls'));
+            if (panel) panel.hidden = true;
         });
-
-        document.addEventListener('click', function(event) {
-            document.querySelectorAll('.hire-freelancer-nav-item.hire-menu-open').forEach(function(item) {
-                if (item.contains(event.target)) {
-                    return;
-                }
-                var trigger = item.querySelector('.hire-freelancer-trigger');
-                item.classList.remove('hire-menu-open');
-                if (trigger) {
-                    trigger.setAttribute('aria-expanded', 'false');
-                }
-            });
+    }
+    navToggles.forEach(function (toggle) {
+        var panel = document.getElementById(toggle.getAttribute('aria-controls'));
+        if (!panel) return;
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var willOpen = panel.hidden;
+            closeAllMegas(toggle);
+            panel.hidden = !willOpen;
+            toggle.setAttribute('aria-expanded', String(willOpen));
         });
-
-        // ── Nav scroll arrows ──
-        var scrollInner = document.getElementById('navScrollInner');
-        var btnLeft     = document.getElementById('navScrollLeft');
-        var btnRight    = document.getElementById('navScrollRight');
-        if (scrollInner && btnLeft && btnRight) {
-            function updateNavArrows() {
-                var atStart = scrollInner.scrollLeft <= 2;
-                var atEnd   = scrollInner.scrollLeft + scrollInner.clientWidth >= scrollInner.scrollWidth - 2;
-                var needsScroll = scrollInner.scrollWidth > scrollInner.clientWidth + 4;
-                btnLeft.classList.toggle('visible',  needsScroll && !atStart);
-                btnRight.classList.toggle('visible', needsScroll && !atEnd);
+        toggle.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                panel.hidden = true;
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.focus();
             }
-            function repositionOpenCategoryDropdowns() {
-                document.querySelectorAll('.desktop-category-item:hover').forEach(positionCategoryDropdown);
-            }
-            btnLeft.addEventListener('click',  function() { scrollInner.scrollBy({ left: -200, behavior: 'smooth' }); });
-            btnRight.addEventListener('click', function() { scrollInner.scrollBy({ left:  200, behavior: 'smooth' }); });
-            scrollInner.addEventListener('scroll', function() {
-                updateNavArrows();
-                repositionOpenCategoryDropdowns();
-            });
-            window.addEventListener('resize', function() {
-                updateNavArrows();
-                repositionOpenCategoryDropdowns();
-            });
-            window.addEventListener('scroll', repositionOpenCategoryDropdowns, true);
-            updateNavArrows();
-        }
-
-        // ── Auto-submit the header search form when a category is picked ──
-        $(document).on('changed.bs.select', '.custom-search-categories-select', function () {
-            this.closest('form').submit();
         });
     });
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.fxh-navitem')) closeAllMegas(null);
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAllMegas(null);
+    });
+
+    /* ---- mobile drawer: open/close, drill-down, focus trap, scroll lock ---- */
+    var drawer = document.getElementById('fxDrawer');
+    var scrim = document.getElementById('fxDrawerScrim');
+    var openBtn = document.getElementById('fxDrawerOpen');
+    var closeBtn = document.getElementById('fxDrawerClose');
+    var backBtn = document.getElementById('fxDrawerBack');
+    var titleEl = document.getElementById('fxDrawerTitle');
+    var defaultTitle = titleEl ? titleEl.textContent : 'Menu';
+    var lastFocused = null;
+
+    function focusables() {
+        if (!drawer) return [];
+        var els = drawer.querySelectorAll('a[href], button:not([disabled]), input, select, [tabindex]:not([tabindex="-1"])');
+        return Array.prototype.filter.call(els, function (el) {
+            return el.getAttribute('aria-hidden') !== 'true' && el.offsetParent !== null;
+        });
+    }
+    function goPanel(name) {
+        drawer.querySelectorAll('[data-fxd-panel]').forEach(function (p) {
+            p.hidden = p.getAttribute('data-fxd-panel') !== name;
+        });
+        var isRoot = name === 'root';
+        backBtn.hidden = isRoot;
+        var active = drawer.querySelector('[data-fxd-panel="' + name + '"]');
+        titleEl.textContent = (!isRoot && active && active.getAttribute('data-fxd-title')) || defaultTitle;
+        drawer.querySelector('.fxd-body').scrollTop = 0;
+        (isRoot ? closeBtn : backBtn).focus();
+    }
+    function openDrawer() {
+        lastFocused = document.activeElement;
+        drawer.hidden = false;
+        scrim.hidden = false;
+        document.documentElement.classList.add('fx-lock');
+        if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+        goPanel('root');
+    }
+    function closeDrawer() {
+        drawer.hidden = true;
+        scrim.hidden = true;
+        document.documentElement.classList.remove('fx-lock');
+        if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+        if (lastFocused && document.contains(lastFocused)) lastFocused.focus();
+    }
+    if (drawer && openBtn) {
+        openBtn.addEventListener('click', openDrawer);
+        closeBtn.addEventListener('click', closeDrawer);
+        scrim.addEventListener('click', closeDrawer);
+        backBtn.addEventListener('click', function () { goPanel('root'); });
+        drawer.querySelectorAll('[data-fxd-go]').forEach(function (btn) {
+            btn.addEventListener('click', function () { goPanel(btn.getAttribute('data-fxd-go')); });
+        });
+        drawer.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { closeDrawer(); return; }
+            if (e.key !== 'Tab') return;
+            var f = focusables();
+            if (!f.length) return;
+            var first = f[0], last = f[f.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
+    }
+
+    /* ---- currency selects (footer + drawer) reuse the existing AJAX path ---- */
+    document.querySelectorAll('.js-fx-currency').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            if (typeof currencyChangeFunction === 'function') currencyChangeFunction(sel.value);
+        });
+    });
+
+    /* ---- mirror live cart/wishlist counts into mobile badges ----
+       cart-details.js / custom.js update #user_cart_count and #wish_count
+       (single canonical IDs kept in the desktop header). The mobile header
+       and bottom nav show mirrors kept in sync via MutationObserver. */
+    function mirrorCount(sourceId, mirrorIds) {
+        var src = document.getElementById(sourceId);
+        if (!src) return;
+        var sync = function () {
+            mirrorIds.forEach(function (id) {
+                var m = document.getElementById(id);
+                if (m) m.textContent = src.textContent;
+            });
+        };
+        new MutationObserver(sync).observe(src, { childList: true, characterData: true, subtree: true });
+        sync();
+    }
+    mirrorCount('user_cart_count', ['fxCartCountM', 'fxCartCountB']);
+    mirrorCount('wish_count', ['fxWishCountM', 'fxWishCountB']);
+})();
 </script>
 
 @auth('customer')
-    <script>
-        // Poll for new notifications so the bell badge and dropdown list update
-        // live in the background — no full page reload needed to see a new
-        // quote reply, chat message, or delivery status update come in.
-        (function () {
-            var badgeParent = document.getElementById('customerNotificationDropdown');
-            var itemsContainer = document.getElementById('customerNotificationItems');
-            if (!badgeParent || !itemsContainer) return;
+<script>
+/* Live notification poll — same endpoints/IDs as before, restyled header. */
+(function () {
+    var badgeParent = document.getElementById('customerNotificationDropdown');
+    var itemsContainer = document.getElementById('customerNotificationItems');
+    if (!badgeParent || !itemsContainer) return;
 
-            function renderBadge(count) {
-                var existing = badgeParent.querySelector('.notification-badge');
-                if (count > 0) {
-                    if (existing) {
-                        existing.textContent = count;
-                    } else {
-                        var span = document.createElement('span');
-                        span.className = 'notification-badge width-22 height-22 bg-primary position-absolute d-flex align-items-center justify-content-center rounded-circle left-12 top-8 font-weight-bold font-size-12';
-                        span.textContent = count;
-                        badgeParent.appendChild(span);
-                    }
-                } else if (existing) {
-                    existing.remove();
-                }
+    function renderBadge(count) {
+        var existing = badgeParent.querySelector('.fxh-count');
+        if (count > 0) {
+            if (existing) { existing.textContent = count; }
+            else {
+                var span = document.createElement('span');
+                span.className = 'fxh-count notification-badge';
+                span.textContent = count;
+                badgeParent.appendChild(span);
             }
+        } else if (existing) { existing.remove(); }
+    }
 
-            function pollCustomerNotifications() {
-                fetch('{{ route('customer-notifications.poll') }}', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    credentials: 'same-origin',
-                    cache: 'no-store',
-                }).then(function (response) {
-                    return response.ok ? response.json() : null;
-                }).then(function (data) {
-                    if (!data) return;
-                    renderBadge(data.count);
-                    itemsContainer.innerHTML = data.html;
-                }).catch(function () {
-                    // Silent — a missed poll just tries again next interval.
-                });
-            }
+    function pollCustomerNotifications() {
+        fetch('{{ route('customer-notifications.poll') }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+            cache: 'no-store'
+        }).then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+              if (!data) return;
+              renderBadge(data.count);
+              itemsContainer.innerHTML = data.html;
+          }).catch(function () { /* silent: next tick retries */ });
+    }
 
-            setInterval(pollCustomerNotifications, 8000);
+    setInterval(pollCustomerNotifications, 8000);
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') pollCustomerNotifications();
+    });
 
-            // Re-sync immediately on returning to this tab instead of waiting for the
-            // next interval tick — a background tab throttles setInterval anyway, so
-            // without this a badge can sit stale for well over 8s until you switch back.
-            document.addEventListener('visibilitychange', function () {
-                if (document.visibilityState === 'visible') {
-                    pollCustomerNotifications();
-                }
-            });
-
-            // "Mark all as read" is submitted via AJAX instead of a normal
-            // form POST, because a normal POST navigates the whole browser
-            // tab to the notifications URL — if the session/CSRF token had
-            // expired in the background that dumped the user on Laravel's
-            // raw "419 | Page Expired" page. Delegate the listener because
-            // itemsContainer's innerHTML (and the form inside it) is
-            // replaced wholesale on every poll.
-            itemsContainer.addEventListener('submit', function (e) {
-                var form = e.target.closest('.customer-notification-mark-all-form');
-                if (!form) return;
-                e.preventDefault();
-
-                var tokenInput = form.querySelector('input[name="_token"]');
-                fetch(form.getAttribute('action'), {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': tokenInput ? tokenInput.value : '',
-                    },
-                    credentials: 'same-origin',
-                }).then(function (response) {
-                    if (!response.ok) {
-                        // Session/token genuinely expired — refresh the page
-                        // to establish a fresh one instead of showing 419.
-                        window.location.reload();
-                        return;
-                    }
-                    pollCustomerNotifications();
-                }).catch(function () {
-                    // Network hiccup — leave the list as-is, next poll will sync it.
-                });
-            });
-        })();
-    </script>
+    itemsContainer.addEventListener('submit', function (e) {
+        var form = e.target.closest('.customer-notification-mark-all-form');
+        if (!form) return;
+        e.preventDefault();
+        var tokenInput = form.querySelector('input[name="_token"]');
+        fetch(form.getAttribute('action'), {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': tokenInput ? tokenInput.value : ''
+            },
+            credentials: 'same-origin'
+        }).then(function (r) {
+            if (!r.ok) { window.location.reload(); return; }
+            pollCustomerNotifications();
+        }).catch(function () { /* leave list as-is */ });
+    });
+})();
+</script>
 @endauth

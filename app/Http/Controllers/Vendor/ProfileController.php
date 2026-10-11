@@ -76,6 +76,9 @@ class ProfileController extends BaseController
      */
     public function update(VendorRequest $request, string|int $id): JsonResponse
     {
+        if ((int)auth('seller')->id() !== (int)$id) {
+            return response()->json(['message' => translate('access_denied')], 403);
+        }
 
         $vendor = $this->vendorRepo->getFirstWhere(['id' => $id]);
         $this->vendorRepo->update(id: $id, data: $this->vendorService->getVendorDataForUpdate(request: $request, vendor: $vendor));
@@ -89,6 +92,9 @@ class ProfileController extends BaseController
      */
     public function updatePassword(VendorPasswordRequest $request, string|int $id): JsonResponse
     {
+        if ((int)auth('seller')->id() !== (int)$id) {
+            return response()->json(['message' => translate('access_denied')], 403);
+        }
         $this->vendorRepo->update(id: $id, data: $this->vendorService->getVendorPasswordData(request: $request));
         return response()->json(['message' => translate('password_updated_successfully')]);
     }

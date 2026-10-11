@@ -60,7 +60,7 @@
                     @if(!$showTierSections)
                     <div class="table-responsive">
                         <table id="datatable"
-                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start">
+                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                             <thead class="thead-light thead-50 text-capitalize">
                             <tr>
                                 <th>{{ translate('SL') }}</th>
@@ -118,7 +118,7 @@
                     <span class="ml-auto text-muted small">{{ $tierProductCounts[$vt->id] ?? 0 }}/{{ $vtLimit }} {{ translate('slots') }}</span>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th>{{ translate('SL') }}</th>
@@ -167,7 +167,7 @@
                     <em>{{ translate('Other') }}</em>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th>{{ translate('SL') }}</th>

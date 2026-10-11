@@ -131,10 +131,8 @@ class RegisterController extends BaseController
                     ? 'OTP sent to your email'
                     : 'OTP generated (email delivery may be delayed)',
                 'otp_expires_at' => $otpExpiry->getTimestamp() * 1000,
-                // Local dev only: mail is rarely configured locally, so surface the OTP
-                // directly instead of leaving the tester stuck with no way to receive it.
-                // Never sent in any other environment.
-                'otp' => app()->environment('local') ? $otp : null,
+                // Never expose the OTP in API responses — read it from the mail
+                // driver / logs during local development instead.
             ]);
         }
 
@@ -324,7 +322,6 @@ class RegisterController extends BaseController
                 ? 'New OTP sent'
                 : 'OTP regenerated (email delivery may be delayed)',
             'otp_expires_at' => $otpExpiry->getTimestamp() * 1000,
-            'otp' => app()->environment('local') ? $newOtp : null,
         ]);
     }
 }

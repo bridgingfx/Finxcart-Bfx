@@ -168,7 +168,7 @@
                 <p class="text-muted small mb-0">{{ translate('Trial_activations_and_paid_transactions_are_recorded_for_audit.') }}</p>
             </div>
             @if($paymentHistory->count())
-                <div class="table-responsive">
+                <div class="table-responsive fxv-scroll-x">
                     <table class="table table-hover table-borderless table-thead-bordered table-nowrap card-table payment-table mb-0">
                         <thead class="thead-light">
                             <tr>

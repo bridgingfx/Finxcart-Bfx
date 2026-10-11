@@ -15,8 +15,7 @@
     <meta name="yandex-verification" content="{{getWebConfig('yandex_webmaster_code')}}">
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {{-- FinXCart redesign: Apple system font stack only — no Google Fonts. --}}
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $web_config['fav_icon']['path'] }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ $web_config['fav_icon']['path'] }}">
     {{-- Non-critical CSS (custom scrollbars, blog slider, image-zoom, lightbox/gallery modals):
@@ -60,10 +59,7 @@
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/style.css?v-3') }}">
 
 	<!-- Custom Theme Style here -->
-	{{-- Google Fonts is an external round trip that doesn't affect layout (fallback font is
-	     shown immediately, display=swap was already set) - safe to load non-render-blocking. --}}
-	<link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
-	<noscript><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&amp;display=swap" rel="stylesheet"></noscript>
+	{{-- FinXCart redesign: Apple system font stack only — Google Fonts removed. --}}
 
 	<!-- CSS Implementing Plugins -->
 	<link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/customtheme/vendor/font-awesome/css/fontawesome-all.min.css') }}">
@@ -114,12 +110,13 @@
     </style>
 
     <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/custom.css?v-12')}}">
+    <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/fx-redesign.css')}}">
     <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/vendor/aos/dist/aos.css')}}">
 
     {!! getSystemDynamicPartials(type: 'analytics_script') !!}
 </head>
 
-<body class="toolbar-enabled">
+<body class="fx toolbar-enabled">
 @auth
     @if(Auth::id() !== 36)
         <div class="floating-chat-button">

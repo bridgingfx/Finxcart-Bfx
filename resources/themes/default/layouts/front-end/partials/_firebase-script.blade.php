@@ -23,6 +23,11 @@
      (it's only used for FCM push notifications and OTP recaptcha, not first-paint/interactivity). --}}
 window.addEventListener('load', function () {
     try {
+        if (typeof firebase === 'undefined') {
+            // Firebase CDN failed to load (offline/blocked). Push notifications
+            // stay disabled; the rest of the page is unaffected.
+            return;
+        }
         let firebaseConfigurationConfig = $('#Firebase_Configuration_Config');
         var firebaseConfig = {
             apiKey: firebaseConfigurationConfig.data('api-key'),

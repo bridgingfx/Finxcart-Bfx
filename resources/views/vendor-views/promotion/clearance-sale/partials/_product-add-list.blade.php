@@ -33,7 +33,7 @@
         <div class="card-body">
             <div class="table-responsive datatable-custom">
                 <table
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
+                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 fxv-rc">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>
                         <th>{{ translate('sl') }}</th>
@@ -124,7 +124,7 @@
         <div class="card-body p-0">
             <div class="table-responsive datatable-custom">
                 <table
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
+                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 fxv-rc">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>
                         <th>{{ translate('sl') }}</th>
@@ -154,8 +154,8 @@
                     <tbody>
                     @foreach($stockClearanceProduct as $key => $clearanceProduct)
                         <tr>
-                            <td>{{ $key+1 }}</td>
-                            <td>
+                            <td data-label="{{ translate('sl') }}">{{ $key+1 }}</td>
+                            <td data-label="{{translate('name')}}">
                                 <a href="{{ route('vendor.products.view', [$clearanceProduct?->product['id']]) }}" class="title-color hover-c1 d-flex align-items-center gap-10">
                                     <img src="{{ getStorageImages(path:$clearanceProduct?->product?->thumbnail_full_url , type: 'backend-product') }}"
                                          class="rounded border-gray-op aspect-1 object-fit-cover" alt="" width="60">
@@ -187,7 +187,7 @@
                                     </div>
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('unit_price') }}">
                                 @if($clearanceConfig?->discount_type == 'flat')
                                     @php($discountAmount = $clearanceProduct?->product?->unit_price - ($clearanceProduct?->product?->unit_price * $clearanceProduct->discount_amount) / 100)
                                 @else
@@ -209,7 +209,7 @@
                                     </div>
                                 @endif
                             </td>
-                            <td>
+                            <td data-label="{{ translate('discount_amount') }}">
                                 <div class="d-flex justify-content-center align-items-center gap-2">
                                     @if($clearanceConfig?->discount_type == 'flat')
                                         <div class="text-center">
@@ -238,7 +238,7 @@
                                     @endif
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('discount_price') }}">
                                 <div class="text-center">
                                     @if($clearanceConfig?->discount_type == 'flat')
                                         {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $clearanceProduct?->product?->unit_price - ($clearanceProduct?->product?->unit_price * $clearanceProduct->discount_amount) / 100), currencyCode: getCurrencyCode()) }}
@@ -248,7 +248,7 @@
                                     @endif
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{ translate('status') }}">
                                 <div class="d-flex justify-content-center">
                                     <form action="{{ route('vendor.clearance-sale.product-status-update') }}" data-from="clearance-sale"
                                           method="post" id="clearance-sale-product-status{{ $clearanceProduct['id'] }}-form" data-id="clearance-sale-product-status-form" novalidate>
@@ -271,7 +271,7 @@
                                     </form>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{translate('action')}}" class="fxv-rc__actions">
                                 <div class="d-flex justify-content-center">
                                     <a title="Delete" class="btn btn-outline-danger square-btn stock-clearance-delete-data" href="javascript:" data-id="clearance-product-{{ $clearanceProduct->id }}">
                                         <i class="tio-delete"></i>

@@ -23,7 +23,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table fxv-rc">
                             <thead>
                                 <tr>
                                     <th>{{ translate('bank_Name') }}</th>
@@ -37,18 +37,18 @@
                             <tbody>
                                 @forelse($banks as $bank)
                                     <tr>
-                                        <td>{{ $bank->bank_name }}</td>
-                                        <td>{{ $bank->holder_name }}</td>
-                                        <td>{{ $bank->account_no }}</td>
-                                        <td>{{ $bank->branch ?: '—' }}</td>
-                                        <td>
+                                        <td data-label="{{ translate('bank_Name') }}">{{ $bank->bank_name }}</td>
+                                        <td data-label="{{ translate('holder_name') }}">{{ $bank->holder_name }}</td>
+                                        <td data-label="{{ translate('account_no') }}">{{ $bank->account_no }}</td>
+                                        <td data-label="{{ translate('branch') }}">{{ $bank->branch ?: '—' }}</td>
+                                        <td data-label="{{ translate('status') }}">
                                             @if($bank->is_active)
                                                 <span class="badge bg-success">{{ translate('active') }}</span>
                                             @else
                                                 <span class="badge bg-secondary">{{ translate('inactive') }}</span>
                                             @endif
                                         </td>
-                                        <td class="text-end">
+                                        <td class="text-end fxv-rc__actions">
                                             <div class="d-flex gap-2 justify-content-end">
                                                 @if(!$bank->is_active)
                                                     <form action="{{ route('vendor.business-settings.bank.set-active', $bank->id) }}" method="post" novalidate>

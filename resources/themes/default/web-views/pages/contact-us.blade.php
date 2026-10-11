@@ -4,20 +4,37 @@
 
 @push('css_or_js')
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/plugin/intl-tel-input/css/intlTelInput.css') }}">
+    <style>
+        .fx-page { padding: 32px 0 56px; }
+        .fx-page-header { text-align: center; max-width: 640px; margin: 0 auto 8px; }
+        .fx-eyebrow {
+            display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: #F3A329; margin: 0 0 8px;
+        }
+        .fx-page-title {
+            font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em;
+            color: #203F60; margin: 0 0 8px;
+        }
+        .fx-page-sub { color: #5B6674; font-size: 16px; margin: 0; }
+        @media (max-width: 767px) {
+            .fx-contact-submit { width: 100%; min-height: 48px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+    </style>
 @endpush
 
 @section('content')
-@php($supportEmail = 'support@finxcart.com')
-<div class="__inline-58">
-    <div class="container rtl">
-        <div class="row">
-            <div class="col-md-12 contact-us-page sidebar_heading text-center mb-2">
-                <h1 class="h3 mb-0 headerTitle">{{ translate('contact_us') }}</h1>
-            </div>
+@php($supportEmail = getWebConfig(name: 'company_email') ?: 'support@finxcart.com')
+<div class="fx-page">
+    <div class="fx-container">
+        <div class="fx-page-header">
+            <p class="fx-eyebrow">{{ translate('contact_us') }}</p>
+            <h1 class="fx-page-title">{{ translate('send_us_a_message') }}</h1>
+            <p class="fx-page-sub">{{ translate('we_usually_reply_within_one_business_day') }}</p>
         </div>
-    </div>
 
-    <div class="container rtl text-align-direction">
         <div class="row py-4 gy-3">
             <div class="col-md-4 mb-3 mb-md-0">
                 <div class="card h-100">
@@ -25,7 +42,12 @@
                         <i class="tio-call text-primary fs-24"></i>
                         <div>
                             <h6 class="mb-1">{{ translate('call_us') }}</h6>
-                            <a href="{{ 'tel:'.$web_config['phone'] }}">{{ getWebConfig(name: 'company_phone') }}</a>
+                            @php($companyPhone = getWebConfig(name: 'company_phone'))
+                            @if($companyPhone)
+                                <a href="{{ 'tel:'.$companyPhone }}">{{ $companyPhone }}</a>
+                            @else
+                                <span class="text-muted">{{ translate('phone_number_not_listed') }}</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -47,7 +69,12 @@
                         <i class="tio-poi text-primary fs-24"></i>
                         <div>
                             <h6 class="mb-1">{{ translate('Find_us') }}</h6>
-                            <p class="mb-0">{{ getWebConfig(name: 'shop_address') }}</p>
+                            @php($shopAddress = getWebConfig(name: 'shop_address'))
+                            @if($shopAddress)
+                                <p class="mb-0">{{ $shopAddress }}</p>
+                            @else
+                                <p class="mb-0 text-muted">{{ translate('address_not_listed') }}</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -58,7 +85,7 @@
                 <img class="for-contact-image" src="{{theme_asset(path: "public/assets/front-end/png/contact.png")}}" alt="">
             </div>
             <div class="col-lg-6">
-                <div class="card">
+                <div class="card fx-form-card">
                     <div class="card-body for-send-message">
                         <h2 class="h4 mb-4 text-center font-semibold text-black">{{translate('send_us_a_message')}}</h2>
                         <form action="{{route('contact.store')}}" method="POST" id="getResponse" novalidate>
@@ -127,7 +154,7 @@
                                 </div>
                             @endif
                             <div class=" ">
-                                <button class="btn btn--primary" type="submit" >{{translate('send')}}</button>
+                                <button class="btn btn--primary fx-contact-submit" type="submit" >{{translate('send')}}</button>
                             </div>
                         </form>
                     </div>

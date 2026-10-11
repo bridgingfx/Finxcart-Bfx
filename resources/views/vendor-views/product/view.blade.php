@@ -406,7 +406,7 @@
                         <div class="card-body p-0">
                             <div class="table-responsive datatable-custom">
                                 <table
-                                    class="table table-borderless table-nowrap table-align-middle card-table w-100 text-start">
+                                    class="table table-borderless table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                                     <thead class="thead-light thead-50 text-capitalize">
                                     <tr>
                                         <th class="text-center">{{ translate('SKU') }}</th>
@@ -418,15 +418,15 @@
                                     <tbody>
                                     @foreach(json_decode($product['variation']) as $key=>$value)
                                         <tr>
-                                            <td class="text-center">
+                                            <td class="text-center" data-label="{{ translate('SKU') }}">
                                                 <span class="py-1">{{$value->sku}}</span>
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center" data-label="{{ translate('variation_wise_price') }}">
                                                 <span class="py-1">
                                                     {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $value->price), currencyCode: getCurrencyCode())}}
                                                 </span>
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center" data-label="{{ translate('stock') }}">
                                                 <span class="py-1">{{($value->qty)}}</span>
                                             </td>
                                             <td></td>
@@ -446,7 +446,7 @@
                         <div class="card-body p-0">
                             <div class="table-responsive datatable-custom">
                                 <table
-                                    class="table table-borderless table-nowrap table-align-middle card-table w-100 text-start">
+                                    class="table table-borderless table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                                     <thead class="thead-light thead-50 text-capitalize">
                                     <tr>
                                         <th class="text-center">{{ translate('SL') }}</th>
@@ -461,23 +461,23 @@
                                     <tbody>
                                     @foreach($product->digitalVariation as $key=> $variation)
                                         <tr>
-                                            <td class="text-center">
+                                            <td class="text-center" data-label="{{ translate('SL') }}">
                                                 {{ $key+1 }}
                                             </td>
-                                            <td class="text-center text-capitalize">
+                                            <td class="text-center text-capitalize" data-label="{{ translate('Variation_Name') }}">
                                                 <span class="py-1">{{ $variation->variant_key ?? '-' }}</span>
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center" data-label="{{ translate('SKU') }}">
                                                 <span class="py-1">{{$variation->sku}}</span>
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center" data-label="{{ translate('price') }}">
                                                 <span class="py-1">
                                                     {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $variation->price), currencyCode: getCurrencyCode())}}
                                                 </span>
                                             </td>
 
                                             @if($product->digital_product_type == 'ready_product')
-                                                <td class="text-center">
+                                                <td class="text-center" data-label="{{ translate('Action') }}">
                                                     <span class="btn p-0 getDownloadFileUsingFileUrl" data-toggle="tooltip" title="{{ !is_null($variation->file_full_url['path']) ? translate('download') : translate('File_not_found') }}" data-file-path="{{ $variation->file_full_url['path'] }}" download>
                                                         <img src="{{ asset(path: 'public/assets/back-end/img/icons/download-green.svg') }}" alt="">
                                                     </span>
@@ -582,7 +582,7 @@
             @php($vendorReviewReplyStatus = getWebConfig('vendor_review_reply_status') ?? 0)
             <div class="table-responsive datatable-custom">
                 <table
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start">
+                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>
                         <th>{{ translate('SL') }}</th>
@@ -603,11 +603,11 @@
                     @foreach($reviews as $key=>$review)
                         @if(isset($review->customer))
                             <tr>
-                                <td>{{ $reviews->firstItem()+$key}}</td>
-                                <td class="text-center">
+                                <td data-label="{{ translate('SL') }}">{{ $reviews->firstItem()+$key}}</td>
+                                <td class="text-center" data-label="{{ translate('Review_ID') }}">
                                     {{ $review->id }}
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('reviewer') }}">
                                     @if($review->customer)
                                         <div class="d-flex align-items-center">
                                             <div class="avatar rounded">
@@ -630,13 +630,13 @@
                                         <label class="badge badge-soft-danger">{{ translate('customer_removed') }}</label>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('rating') }}">
                                     <div class="d-flex align-items-center gap-2 text-primary">
                                         <i class="tio-star"></i>
                                         <span>{{ $review->rating }}</span>
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('review') }}">
                                     <div class="text-wrap max-w-400 min-w-200">
                                         <p>
                                             {{ $review['comment']}}
@@ -654,16 +654,16 @@
                                     </div>
                                 </td>
                                 @if($vendorReviewReplyStatus)
-                                <td>
+                                <td data-label="{{ translate('Reply') }}">
                                     <div class="line--limit-2 max-w-250 word-break">
                                         {{ $review?->reply?->reply_text ?? '-' }}
                                     </div>
                                 </td>
                                 @endif
-                                <td class="text-center">
+                                <td class="text-center" data-label="{{ translate('date') }}">
                                     {{ date('d M Y H:i:s', strtotime($review['created_at'])) }}
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('Status') }}">
                                     <form action="{{ route('vendor.reviews.update-status', [$review['id'], $review->status ? 0 : 1]) }}"
                                         method="get" id="reviews-status{{ $review['id']}}-form" novalidate>
                                         <label class="switcher mx-auto">
@@ -683,7 +683,7 @@
                                         </label>
                                     </form>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('action') }}" class="fxv-rc__actions">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <div data-toggle="modal" data-target="#review-view-for-{{ $review['id'] }}">
                                             <a class="btn btn-outline-info btn-sm square-btn" title="{{ translate('View') }}" data-toggle="tooltip">

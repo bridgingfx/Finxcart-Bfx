@@ -67,7 +67,7 @@
 
                     <div class="table-responsive">
                         <table id="datatable"
-                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start">
+                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                             <thead class="thead-light thead-50 text-capitalize">
                                 <tr>
                                     <th>{{ translate('SL') }}</th>
@@ -83,8 +83,8 @@
                             <tbody>
                             @foreach($products as $key => $product)
                                 <tr>
-                                    <th scope="row">{{ $products->firstItem()+$key}}</th>
-                                    <td>
+                                    <th scope="row" data-label="{{ translate('SL') }}">{{ $products->firstItem()+$key}}</th>
+                                    <td data-label="{{ translate('product_Name') }}">
                                         <a href="{{route('vendor.products.view',[$product['id']]) }}"
                                            class="media align-items-center gap-2">
                                             <img loading="lazy" src="{{ getStorageImages(path:$product->thumbnail_full_url,type: 'backend-product')}}"
@@ -95,10 +95,10 @@
                                             </span>
                                         </a>
                                     </td>
-                                    <td>
+                                    <td data-label="{{ translate('unit_price') }}">
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['unit_price']), currencyCode: getCurrencyCode()) }}
                                     </td>
-                                    <td>
+                                    <td data-label="{{ translate('verify_status') }}">
                                         @if($product->request_status == 0)
                                             <label class="badge badge-soft-warning">
                                                 {{ translate('new_Request') }}
@@ -113,7 +113,7 @@
                                             </label>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td data-label="{{ translate('quantity') }}">
                                         <div class="d-flex align-items-center justify-content-center">
                                             {{ $product['current_stock']}}
                                             <button class="btn py-0 px-2 fz-18 action-update-product-quantity"
@@ -126,10 +126,10 @@
                                             </button>
                                         </div>
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('orders') }}">
                                         {{ $product['order_details_count']}}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('active_Status') }}">
                                         <form action="{{route('vendor.products.status-update') }}" method="post"
                                               id="product-status{{ $product['id']}}-form"
                                               class="admin-product-status-form" novalidate>
@@ -152,7 +152,7 @@
                                             </label>
                                         </form>
                                     </td>
-                                    <td>
+                                    <td data-label="{{ translate('action') }}" class="fxv-rc__actions">
                                         <div class="d-flex justify-content-center gap-2">
                                             <a class="btn btn-outline-info btn-sm square-btn"
                                                title="{{ translate('barcode') }}"

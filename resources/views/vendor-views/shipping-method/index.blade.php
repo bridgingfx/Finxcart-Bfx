@@ -141,7 +141,7 @@ use Illuminate\Support\Facades\Session;
                 </div>
                 <div class="table-responsive">
                     <table id="datatable"
-                           class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table text-start">
+                           class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table text-start fxv-rc">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th>{{translate('SL')}}</th>
@@ -155,16 +155,16 @@ use Illuminate\Support\Facades\Session;
                         <tbody>
                         @foreach($shippingMethods as $k=>$method)
                             <tr>
-                                <th>{{$shippingMethods->firstItem()+$k}}</th>
-                                <td>{{$method['title']}}</td>
-                                <td>
+                                <th scope="row" data-label="{{translate('SL')}}">{{$shippingMethods->firstItem()+$k}}</th>
+                                <td data-label="{{translate('title')}}">{{$method['title']}}</td>
+                                <td data-label="{{translate('duration')}}">
                                     {{$method['duration']}}
                                 </td>
-                                <td>
+                                <td data-label="{{translate('cost')}}">
                                     {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $method['cost']), currencyCode: getCurrencyCode(type: 'default'))}}
                                 </td>
 
-                                <td>
+                                <td data-label="{{translate('status')}}">
                                     <form action="{{route('vendor.business-settings.shipping-method.update-status')}}" method="post" id="shipping-methods{{$method['id']}}-form" class="shipping_methods_form" novalidate>
                                         @csrf
                                         <input type="hidden" name="id" value="{{$method['id']}}">
@@ -184,7 +184,7 @@ use Illuminate\Support\Facades\Session;
                                         </label>
                                     </form>
                                 </td>
-                                <td>
+                                <td data-label="{{translate('action')}}" class="fxv-rc__actions">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <a  class="btn btn-outline--primary btn-sm square-btn"
                                             title="{{translate('edit')}}"

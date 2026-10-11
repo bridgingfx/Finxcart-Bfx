@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="table-responsive datatable-custom">
-                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap align-middle card-table w-100">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap align-middle fxa-rc card-table w-100">
                         <thead class="thead-light thead-50 text-capitalize">
                             <tr>
                                 <th>{{ translate('SL') }}</th>
@@ -142,13 +142,13 @@
                         <tbody>
                         @foreach ($reviews as $key => $review)
                             <tr>
-                                <td>
+                                <td data-label="{{ translate('SL') }}">
                                     {{ $reviews->firstItem()+$key }}
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" data-label="{{ translate('Review_ID') }}">
                                     {{ $review->id }}
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('product') }}">
                                     @if(isset($review->product))
                                         <a href="{{$review['product_id'] ? route('admin.products.view', ['addedBy'=>($review->product->added_by =='seller'?'vendor' : 'in-house'),'id'=>$review->product->id]) : 'javascript:'}}"
                                            class="text-dark text-hover-primary">
@@ -160,7 +160,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('customer') }}">
                                     @if ($review->customer)
                                         <a href="{{ route('admin.customer.view', [$review->customer_id]) }}"
                                            class="text-dark text-hover-primary">
@@ -170,14 +170,14 @@
                                         <label class="badge badge-soft-danger">{{ translate('customer_removed') }}</label>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('rating') }}">
                                     <label class="badge badge-info text-bg-info">
                                             <span class="fs-12 d-flex align-items-center gap-1">{{ $review->rating }}
                                                 <i class="fi fi-sr-star"></i>
                                             </span>
                                     </label>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('review') }}">
                                     <div class="gap-1">
                                         <div class="fs-12 mb-1">
                                             {{ $review->comment ? Str::limit($review->comment, 35) : translate('no_comment_found') }}
@@ -197,13 +197,13 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('Reply') }}">
                                     <div class="line-2 max-w-250 word-break">
                                         {{ $review?->reply?->reply_text ?? '-' }}
                                     </div>
                                 </td>
-                                <td>{{ date('d M Y', strtotime($review->created_at)) }}</td>
-                                <td>
+                                <td data-label="{{ translate('date') }}">{{ date('d M Y', strtotime($review->created_at)) }}</td>
+                                <td data-label="{{ translate('status') }}">
                                     <form action="{{ route('admin.reviews.status') }}"
                                           method="post" id="reviews-status{{$review['id']}}-form"
                                           class="no-reload-form" novalidate>
@@ -228,7 +228,7 @@
                                         </label>
                                     </form>
                                 </td>
-                                <td>
+                                <td data-label="{{ translate('action') }}" class="fxa-rc__actions">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <div data-bs-toggle="modal" data-bs-target="#review-view-for-{{ $review['id'] }}">
                                             <a class="btn btn-outline-info icon-btn" title="{{ translate('View') }}" data-bs-toggle="tooltip">

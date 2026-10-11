@@ -19,6 +19,13 @@ class AdminChatController extends Controller
                 abort(403, 'Unauthorized access');
             }
 
+            // Only the super admin (role 1) may use the support proxy login —
+            // it signs into the storefront as another user, so it must never be
+            // available to every staff account.
+            if ((int)Auth::guard('admin')->user()->admin_role_id !== 1) {
+                abort(403, 'Unauthorized access');
+            }
+
             // Find the Support Admin proxy user
             $supportUser = User::find(self::SUPPORT_ADMIN_ID);
             

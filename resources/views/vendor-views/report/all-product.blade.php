@@ -105,7 +105,7 @@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive" id="products-table">
-                    <table class="table table-hover __table table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">
+                    <table class="table table-hover __table table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 fxv-rc {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th>{{translate('SL')}}</th>
@@ -135,28 +135,28 @@
                         <tbody>
                         @foreach($products as $key=>$product)
                             <tr>
-                                <td>{{ $products->firstItem()+$key }}</td>
-                                <td>
+                                <td data-label="{{translate('SL')}}">{{ $products->firstItem()+$key }}</td>
+                                <td data-label="{{translate('product_Name')}}">
                                     <a href="{{route('vendor.products.view',[$product['id']])}}"
                                        class="media align-items-center gap-2 w-max-content">
                                         {{ \Illuminate\Support\Str::limit($product->name, 20) }}
                                     </a>
                                 </td>
-                                <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product->unit_price), currencyCode: getCurrencyCode()) }}</td>
-                                <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: isset($product->orderDetails[0]->total_sold_amount) ? $product->orderDetails[0]->total_sold_amount : 0), currencyCode: getCurrencyCode()) }}</td>
-                                <td>
+                                <td data-label="{{translate('product_Unit_Price')}}">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product->unit_price), currencyCode: getCurrencyCode()) }}</td>
+                                <td data-label="{{translate('total_Amount_Sold')}}">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: isset($product->orderDetails[0]->total_sold_amount) ? $product->orderDetails[0]->total_sold_amount : 0), currencyCode: getCurrencyCode()) }}</td>
+                                <td data-label="{{translate('total_Quantity_Sold')}}">
                                     {{ isset($product->orderDetails[0]->product_quantity) ? $product->orderDetails[0]->product_quantity : 0 }}
                                 </td>
-                                <td>
+                                <td data-label="{{translate('average_Product_Value')}}">
                                     {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: (
                                             isset($product->orderDetails[0]->total_sold_amount) ? $product->orderDetails[0]->total_sold_amount : 0) /
                                             (isset($product->orderDetails[0]->product_quantity) ? $product->orderDetails[0]->product_quantity : 1)
                                         ), currencyCode: getCurrencyCode()) }}
                                 </td>
-                                <td>
+                                <td data-label="{{translate('current_Stock_Amount')}}">
                                     {{ $product->product_type == 'digital' ? ($product->status==1 ? translate('available') : translate('not_available')) : $product->current_stock }}
                                 </td>
-                                <td>
+                                <td data-label="{{translate('average_Ratings')}}">
                                     <div class="d-flex align-items-center">
                                         <div class="rating mr-1"><i class="tio-star"></i>
                                             {{count($product->rating)>0?number_format($product->rating[0]->average, 2, '.', ' '):0}}

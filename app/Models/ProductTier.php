@@ -41,6 +41,7 @@ class ProductTier extends Model
         'is_active',
         'featured_product_quota',
         'is_featured_vendor',
+        'monthly_credits', // <-- FinXCart monetization 2026-10-10
     ];
 
     protected $casts = [
@@ -51,6 +52,7 @@ class ProductTier extends Model
         'api_integrations' => 'boolean', // Cast the Yes/No field to boolean
         'featured_product_quota' => 'integer',
         'is_featured_vendor' => 'boolean',
+        'monthly_credits' => 'integer', // <-- FinXCart monetization 2026-10-10
         // 'features' => 'json', // Remove this line
     ];
     // --- Relationships ---

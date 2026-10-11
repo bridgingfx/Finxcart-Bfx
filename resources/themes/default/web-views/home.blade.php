@@ -1,9 +1,10 @@
 @extends('layouts.front-end.app')
 
-@section('title', $web_config['company_name'].' '.translate('online_Shopping').' | '.$web_config['company_name'].' '.translate('ecommerce'))
+@section('title', ($web_config['company_name'] ?? 'FinXCart').' | '.translate('Business tools, software and expert services'))
 
 @push('css_or_js')
     <meta name="robots" content="index, follow">
+    <meta name="description" content="{{ translate('FinXCart is a marketplace for business tools and services: fintech solutions, software, integrations and expert providers. Browse the catalog and compare listings.') }}">
     <meta property="og:image" content="{{$web_config['web_logo']['path']}}"/>
     <meta property="og:url" content="{{url('/')}}">
     <meta name="twitter:url" content="{{url('/')}}">
@@ -22,53 +23,75 @@
         "sameAs": []
     }
     </script>
-    <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/home.css')}}"/>
-    <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/owl.carousel.min.css') }}">
-    <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/owl.theme.default.min.css') }}">
+    <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/fx-home.css')}}"/>
 @endpush
 
 @section('content')
-    <div class="__inline-61">
-        @php($decimalPointSettings = !empty(getWebConfig(name: 'decimal_point_settings')) ? getWebConfig(name: 'decimal_point_settings') : 0)
+    @php
+        // All data comes from the controller (HomeController::default_theme). No model
+        // queries here and no fixture-specific slugs — sections render only when
+        // real inventory exists, with an honest empty state otherwise.
+        $categoryPool = isset($categories) ? $categories : collect();
+        if ($categoryPool instanceof \Illuminate\Pagination\AbstractPaginator) {
+            $categoryPool = $categoryPool->getCollection();
+        }
+        $tileCategories = collect($categoryPool)
+            ->filter(fn($c) => (int)($c->product_count ?? 0) > 0)
+            ->sortBy('priority')->values()->take(8);
+        $populatedCategoryCount = collect($categoryPool)
+            ->filter(fn($c) => (int)($c->product_count ?? 0) > 0)->count();
 
-        @include('web-views.partials._home-top-slider',['bannerTypeMainBanner'=>$bannerTypeMainBanner])
+        $recommended = (function ($value) {
+            if ($value instanceof \Illuminate\Pagination\AbstractPaginator) {
+                return collect($value->items());
+            }
+            return collect($value ?? []);
+        })(isset($latestProductsList) ? $latestProductsList : collect());
+        $recommended = $recommended->take(8);
+        $newArrivalsRaw = (function ($value) {
+            if ($value instanceof \Illuminate\Pagination\AbstractPaginator) {
+                return collect($value->items());
+            }
+            return collect($value ?? []);
+        })(isset($newArrivalProducts) ? $newArrivalProducts : null);
+        $newArrivals = $newArrivalsRaw->isNotEmpty() ? $newArrivalsRaw->take(8) : $recommended->take(8);
+        $brandList = isset($brands)
+            ? collect($brands)->filter(fn($b) => (int)($b->products_count ?? $b->product_count ?? 1) > 0)->take(8)
+            : collect();
 
-        @include('web-views.partials._trading_view')
+        // Promo tiles come from HomeController::default_theme() — no queries here.
+        $promoTiles = isset($promoTiles) ? $promoTiles : [];
 
-        @include('web-views.partials._products')
+        $hasInventory = $tileCategories->isNotEmpty() || $recommended->isNotEmpty();
+    @endphp
 
-        @include('web-views.partials._buy_sell_service_section')
+    <div class="fx-market">
+        @include('web-views.partials._fx-home-hero', ['heroChips' => $tileCategories->take(6), 'fxStats' => isset($fxStats) ? $fxStats : null, 'populatedCategoryCount' => $populatedCategoryCount])
 
-        @include('web-views.partials._featured_products')
-
-        @if ($flashDeal['flashDeal'] && $flashDeal['flashDealProducts'] && count($flashDeal['flashDealProducts']) > 0)
-            @include('web-views.partials._flash-deal', ['decimal_point_settings'=>$decimalPointSettings])
+        @if($hasInventory)
+            @include('web-views.partials._fx-home-categories', ['tileCategories' => $tileCategories])
+            @include('web-views.partials._fx-home-recommended', ['recommended' => $recommended])
+            @include('web-views.partials._fx-home-promos', ['promoTiles' => $promoTiles])
+            @include('web-views.partials._fx-home-new', ['newArrivals' => $newArrivals])
+            @include('web-views.partials._fx-home-brands', ['brandList' => $brandList])
+            @include('web-views.partials._fx-home-providers')
+        @else
+            <section class="fx-home__section">
+                <div class="fx-container">
+                    <div class="fx-empty">
+                        <div class="fx-empty__slot" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1.1H5.5a1 1 0 0 1-1-1.1L6 7z" /><path d="M9 10V6a3 3 0 0 1 6 0v4" /></svg>
+                        </div>
+                        <h2 class="fx-empty__title">{{ translate('The catalog is being prepared') }}</h2>
+                        <p class="fx-empty__body">{{ translate('New listings are on the way. Check back soon, or contact us if you would like to list your business.') }}</p>
+                        <a class="fx-btn" href="{{ route('contacts') }}">{{ translate('Contact us') }}</a>
+                    </div>
+                </div>
+            </section>
         @endif
 
-        @include('web-views.partials._webiners_products')
-
-		@include('web-views.partials._prebuiltwebsites')
-
-        @include('web-views.partials._category-section-home')
-        
-        @include('web-views.partials.modified_addons_apiintegration')
-
-        {{-- @include('web-views.partials._apiintergation') --}}
-
-        {{-- @include('web-views.partials._addons') --}}
-
-		{{-- @include('web-views.partials._sellers') --}}
-
-		@include('web-views.partials._footertopfeaturesale')
-
+        @include('web-views.partials._fx-home-info')
     </div>
 
     <span id="direction-from-session" data-value="{{ session()->get('direction') }}"></span>
 @endsection
-
-@push('script')
-    <script src="{{theme_asset(path: 'public/assets/front-end/js/owl.carousel.min.js')}}"></script>
-    <script src="{{ theme_asset(path: 'public/assets/front-end/js/load-more-section.js') }}"></script>
-    <script src="{{ theme_asset(path: 'public/assets/front-end/js/home.js') }}"></script>
-@endpush
-

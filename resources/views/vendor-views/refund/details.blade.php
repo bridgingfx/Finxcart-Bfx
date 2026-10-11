@@ -267,7 +267,7 @@
                             <h4 class="mb-3">{{translate('refund_status_changed_log')}}</h4>
                             <div class="table-responsive datatable-custom">
                                 <table
-                                    class="table table-hover text-center table-borderless table-thead-bordered table-nowrap table-align-middle card-table">
+                                    class="table table-hover text-center table-borderless table-thead-bordered table-nowrap table-align-middle card-table fxv-rc">
                                     <thead class="thead-light thead-50 text-capitalize">
                                     <tr>
                                         <th>{{translate('SL')}}</th>
@@ -281,20 +281,20 @@
                                     <tbody>
                                     @foreach ($refund->refundStatus as $key=>$status)
                                         <tr>
-                                            <td>
+                                            <td data-label="{{translate('SL')}}">
                                                 {{$key+1}}
                                             </td>
-                                            <td class="text-capitalize">
+                                            <td class="text-capitalize" data-label="{{translate('changed_by')}}">
                                                 {{$status->change_by == 'seller' ? 'vendor' : $status->change_by}}
                                             </td>
-                                            <td>{{date('d M Y, h:s:A',strtotime($refund['created_at']))}}</td>
+                                            <td data-label="{{translate('Date')}}">{{date('d M Y, h:s:A',strtotime($refund['created_at']))}}</td>
 
-                                            <td class="text-break">
+                                            <td class="text-break" data-label="{{translate('approved_/_rejected_note')}}">
                                                 <div class="word-break max-w-360px mx-auto">
                                                     {{$status->message}}
                                                 </div>
                                             </td>
-                                            <td class="text-capitalize">
+                                            <td class="text-capitalize" data-label="{{translate('status')}}">
                                                 {{translate($status->status)}}
                                             </td>
                                         </tr>

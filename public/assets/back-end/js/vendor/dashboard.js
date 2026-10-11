@@ -13,6 +13,9 @@ $(document).ready(function () {
     $("#statistics_type").on("change", function () {
 
         let type = $(this).val();
+        let label = $(this).find("option:selected").text();
+        let $periodLabel = $("#statistics_period_label");
+        if ($periodLabel.length) { $periodLabel.text(label); }
         let url = $('#order-status-url').data('url');
         $.ajaxSetup({
             headers: {

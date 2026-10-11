@@ -42,17 +42,33 @@ return new class extends Migration
 
     private function addFreelancerToSellerTypeEnums(): void
     {
-        if (Schema::hasColumn('sellers', 'seller_type') && !$this->enumContains('sellers', 'seller_type', 'freelancer')) {
-            DB::statement("ALTER TABLE sellers MODIFY COLUMN seller_type ENUM('company','individual','freelancer') DEFAULT NULL");
+        $this->widenSellerTypeEnum('sellers');
+        $this->widenSellerTypeEnum('vendor_verifications');
+    }
+
+    private function widenSellerTypeEnum(string $table): void
+    {
+        if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'seller_type')) {
+            return;
         }
 
-        if (
-            Schema::hasTable('vendor_verifications')
-            && Schema::hasColumn('vendor_verifications', 'seller_type')
-            && !$this->enumContains('vendor_verifications', 'seller_type', 'freelancer')
-        ) {
-            DB::statement("ALTER TABLE vendor_verifications MODIFY COLUMN seller_type ENUM('company','individual','freelancer') DEFAULT NULL");
+        if (DB::getDriverName() === 'sqlite') {
+            // SQLite emulates ENUM with a CHECK constraint, which cannot be
+            // altered in place. Swap the column via rename/add/copy/drop
+            // (pure SQL, no doctrine/dbal introspection involved).
+            DB::statement('ALTER TABLE "' . $table . '" RENAME COLUMN "seller_type" TO "seller_type_legacy"');
+            DB::statement('ALTER TABLE "' . $table . '" ADD COLUMN "seller_type" varchar check ("seller_type" in (\'company\',\'individual\',\'freelancer\'))');
+            DB::statement('UPDATE "' . $table . '" SET "seller_type" = "seller_type_legacy"');
+            DB::statement('ALTER TABLE "' . $table . '" DROP COLUMN "seller_type_legacy"');
+
+            return;
         }
+
+        if ($this->enumContains($table, 'seller_type', 'freelancer')) {
+            return;
+        }
+
+        DB::statement("ALTER TABLE {$table} MODIFY COLUMN seller_type ENUM('company','individual','freelancer') DEFAULT NULL");
     }
 
     private function addSellerKycStatus(): void

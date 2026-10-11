@@ -190,7 +190,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive fxv-scroll-x">
                 <table id="datatable" class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 __table">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>

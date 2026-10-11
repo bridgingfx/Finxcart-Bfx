@@ -1,0 +1,293 @@
+/* ============================================================
+ * fx-admin.css — FinXCart admin typography & consistency pass
+ * Loaded by layouts/admin/app.blade.php and the standalone admin auth
+ * view. Presentation only:
+ * no operational control is added, removed, or restyled into
+ * something it is not. Backend behavior untouched.
+ * Font rule: Apple system stack ONLY. Icon fonts (uicons/tio)
+ * carry their own !important font-family and are unaffected.
+ * ============================================================ */
+
+body {
+    --fxa-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --fxa-canvas: #F7F8FA;
+    --fxa-surface: #FFFFFF;
+    --fxa-text: #172B42;
+    --fxa-muted: #5B6674;
+    --fxa-border: #E1E6EB;
+    --fxa-navy: #203F60;
+    --fxa-navy-hover: #1A334E;
+    --fxa-amber: #F3A329;
+    --fxa-danger: #B3261E;
+    --fxa-danger-bg: #FDECEA;
+    --fxa-success: #1E7E34;
+    --fxa-success-bg: #EAF7EE;
+    --fxa-warning: #8A5A00;
+    --fxa-warning-bg: #FFF7E0;
+    --fxa-info: #0B5CAD;
+    --fxa-info-bg: #EAF3FD;
+    --fxa-radius: 10px;
+    font-family: var(--fxa-font) !important;
+    background: var(--fxa-canvas);
+    color: var(--fxa-text);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* ---------- Type scale ---------- */
+h1, .h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+h2, .h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.3; }
+h3, .h3 { font-size: 18px; font-weight: 700; line-height: 1.35; }
+h4, .h4 { font-size: 16px; font-weight: 700; line-height: 1.4; }
+h5, .h5 { font-size: 15px; font-weight: 700; line-height: 1.4; }
+h6, .h6 { font-size: 14px; font-weight: 700; line-height: 1.45; }
+
+.page-title, .page-header-title { font-size: 24px; font-weight: 700; letter-spacing: -0.015em; }
+.page-subtitle { color: var(--fxa-muted); font-size: 14px; }
+
+.text-muted { color: var(--fxa-muted) !important; }
+
+/* ---------- Layout spacing ---------- */
+.main-content, .content-wrapper { background: var(--fxa-canvas); }
+
+.card {
+    border: 1px solid var(--fxa-border);
+    border-radius: 12px;
+    box-shadow: none;
+    margin-bottom: 20px;
+}
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--fxa-border);
+    padding: 14px 20px;
+    font-weight: 700;
+}
+.card-body { padding: 20px; }
+.card-footer { background: transparent; border-top: 1px solid var(--fxa-border); padding: 14px 20px; }
+
+/* ---------- Tables ---------- */
+.table {
+    color: var(--fxa-text);
+    font-size: 14px;
+}
+.table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fxa-muted);
+    font-weight: 700;
+    border-bottom: 1px solid var(--fxa-border);
+    border-top: 0;
+    padding: 10px 14px;
+    white-space: nowrap;
+    background: #FAFBFC;
+}
+.table tbody td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    border-top: 1px solid var(--fxa-border);
+}
+.table tbody tr:hover { background: rgba(32, 63, 96, 0.03); }
+.table-responsive {
+    border: 1px solid var(--fxa-border);
+    border-radius: 12px;
+    background: var(--fxa-surface);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Forms ---------- */
+.form-label, label.form-label, .col-form-label { font-weight: 600; font-size: 14px; color: var(--fxa-text); }
+
+.form-control, .form-select {
+    min-height: 42px;
+    border-radius: var(--fxa-radius);
+    border: 1px solid var(--fxa-border);
+    font-size: 15px;
+    color: var(--fxa-text);
+    padding: 8px 12px;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--fxa-navy);
+    box-shadow: 0 0 0 3px rgba(32, 63, 96, 0.15);
+}
+.form-control::placeholder { color: var(--fxa-muted); }
+.form-text { color: var(--fxa-muted); font-size: 13px; }
+.invalid-feedback { font-size: 13px; font-weight: 600; }
+.form-control.is-invalid { border-color: var(--fxa-danger); }
+.form-check-input { width: 18px; height: 18px; }
+.form-check-input:checked { background-color: var(--fxa-navy); border-color: var(--fxa-navy); }
+.form-check-input:focus { box-shadow: 0 0 0 3px rgba(32, 63, 96, 0.15); }
+
+textarea.form-control { min-height: 110px; }
+
+/* select2 alignment */
+.select2-container .select2-selection--single { min-height: 42px; border-radius: var(--fxa-radius); border: 1px solid var(--fxa-border); }
+.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 42px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+    border-radius: var(--fxa-radius);
+    font-weight: 600;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+}
+.btn-sm { min-height: 34px; font-size: 13px; }
+.btn-primary, .btn--primary {
+    background: var(--fxa-navy);
+    border-color: var(--fxa-navy);
+    color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus, .btn--primary:hover, .btn--primary:focus {
+    background: var(--fxa-navy-hover);
+    border-color: var(--fxa-navy-hover);
+    color: #fff;
+}
+.btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible, .page-link:focus-visible {
+    outline: 3px solid rgba(32, 63, 96, 0.45);
+    outline-offset: 2px;
+}
+
+/* destructive actions: separated from safe actions */
+.btn-danger { background: var(--fxa-danger); border-color: var(--fxa-danger); }
+.modal-footer .btn-danger, .card-footer .btn-danger { margin-inline-start: 12px; }
+.danger-zone {
+    border: 1px solid var(--fxa-danger);
+    border-radius: 12px;
+    padding: 16px;
+    background: var(--fxa-danger-bg);
+    margin-top: 20px;
+}
+
+/* ---------- Badges / feedback ---------- */
+.badge {
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 4px 10px;
+    letter-spacing: 0.01em;
+}
+.badge-soft-success, .bg-soft-success { background: var(--fxa-success-bg) !important; color: var(--fxa-success) !important; }
+.badge-soft-danger, .bg-soft-danger { background: var(--fxa-danger-bg) !important; color: var(--fxa-danger) !important; }
+.badge-soft-warning, .bg-soft-warning { background: var(--fxa-warning-bg) !important; color: var(--fxa-warning) !important; }
+.badge-soft-info, .bg-soft-info { background: var(--fxa-info-bg) !important; color: var(--fxa-info) !important; }
+.badge-soft-primary, .bg-soft-primary { background: rgba(32, 63, 96, 0.08) !important; color: var(--fxa-navy) !important; }
+
+.alert {
+    border-radius: 12px;
+    border-width: 1px;
+    font-size: 14px;
+}
+.alert-success { background: var(--fxa-success-bg); border-color: var(--fxa-success); color: var(--fxa-text); }
+.alert-danger { background: var(--fxa-danger-bg); border-color: var(--fxa-danger); color: var(--fxa-text); }
+.alert-warning { background: var(--fxa-warning-bg); border-color: var(--fxa-warning); color: var(--fxa-text); }
+.alert-info { background: var(--fxa-info-bg); border-color: var(--fxa-info); color: var(--fxa-text); }
+
+/* ---------- Pagination ---------- */
+.pagination .page-link {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--fxa-radius);
+    border: 1px solid var(--fxa-border);
+    color: var(--fxa-text);
+    margin: 0 2px;
+    font-size: 14px;
+}
+.pagination .page-item.active .page-link {
+    background: var(--fxa-navy);
+    border-color: var(--fxa-navy);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ---------- Nav tabs ---------- */
+.nav-tabs { border-bottom: 1px solid var(--fxa-border); }
+.nav-tabs .nav-link {
+    border: 0;
+    color: var(--fxa-muted);
+    font-weight: 600;
+    padding: 12px 16px;
+    font-size: 14px;
+}
+.nav-tabs .nav-link.active {
+    color: var(--fxa-navy);
+    border-bottom: 3px solid var(--fxa-amber);
+    background: transparent;
+}
+
+/* ---------- Modals / dropdowns ---------- */
+.modal-content { border: 0; border-radius: 16px; }
+.modal-header { border-bottom: 1px solid var(--fxa-border); padding: 16px 20px; }
+.modal-body { padding: 20px; }
+.modal-footer { border-top: 1px solid var(--fxa-border); padding: 16px 20px; gap: 8px; }
+.modal-title { font-size: 18px; font-weight: 700; }
+
+.dropdown-menu {
+    border: 1px solid var(--fxa-border);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(23, 43, 66, 0.14);
+    padding: 8px;
+    font-size: 14px;
+}
+.dropdown-item { border-radius: 8px; padding: 10px 12px; }
+.dropdown-item:active { background: var(--fxa-navy); }
+
+/* ---------- Empty states ---------- */
+.empty-state, .__empty-state {
+    text-align: center;
+    padding: 48px 16px;
+}
+.empty-state .empty-title, .__empty-state h5 { font-size: 18px; font-weight: 700; }
+
+/* ---------- Sidebar (keep structure, unify type) ---------- */
+.sidebar, .aside, .navbar-vertical-aside {
+    font-family: var(--fxa-font);
+}
+.sidebar .nav-link, .aside .nav-link {
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    min-height: 42px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 767px) {
+    .btn { min-height: 44px; }
+    .card-body { padding: 16px; }
+    .table-responsive { border-radius: 10px; }
+    .modal-dialog { margin: 12px; }
+    .modal-footer .btn { flex: 1 1 auto; }
+}
+
+/* Very small viewports: let card toolbar button groups wrap instead of overflowing */
+@media (max-width: 380px) {
+    .card .d-flex.justify-content-end.gap-3 { flex-wrap: wrap; }
+}
+
+/* ---------- Mobile responsive record cards (admin) ---------- */
+/* Apply class="fxa-rc" on tables converted to labeled record cards under 768px. */
+@media (max-width: 767px) {
+    .fxa-rc thead{display:none}
+    .fxa-rc tbody,.fxa-rc tr,.fxa-rc td{display:block;width:100%}
+    .fxa-rc tr{background:#fff;border:1px solid #eef1f6;border-radius:14px;padding:.85rem 1rem;margin-bottom:.7rem;box-shadow:0 1px 3px rgba(16,24,40,.05)}
+    .fxa-rc tbody{background:transparent}
+    .fxa-rc td{border:0!important;padding:.35rem 0;text-align:left!important}
+    .fxa-rc td[data-label]::before{content:attr(data-label);display:block;font-size:.72rem;font-weight:600;color:#98a2b3;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.15rem}
+    .fxa-rc td.fxa-rc__actions{padding-top:.6rem;border-top:1px dashed #eef1f6!important;margin-top:.4rem}
+    .fxa-rc td.fxa-rc__actions .d-flex{justify-content:flex-start!important}
+    .fxa-rc .switcher.mx-auto{margin-inline:0!important}
+}
+/* Wide financial tables: contained horizontal scroll on small screens. */
+.fxa-scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.fxa-scroll-x table{min-width:640px}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+}

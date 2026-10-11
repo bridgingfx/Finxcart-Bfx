@@ -330,7 +330,7 @@ class UserProfileController extends Controller
     public function address_delete(Request $request)
     {
         if (auth('customer')->check()) {
-            ShippingAddress::destroy($request->id);
+            ShippingAddress::where(['id' => $request->id, 'customer_id' => auth('customer')->id()])->delete();
             Toastr::success(translate('address_Delete_Successfully'));
             return redirect()->back();
         } else {
@@ -625,16 +625,31 @@ class UserProfileController extends Controller
 
     public function single_ticket(Request $request)
     {
+        if (!auth('customer')->check()) {
+            return redirect()->route('customer.auth.login');
+        }
         $ticket = SupportTicket::with(['conversations' => function ($query) {
             $query->with('adminInfo')->when(theme_root_path() == 'default', function ($sub_query) {
                 $sub_query->orderBy('id', 'desc');
             });
-        }])->where('id', $request->id)->first();
+        }])->where(['id' => $request->id, 'customer_id' => auth('customer')->id()])->first();
+        if (!$ticket) {
+            Toastr::error(translate('not_found'));
+            return redirect()->route('account-tickets');
+        }
         return view(VIEW_FILE_NAMES['ticket_view'], compact('ticket'));
     }
 
     public function comment_submit(Request $request, $id)
     {
+        if (!auth('customer')->check()) {
+            return redirect()->route('customer.auth.login');
+        }
+        $ticket = SupportTicket::where(['id' => $id, 'customer_id' => auth('customer')->id()])->first();
+        if (!$ticket) {
+            Toastr::error(translate('not_found'));
+            return redirect()->route('account-tickets');
+        }
         if ($request->file('image') == null && empty($request['comment'])) {
             Toastr::error(translate('type_something') . '!');
             return back();
@@ -673,10 +688,17 @@ class UserProfileController extends Controller
 
     public function support_ticket_close($id)
     {
-        DB::table('support_tickets')->where(['id' => $id])->update([
+        if (!auth('customer')->check()) {
+            return redirect()->route('customer.auth.login');
+        }
+        $updated = DB::table('support_tickets')->where(['id' => $id, 'customer_id' => auth('customer')->id()])->update([
             'status' => 'close',
             'updated_at' => now(),
         ]);
+        if (!$updated) {
+            Toastr::error(translate('not_found'));
+            return redirect('/account-tickets');
+        }
         Toastr::success(translate('ticket_closed') . '!');
         return redirect('/account-tickets');
     }
@@ -851,10 +873,18 @@ public function track_order_result(Request $request)
 
     public function order_cancel($id)
     {
+        if (!auth('customer')->check()) {
+            return redirect()->route('customer.auth.login');
+        }
         $order = Order::with(['details', 'children'])->where(['id' => $id])->first();
 
         if (!$order) {
             Toastr::error(translate('order_not_found'));
+            return back();
+        }
+
+        if ((int)$order->customer_id !== (int)auth('customer')->id()) {
+            Toastr::error(translate('access_denied'));
             return back();
         }
 
@@ -984,7 +1014,15 @@ public function track_order_result(Request $request)
 
     public function generate_invoice($id)
     {
-        $order = Order::with(['seller', 'shipping', 'customer'])->where('id', $id)->first();
+        if (!auth('customer')->check()) {
+            return redirect()->route('customer.auth.login');
+        }
+        $order = Order::with(['seller', 'shipping', 'customer'])
+            ->where(['id' => $id, 'customer_id' => auth('customer')->id()])->first();
+        if (!$order) {
+            Toastr::error(translate('order_not_found'));
+            return back();
+        }
         $data["email"] = $order->customer["email"];
         $data["order"] = $order;
         $invoiceSettings = getWebConfig(name: 'invoice_settings');

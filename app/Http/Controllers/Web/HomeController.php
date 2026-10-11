@@ -363,13 +363,47 @@ class HomeController extends Controller
 
         $latestProductsListTotalCount = $this->cacheHomePageLatestProductCount();
 
+        // FinXCart redesign: promo tiles for two populated categories, each with its
+        // first product's thumbnail. Prepared here so the view performs no queries.
+        $promoTiles = collect($categories instanceof \Illuminate\Pagination\AbstractPaginator
+                ? $categories->getCollection()
+                : $categories)
+            ->filter(fn($c) => (int)($c->product_count ?? 0) > 0)
+            ->sortBy('priority')->values()->take(2)
+            ->map(function ($promoCat) {
+                $firstProduct = Product::active()
+                    ->where('category_id', $promoCat->id)
+                    ->latest()->first(['id', 'thumbnail']);
+                if (!$firstProduct) {
+                    return null;
+                }
+                return [
+                    'title' => $promoCat->name,
+                    'url' => route('products', ['category_id' => $promoCat->id, 'data_from' => 'category', 'page' => 1]),
+                    'img' => getStorageImages(path: $firstProduct->thumbnail_full_url, type: 'product'),
+                ];
+            })->filter()->values()->all();
+
+        // FinXCart redesign: featured providers prepared here so the view performs no queries.
+        $fxProviders = Seller::approved()->with('shop')->take(6)->get();
+
+        // FinXCart redesign v5: real marketplace stats for the hero — counted from
+        // the database, never invented. Cached for an hour; cheap indexed queries.
+        $fxStats = Cache::remember('fx_home_stats_v1', 3600, function () {
+            return [
+                'products' => Product::active()->count(),
+                'vendors' => Seller::approved()->count(),
+            ];
+        });
+
         return view(VIEW_FILE_NAMES['home'],
             compact(
                 'flashDeal', 'featuredProductsList', 'topRatedProducts', 'bestSellProduct', 'latestProductsList', 'categories', 'brands',
                 'dealOfTheDay', 'topVendorsList', 'homeCategories', 'bannerTypeMainBanner', 'bannerTypeMainSectionBanner',
                 'current_date', 'recommendedProduct', 'bannerTypeFooterBanner', 'newArrivalProducts', 'clearanceSaleProducts','webinarsCatProduct',
                 'PreBuiltWebsites','APIIntegrations','AddOns','featuredProducts','fullCategoryStructure', 'solutioncategoryNames',
-                'latestProductsListTotalCount', 'solutionsBestsellers', 'solutionsFeatured', 'solutionsOnSale', 'solutionsHalfOffProducts'
+                'latestProductsListTotalCount', 'solutionsBestsellers', 'solutionsFeatured', 'solutionsOnSale', 'solutionsHalfOffProducts',
+                'promoTiles', 'fxProviders', 'fxStats'
             )
         );
     }

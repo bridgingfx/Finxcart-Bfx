@@ -694,7 +694,7 @@ class ProductManager
             ->withCount(['reviews', 'wishList' => function ($query) use ($user) {
                 $query->where('customer_id', $user != 'offline' ? $user->id : '0');
             }])
-            ->when(in_array($request['product_type'], ['physical', 'digital']), function ($query) use ($request) {
+            ->when(in_array($request['product_type'], ['physical', 'digital', 'subscription', 'recurring', 'event', 'broker']), function ($query) use ($request) {
                 return $query->where(['product_type' => $request['product_type']]);
             })
             ->when($seller_id == 0, function ($query) {
@@ -1938,6 +1938,31 @@ class ProductManager
         return $productIdsArray;
     }
 
+    /**
+     * Canonical transaction-type filter for the storefront catalog.
+     *
+     * Honors the products.transaction_type override (App\Enums\TransactionType):
+     * a listing explicitly classified as a fixed-scope service must not leak
+     * into the "Physical product" bucket just because its legacy product_type
+     * is 'physical', and service types are directly selectable.
+     */
+    protected static function applyCanonicalTypeFilter($query, ?string $type)
+    {
+        if (!in_array($type, ['physical', 'digital', 'subscription', 'recurring', 'event', 'broker', 'fixed_service', 'custom_service'], true)) {
+            return $query;
+        }
+
+        return match ($type) {
+            'fixed_service', 'custom_service' => $query->where('transaction_type', $type),
+            'physical' => $query->where('product_type', 'physical')
+                ->where(fn($q) => $q->whereNull('transaction_type')->orWhere('transaction_type', 'physical')),
+            'digital' => $query->where(fn($q) => $q->where('product_type', 'digital')->orWhere('transaction_type', 'download')),
+            'event' => $query->where(fn($q) => $q->where('product_type', 'event')->orWhere('transaction_type', 'event')),
+            'broker' => $query->where(fn($q) => $q->where('product_type', 'broker')->orWhere('transaction_type', 'provider_directory')),
+            default => $query->where(fn($q) => $q->where('product_type', $type)->orWhere('transaction_type', $type)),
+        };
+    }
+
     public static function getProductListData($request, $productUserID = null, $productAddedBy = null, $type = null): mixed
     {
         if ($request->has('category_ids')) {
@@ -2005,8 +2030,8 @@ class ProductManager
             ->when($productUserID && $productAddedBy == 'seller', function ($query) use ($productUserID, $productAddedBy) {
                 return $query->where(['added_by' => $productAddedBy, 'user_id' => $productUserID]);
             })
-            ->when(in_array($request['product_type'], ['physical', 'digital']), function ($query) use ($request) {
-                return $query->where(['product_type' => $request['product_type']]);
+            ->when(in_array($request['product_type'], ['physical', 'digital', 'subscription', 'recurring', 'event', 'broker', 'fixed_service', 'custom_service']), function ($query) use ($request) {
+                return self::applyCanonicalTypeFilter($query, $request['product_type']);
             })
             ->withCount(['reviews', 'wishList' => function ($query) use ($user) {
                 $query->where('customer_id', $user != 'offline' && $user ? $user->id : '0');
@@ -2479,8 +2504,8 @@ class ProductManager
             ->when($productUserID && $productAddedBy == 'seller', function ($query) use ($productUserID, $productAddedBy) {
                 return $query->where(['added_by' => $productAddedBy, 'user_id' => $productUserID]);
             })
-            ->when(in_array($request['product_type'], ['physical', 'digital']), function ($query) use ($request) {
-                return $query->where(['product_type' => $request['product_type']]);
+            ->when(in_array($request['product_type'], ['physical', 'digital', 'subscription', 'recurring', 'event', 'broker', 'fixed_service', 'custom_service']), function ($query) use ($request) {
+                return self::applyCanonicalTypeFilter($query, $request['product_type']);
             })->pluck('id')->toArray();
     }
 }

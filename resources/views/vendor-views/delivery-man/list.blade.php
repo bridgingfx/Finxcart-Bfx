@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="table-responsive datatable-custom">
-                <table class="table table-hover table-borderless table-thead-bordered table-align-middle card-table">
+                <table class="table table-hover table-borderless table-thead-bordered table-align-middle card-table fxv-rc">
                     <thead class="thead-light thead-50 text-capitalize table-nowrap">
                     <tr>
                         <th>{{translate('SL')}}</th>
@@ -61,8 +61,8 @@
                     <tbody id="set-rows">
                     @foreach($deliveryMen as $key=>$deliveryMan)
                         <tr>
-                            <td>{{$deliveryMen->firstitem()+$key}}</td>
-                            <td>
+                            <td data-label="{{translate('SL')}}">{{$deliveryMen->firstitem()+$key}}</td>
+                            <td data-label="{{translate('name')}}">
                                 <div class="media align-items-center gap-10">
                                     <img class="avatar avatar-lg rounded-circle" alt=""
                                             src="{{getStorageImages($deliveryMan->image_full_url,type:'backend-profile')}}">
@@ -75,23 +75,23 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{translate('contact_Info')}}">
                                 <div class="d-flex flex-column gap-1">
                                     <div><a class="title-color hover-c1" href="mailto:{{$deliveryMan['email']}}"><strong>{{$deliveryMan['email']}}</strong></a></div>
                                     <a class="title-color hover-c1" href="tel:{{$deliveryMan['country_code']}}{{$deliveryMan['phone']}}">{{$deliveryMan['country_code']. ' ' .$deliveryMan['phone']}}</a>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="{{translate('total_Orders')}}">
                                 <a href="{{ route('vendor.orders.list', ['all', 'delivery_man_id' => $deliveryMan['id']]) }}" class="badge fz-14 badge-soft--primary">
                                     <span>{{ $deliveryMan->orders_count }}</span>
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{translate('rating')}}">
                                 <a href="{{ route('vendor.delivery-man.rating', ['id' => $deliveryMan['id']]) }}" class="badge fz-14 badge-soft-info">
                                     <span>{{ isset($deliveryMan->rating[0]->average) ? number_format($deliveryMan->rating[0]->average, 2, '.', ' ') : 0 }} <i class="tio-star"></i> </span>
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="{{translate('status')}}">
 
                                 <form action="{{route('vendor.delivery-man.update-status',[$deliveryMan['id']])}}" method="post" id="deliveryman_status{{$deliveryMan['id']}}-form" class="deliveryman_status_form" novalidate>
                                     @csrf
@@ -111,7 +111,7 @@
                                 </form>
 
                             </td>
-                            <td>
+                            <td data-label="{{translate('action')}}" class="fxv-rc__actions">
                                 <div class="d-flex justify-content-center gap-2">
                                     <a  class="btn btn-outline--primary btn-sm square-btn" href="{{route('vendor.delivery-man.update',[$deliveryMan['id']])}}"
                                         title="{{translate('edit')}}">

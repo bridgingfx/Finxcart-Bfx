@@ -8,9 +8,7 @@
     <title>{{ translate($role) }} | {{ translate('login') }}</title>
     <link rel="shortcut icon" href="{{ getStorageImages(path: getWebConfig(name: 'company_fav_icon'), type:'backend-logo') }}">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap">
+    {{-- Inter webfont removed: owner font rule = Apple system stack only (fx-admin.css below) --}}
 
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/libs/bootstrap/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/webfonts/uicons-regular-rounded.css') }}">
@@ -30,6 +28,7 @@
 
     {!! ToastMagic::styles() !!}
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/premium-toasts.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/fx-admin.css') }}">
 </head>
 
 <body>

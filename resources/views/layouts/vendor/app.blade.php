@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/webfonts/uicons-regular-rounded.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/webfonts/uicons-solid-rounded.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/vendor.min.css') }}">
-    <link rel="stylesheet" href="{{dynamicAsset(path: 'public/assets/back-end/css/google-fonts.css')}}">
+    {{-- google-fonts.css (Open Sans) removed: owner font rule = Apple system stack only (fx-vendor.css) --}}
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/vendor/icon-set/style.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/theme.minc619.css?v=1.0') }}">
     <link rel="stylesheet" href="{{dynamicAsset(path: 'public/assets/back-end/css/daterangepicker.css')}}">
@@ -36,6 +36,7 @@
 
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/custom.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/premium-toasts.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/back-end/css/fx-vendor.css') }}">
     <style>
         select {
             background-image: url('{{dynamicAsset(path: 'public/assets/back-end/img/arrow-down.png')}}');
@@ -96,7 +97,7 @@
         }
     </style>
 </head>
-<body class="footer-offset has-navbar-vertical-aside navbar-vertical-aside-show-xl">
+<body class="fxv footer-offset has-navbar-vertical-aside navbar-vertical-aside-show-xl">
 <div class="row">
     <div class="col-12 position-fixed z-9999 mt-10rem">
         <div id="loading" class="d--none">

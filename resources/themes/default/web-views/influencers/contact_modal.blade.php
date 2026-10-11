@@ -1,64 +1,74 @@
-<div class="modal fade" id="contactModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form action="{{ route('influencers.contact') }}" method="POST" novalidate>
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        Contact <span id="modalInfName">{{ translate('influencer') }}</span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="influencer_id" id="modalInfId" value="">
-                    
-                    <div class="form-group mb-3">
-                        <label>{{ translate('your_name') }}</label>
-                        <input type="text" name="customer_name" class="form-control" required>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label>{{ translate('your_email') }}</label>
-                        <input type="email" name="customer_email" class="form-control" required>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label>{{ translate('phone_optional') }}</label>
-                        <input type="text" name="phone" class="form-control">
-                    </div>
-                    <div class="form-group mb-3">
-                        <label>{{ translate('message') }}</label>
-                        <textarea name="message" class="form-control" rows="3" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ translate('cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ translate('send_message') }}</button>
-                </div>
-            </form>
-        </div>
+{{--
+    contact_modal.blade.php — fx contact-inquiry modal for influencers.
+    Vanilla JS (no Bootstrap/jQuery dependency). Opened by any element with
+    [data-fx-contact-influencer][data-id][data-name]. Posts to influencers.contact.
+--}}
+<div class="fx-overlay" id="fx-contact-influencer-overlay" hidden>
+    <div class="fx-modal" role="dialog" aria-modal="true" aria-labelledby="fx-contact-influencer-title">
+        <button type="button" class="fx-modal__close" data-fx-contact-close aria-label="{{ translate('close') }}">&times;</button>
+        <h2 id="fx-contact-influencer-title" style="font-size:20px; font-weight:700; margin:0 0 var(--fx-s2); padding-inline-end: var(--fx-s8);">
+            {{ translate('contact') }} <span id="fx-contact-influencer-name">{{ translate('influencer') }}</span>
+        </h2>
+        <p class="fx-meta" style="margin:0 0 var(--fx-s4);">{{ translate('your_inquiry_is_sent_to_our_team') }}</p>
+        <form action="{{ route('influencers.contact') }}" method="POST" class="fx-form" novalidate>
+            @csrf
+            <input type="hidden" name="influencer_id" id="fx-contact-influencer-id" value="">
+            <div class="fx-field">
+                <label for="fx-contact-name">{{ translate('your_name') }}</label>
+                <input type="text" id="fx-contact-name" name="customer_name" required autocomplete="name">
+            </div>
+            <div class="fx-field">
+                <label for="fx-contact-email">{{ translate('your_email') }}</label>
+                <input type="email" id="fx-contact-email" name="customer_email" required autocomplete="email">
+            </div>
+            <div class="fx-field">
+                <label for="fx-contact-phone">{{ translate('phone_optional') }}</label>
+                <input type="tel" id="fx-contact-phone" name="phone" autocomplete="tel">
+            </div>
+            <div class="fx-field">
+                <label for="fx-contact-message">{{ translate('message') }}</label>
+                <textarea id="fx-contact-message" name="message" rows="3" required></textarea>
+            </div>
+            <div style="display:flex; gap: var(--fx-s2); justify-content:flex-end;">
+                <button type="button" class="fx-btn fx-btn-ghost" data-fx-contact-close>{{ translate('cancel') }}</button>
+                <button type="submit" class="fx-btn">{{ translate('send_message') }}</button>
+            </div>
+        </form>
     </div>
 </div>
 
-{{-- SCRIPT TO TRANSFER ID TO MODAL --}}
 <script>
-    // We use a timeout to ensure jQuery is loaded
-    setTimeout(function() {
-        if (typeof $ !== 'undefined') {
-            $('#contactModal').on('show.bs.modal', function (event) {
-                // Button that triggered the modal
-                var button = $(event.relatedTarget); 
-                
-                // Extract info from data-* attributes
-                var id = button.data('id'); 
-                var name = button.data('name'); 
+(function () {
+    var overlay = document.getElementById('fx-contact-influencer-overlay');
+    var nameEl = document.getElementById('fx-contact-influencer-name');
+    var idEl = document.getElementById('fx-contact-influencer-id');
+    if (!overlay) return;
 
-                // Update the modal's content via jQuery
-                var modal = $(this);
-                modal.find('#modalInfId').val(id);
-                modal.find('#modalInfName').text(name);
-                
-            });
+    function openModal(id, name) {
+        idEl.value = id || '';
+        nameEl.textContent = name || '';
+        overlay.hidden = false;
+        document.body.style.overflow = 'hidden';
+        var first = overlay.querySelector('input[name="customer_name"]');
+        if (first) first.focus();
+    }
+    function closeModal() {
+        overlay.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', function (e) {
+        var trigger = e.target.closest('[data-fx-contact-influencer]');
+        if (trigger) {
+            openModal(trigger.getAttribute('data-id'), trigger.getAttribute('data-name'));
+            return;
         }
-    }, 500);
+        if (e.target.closest('[data-fx-contact-close]') || e.target === overlay) {
+            closeModal();
+        }
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !overlay.hidden) closeModal();
+    });
+})();
 </script>

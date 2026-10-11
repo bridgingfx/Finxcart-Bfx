@@ -81,7 +81,7 @@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive" id="products-table">
-                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 fxv-rc {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">
                         <thead class="thead-light thead-50 text-capitalize">
                         <tr>
                             <th>{{translate('SL')}}</th>
@@ -102,8 +102,8 @@
                         <tbody>
                         @foreach($products as $key=>$data)
                             <tr>
-                                <td>{{$products->firstItem()+$key}}</td>
-                                <td>
+                                <td data-label="{{translate('SL')}}">{{$products->firstItem()+$key}}</td>
+                                <td data-label="{{translate('product_Name')}}">
                                     <div class="p-name">
                                         <a href="{{route('vendor.products.view',[$data['id']])}}"
                                            class="media align-items-center gap-2 title-color text-nowrap text-truncate w-100 d--block">
@@ -111,9 +111,9 @@
                                         </a>
                                     </div>
                                 </td>
-                                <td>{{ date('d M Y', $data['updated_at'] ? strtotime($data['updated_at']) : null) }}</td>
-                                <td class="text-center">{{$data['current_stock']}}</td>
-                                <td>
+                                <td data-label="{{translate('last_Updated_Stock')}}">{{ $data['updated_at'] ? date('d M Y', strtotime($data['updated_at'])) : '—' }}</td>
+                                <td class="text-center" data-label="{{translate('current_Stock')}}">{{$data['current_stock']}}</td>
+                                <td data-label="{{translate('status')}}">
                                     <div class="text-center">
                                         @if($data['current_stock'] >= $stock_limit)
                                             <span class="badge __badge badge-soft-success">{{translate('In-Stock')}}</span>

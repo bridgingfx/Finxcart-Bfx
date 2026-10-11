@@ -96,7 +96,10 @@ class VendorRepository implements VendorRepositoryInterface
             })
             ->where($filters)
             ->when($excludeSellerType, function ($query) use ($excludeSellerType) {
-                $query->where('seller_type', '!=', $excludeSellerType);
+                $query->where(function ($query) use ($excludeSellerType) {
+                    $query->where('seller_type', '!=', $excludeSellerType)
+                        ->orWhereNull('seller_type');
+                });
             })
             ->when($searchValue, function ($query) use ($searchValue) {
                 $searchTerms = explode(' ', $searchValue);

@@ -131,7 +131,7 @@
 
                         <div class="table-responsive datatable-custom">
                             <table
-                                class="table fs-12 table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
+                                class="table fs-12 table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 fxv-rc">
                                 <thead class="thead-light thead-50 text-capitalize">
                                 <tr>
                                     <th>{{translate('SL')}}</th>
@@ -155,7 +155,7 @@
                                     @php $itemSection = ($detail->product_type ?? 'physical') === 'digital' ? 'digital' : 'physical'; @endphp
                                     @if($itemSection !== $currentItemSection)
                                         @php $currentItemSection = $itemSection; @endphp
-                                        <tr class="bg-light">
+                                        <tr class="bg-light fxv-rc__section">
                                             <td colspan="6" class="fs-13 font-weight-bold text-capitalize py-2">
                                                 <i class="tio-{{ $itemSection === 'digital' ? 'download' : 'box' }}"></i>
                                                 {{ translate($itemSection === 'digital' ? 'digital_items' : 'physical_items') }}
@@ -171,8 +171,8 @@
                                     ?>
                                     @if($productDetails)
                                         <tr>
-                                            <td>{{ ++$row }}</td>
-                                            <td>
+                                            <td data-label="{{translate('SL')}}">{{ ++$row }}</td>
+                                            <td data-label="{{translate('item_details')}}">
                                                 <div class="media align-items-center gap-10">
                                                     <img class="avatar avatar-60 rounded img-fit" alt=""
                                                          src="{{ getStorageImages(path:$detail?->productAllStatus?->thumbnail_full_url, type: 'backend-product') }}">
@@ -231,16 +231,16 @@
                                                     </div>
                                                 @endif
                                             </td>
-                                            <td>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $detail['price']*$detail['qty']), currencyCode: getCurrencyCode())}}</td>
-                                            <td>
+                                            <td data-label="{{translate('item_price')}}">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $detail['price']*$detail['qty']), currencyCode: getCurrencyCode())}}</td>
+                                            <td data-label="{{translate('tax')}}">
                                                 {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $detail['tax']), currencyCode: getCurrencyCode())}}
                                             </td>
-                                            <td>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $detail['discount']), currencyCode: getCurrencyCode())}}</td>
+                                            <td data-label="{{translate('item_discount')}}">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $detail['discount']), currencyCode: getCurrencyCode())}}</td>
 
                                             @php
                                                 $subtotal=$detail['price']*$detail['qty']+$detail['tax']-$detail['discount'];
                                             @endphp
-                                            <td>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $subtotal), currencyCode: getCurrencyCode())}}</td>
+                                            <td data-label="{{translate('total_price')}}">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $subtotal), currencyCode: getCurrencyCode())}}</td>
                                         </tr>
                                         @php
                                             $item_price+=$detail['price']*$detail['qty'];

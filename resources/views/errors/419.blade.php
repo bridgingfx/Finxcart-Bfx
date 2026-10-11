@@ -3,12 +3,13 @@
 @section('title', translate('Page_Expired'))
 
 @section('message')
-    <div class="container">
-        <div class="row justify-content-center align-items-center vh-100">
-            <div class="col-12">
-                <h1 class="text-center display-1">{{ '419' }}</h1>
-                <h2 class="text-center text-muted py-2">{{translate('Page_Expired')}}</h2>
-            </div>
+    <div class="fx-empty">
+        <p class="fx-error-code" aria-hidden="true">419</p>
+        <p class="fx-empty__title">{{ translate('Page_Expired') }}</p>
+        <p class="fx-empty__body">{{ translate('your_session_has_expired_please_refresh_and_try_again') }}</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <a class="fx-btn" href="javascript:location.reload()">{{ translate('refresh_page') }}</a>
+            <a class="fx-btn fx-btn-outline" href="{{ route('home') }}">{{ translate('back_to_home') }}</a>
         </div>
     </div>
 @endsection

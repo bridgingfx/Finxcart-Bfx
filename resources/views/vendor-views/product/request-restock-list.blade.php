@@ -138,7 +138,7 @@
 
                     <div class="table-responsive">
                         <table id="datatable"
-                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start">
+                               class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100 text-start fxv-rc">
                             <thead class="thead-light thead-50 text-capitalize">
                             <tr>
                                 <th>{{ translate('SL') }}</th>
@@ -152,8 +152,8 @@
                             <tbody>
                             @foreach($restockProducts as $key=>$restockProduct)
                                 <tr>
-                                    <th scope="row">{{ ++$key }}</th>
-                                    <td>
+                                    <th scope="row" data-label="{{ translate('SL') }}">{{ ++$key }}</th>
+                                    <td data-label="{{ translate('product_name') }}">
                                         <a href="{{ route('vendor.products.view',['id'=>$restockProduct->product['id'] ?? 0]) }}"
                                            class="media align-items-center gap-2">
                                             <img loading="lazy" src="{{ getStorageImages(path: $restockProduct?->product?->thumbnail_full_url, type: 'backend-product') }}"
@@ -166,16 +166,16 @@
                                             </span>
                                         </a>
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('selling_price') }}">
                                         {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $restockProduct->product['unit_price'] ?? 0), currencyCode: getCurrencyCode()) }}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('last_request_date') }}">
                                         {{ $restockProduct->updated_at->format('d F Y, h:i A') }}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="{{ translate('number_of_request') }}">
                                         {{ $restockProduct?->restockProductCustomers?->count() ?? 0 }}
                                     </td>
-                                    <td>
+                                    <td data-label="{{ translate('action') }}" class="fxv-rc__actions">
                                         <div class="d-flex justify-content-center gap-2">
                                             <a class="btn btn-outline-info btn-sm square-btn" title="View"
                                                href="{{ route('vendor.products.view',['id'=>$restockProduct->product['id'] ?? 0]) }}">

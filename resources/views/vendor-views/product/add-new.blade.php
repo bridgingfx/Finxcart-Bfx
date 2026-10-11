@@ -961,6 +961,20 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="fxv-completeness-card">
+                <div class="card-body">
+                    <h4 class="fs-16 font-weight-bold mb-1">{{ translate('listing_completeness') }}</h4>
+                    <p class="text-muted fs-13 mb-3">{{ translate('complete_all_items_before_submitting_your_listing') }}</p>
+                    <ul class="list-unstyled d-flex flex-wrap gap-3 mb-0" id="fxv-completeness-list">
+                        <li data-check="name"><span class="fxv-check-dot"></span> {{ translate('product_name') }}</li>
+                        <li data-check="category"><span class="fxv-check-dot"></span> {{ translate('categories') }}</li>
+                        <li data-check="price"><span class="fxv-check-dot"></span> {{ translate('unit_price') }}</li>
+                        <li data-check="images"><span class="fxv-check-dot"></span> {{ translate('product_images') }}</li>
+                        <li data-check="description"><span class="fxv-check-dot"></span> {{ translate('description') }}</li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="row justify-content-end gap-3 mt-3 mx-1">
                 <button type="reset" class="btn btn-secondary px-5">{{ translate('reset') }}</button>
                 <button type="button" class="btn btn--primary px-5 product-add-requirements-check">{{ translate('submit') }}</button>
@@ -991,6 +1005,54 @@
     <span id="has-active-tier" data-value="{{$selectedTier ? 'true' : 'false' }}"></span>
     <span id="tier-price-min" data-value="{{ $tierDetails->price_threshold_min_usd ?? '' }}"></span>
     <span id="tier-price-max" data-value="{{ $tierDetails->price_threshold_max_usd ?? '' }}"></span>
+    <style>
+        #fxv-completeness-list li { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #5B6674; font-weight: 600; }
+        #fxv-completeness-list li.is-done { color: #172B42; }
+        .fxv-check-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #E1E6EB; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; flex-shrink: 0; }
+        #fxv-completeness-list li.is-done .fxv-check-dot { background: #1E7E34; border-color: #1E7E34; }
+        #fxv-completeness-list li.is-done .fxv-check-dot::after { content: "✓"; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var list = document.getElementById('fxv-completeness-list');
+            if (!list) return;
+            function hasText(v) { return !!(v && String(v).replace(/<[^>]*>/g, '').trim()); }
+            function check() {
+                var state = { name: false, category: false, price: false, images: false, description: false };
+                var nameInput = document.querySelector('input[name="name[]"]');
+                state.name = !!(nameInput && nameInput.value.trim());
+                document.querySelectorAll('.category-level-select[data-level="category"]').forEach(function (s) {
+                    if (s.value) state.category = true;
+                });
+                var priceInput = document.querySelector('input[name="unit_price"]');
+                state.price = !!(priceInput && parseFloat(priceInput.value) > 0);
+                document.querySelectorAll('input[type="file"][name="images[]"]').forEach(function (f) {
+                    if (f.files && f.files.length) state.images = true;
+                });
+                if (!state.images) {
+                    var previews = document.querySelectorAll('#additional_Image_Section img[src]');
+                    previews.forEach(function (img) { if (img.src && img.src.indexOf('data:') !== 0) state.images = true; });
+                }
+                var desc = document.querySelector('.product-description-default-language');
+                if (desc) {
+                    var code = desc.value || '';
+                    try {
+                        if (window.jQuery && jQuery(desc).data('summernote')) code = jQuery(desc).summernote('code') || '';
+                    } catch (e) {}
+                    state.description = hasText(code);
+                }
+                list.querySelectorAll('li[data-check]').forEach(function (li) {
+                    li.classList.toggle('is-done', !!state[li.getAttribute('data-check')]);
+                });
+            }
+            var productForm = document.querySelector('form.product-form, .product-form');
+            if (productForm) {
+                productForm.addEventListener('input', check);
+                productForm.addEventListener('change', check);
+            }
+            setTimeout(check, 800);
+        });
+    </script>
         @endif {{-- end !$slotFull --}}
 @endsection
 
