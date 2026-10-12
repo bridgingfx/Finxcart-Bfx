@@ -15,7 +15,6 @@
     </div>
 
     <div class="fx-hero6__inner">
-        <span class="fx-hero6__badge"><span class="fx-hero6__dot"></span>{{ translate('Fintech marketplace') }}</span>
         <h1 class="fx-hero6__title">{{ translate('The app store for') }} <span class="fx-hero6__grad">{{ translate('fintech.') }}</span></h1>
         <p class="fx-hero6__sub">{{ translate('Trading tools, broker solutions and expert services — listed by real vendors, ready to deploy.') }}</p>
 
