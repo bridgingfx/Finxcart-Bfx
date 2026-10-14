@@ -22,6 +22,7 @@ class BlogDatabaseSeeder extends Seeder
             ReturnsMarginPlaybookSeeder::class,
             AiShoppingAgentsSeeder::class,
             PeakFeeSeasonSeeder::class,
+            HolidayShippingSurchargesSeeder::class,
         ]);
     }
 }
