@@ -44,7 +44,7 @@
         @endif
 
         <div class="fx-hero6__banner">
-            <img src="{{ asset('storage/company/finxcart-hero-banner.webp') }}" alt="FinXCart fintech products on laptop and phone" loading="eager" fetchpriority="high">
+            <img src="{{ theme_asset(path: 'public/assets/front-end/img/finxcart-hero-banner.webp') }}" alt="FinXCart fintech products on laptop and phone" loading="eager" fetchpriority="high">
         </div>
 
         <a class="fx-hero6__vendor" href="{{ route('contacts') }}">{{ translate('Sell on FinXCart') }}
