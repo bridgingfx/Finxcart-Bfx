@@ -11,6 +11,18 @@ class BlogDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->call([]);
+        $this->call([
+            DailyContentArticleSeeder::class,
+            SellerGuideProductPhotographySeeder::class,
+            SellerGuidePricingStrategiesSeeder::class,
+            SellerGuideCustomerTrustSeeder::class,
+            MarketplaceProfitPlaybookSeeder::class,
+            SellerCentralMultichannelSeeder::class,
+            Q4HolidaySellerChecklistSeeder::class,
+            ReturnsMarginPlaybookSeeder::class,
+            AiShoppingAgentsSeeder::class,
+            PeakFeeSeasonSeeder::class,
+            HolidayShippingSurchargesSeeder::class,
+        ]);
     }
 }

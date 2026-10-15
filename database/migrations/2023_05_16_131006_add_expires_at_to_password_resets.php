@@ -14,9 +14,16 @@ class AddExpiresAtToPasswordResets extends Migration
     public function up()
     {
         Schema::table('password_resets', function (Blueprint $table) {
-            $table->id();
+            // The base migration already defines the `id` primary key; only
+            // add it when missing (e.g. databases created before it existed).
+            // Note: SQLite cannot ADD a primary key column via ALTER.
+            if (!Schema::hasColumn('password_resets', 'id')) {
+                $table->id();
+            }
             $table->timestamp('expires_at')->after('token')->nullable();
-            $table->timestamp('updated_at')->after('created_at')->nullable();
+            if (!Schema::hasColumn('password_resets', 'updated_at')) {
+                $table->timestamp('updated_at')->after('created_at')->nullable();
+            }
         });
     }
 

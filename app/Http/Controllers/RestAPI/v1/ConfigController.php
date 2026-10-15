@@ -21,7 +21,7 @@ class ConfigController extends Controller
     public function configuration(): JsonResponse
     {
         $socialLoginConfig = [];
-        foreach (getWebConfig(name: 'social_login') as $social) {
+        foreach ((getWebConfig(name: 'social_login') ?? []) as $social) {
             $config = [
                 'login_medium' => $social['login_medium'],
                 'status' => (boolean)$social['status']
@@ -29,7 +29,7 @@ class ConfigController extends Controller
             $socialLoginConfig[] = $config;
         }
 
-        foreach (getWebConfig(name: 'apple_login') as $social) {
+        foreach ((getWebConfig(name: 'apple_login') ?? []) as $social) {
             $config = [
                 'login_medium' => $social['login_medium'],
                 'status' => (boolean)$social['status']
@@ -38,7 +38,7 @@ class ConfigController extends Controller
         }
 
         $languageArray = [];
-        foreach (getWebConfig(name: 'pnc_language') as $language) {
+        foreach ((getWebConfig(name: 'pnc_language') ?? []) as $language) {
             $languageArray[] = [
                 'code' => $language,
                 'name' => Helpers::get_language_name($language)

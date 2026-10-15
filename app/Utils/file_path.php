@@ -20,10 +20,10 @@ if (!function_exists('getStorageImages')) {
             if ($type == 'payment-banner' && DOMAIN_POINTED_DIRECTORY == 'public') {
                 return asset(str_replace('app/public/', '', $source));
             }
-            return (!empty($path) && $path['status'] == 200) ? $path['path'] : dynamicAsset($source);
+            return (!empty($path) && ($path['status'] ?? 0) == 200) ? $path['path'] : dynamicAsset($source);
         }
         if ($source && file_exists($source)) {
-            return (!empty($path) && $path['status'] == 200) ? $path['path'] : $source;
+            return (!empty($path) && ($path['status'] ?? 0) == 200) ? $path['path'] : $source;
         }
         $placeholderMap = [
             'backend-basic' => 'back-end/img/placeholder/placeholder-1-1.png',
@@ -97,13 +97,13 @@ if (!function_exists('getStorageImages')) {
                 if ($theme == 'default') {
                     $placeholderPath = theme_asset(path: $placeholderMap[$type][$theme]);
                 }
-                return (!empty($path) && $path['status'] == 200) ? $path['path'] : $placeholderPath;
+                return (!empty($path) && ($path['status'] ?? 0) == 200) ? $path['path'] : $placeholderPath;
             } else {
-                return (!empty($path) && isset($path['status']) && $path['status'] == 200) ? $path['path'] : dynamicAsset(path: 'public/assets/' . $placeholderMap[$type]);
+                return (!empty($path) && isset($path['status']) && ($path['status'] ?? 0) == 200) ? $path['path'] : dynamicAsset(path: 'public/assets/' . $placeholderMap[$type]);
             }
         }
 
-        return (!empty($path) && $path['status'] == 200) ? $path['path'] : dynamicStorage(path: 'public/assets/front-end/img/placeholder/placeholder-2-1.png');
+        return (!empty($path) && ($path['status'] ?? 0) == 200) ? $path['path'] : dynamicStorage(path: 'public/assets/front-end/img/placeholder/placeholder-2-1.png');
     }
 }
 

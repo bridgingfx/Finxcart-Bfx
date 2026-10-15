@@ -45,13 +45,13 @@ class SystemLoginSetupController extends BaseController
     public function getCustomerLoginSetupView(): View
     {
         $loginOptionsValue = $this->loginSetupRepo->getFirstWhere(params: ['key' => 'login_options']);
-        $loginOptions = $loginOptionsValue ? json_decode($loginOptionsValue?->value ?? [], true) : [
+        $loginOptions = $loginOptionsValue ? json_decode($loginOptionsValue?->value ?? '{}', true) : [
             'manual_login' => 0,
             'otp_login' => 0,
             'social_login' => 0,
         ];
         $socialMediaForLoginValue = $this->loginSetupRepo->getFirstWhere(params: ['key' => 'social_media_for_login']);
-        $socialMediaLoginOptions = $socialMediaForLoginValue ? json_decode($socialMediaForLoginValue?->value ?? [], true) : [
+        $socialMediaLoginOptions = $socialMediaForLoginValue ? json_decode($socialMediaForLoginValue?->value ?? '{}', true) : [
             'google' => 0,
             'facebook' => 0,
             'apple' => 0,

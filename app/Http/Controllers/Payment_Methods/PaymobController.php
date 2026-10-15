@@ -15,7 +15,7 @@ class PaymobController extends Controller
 {
     use Processor;
 
-    private mixed $config_values;
+    private mixed $config_values = null;
 
     private PaymentRequest $payment;
     private User $user;
@@ -40,8 +40,9 @@ class PaymobController extends Controller
         }
         $this->payment = $payment;
         $this->user = $user;
-        $country = $this->config_values['supported_country'];
-        if (array_key_exists($country, $this->supportedCountries)) {
+        // Config may be absent (gateway not configured); fall back to default.
+        $country = is_array($this->config_values) ? ($this->config_values['supported_country'] ?? null) : null;
+        if ($country && array_key_exists($country, $this->supportedCountries)) {
             $this->base_url = $this->supportedCountries[$country];
         } else {
             $this->base_url = $this->defaultBaseUrl;

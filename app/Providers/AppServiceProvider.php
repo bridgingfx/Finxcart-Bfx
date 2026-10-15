@@ -296,6 +296,52 @@ class AppServiceProvider extends ServiceProvider
 
 
 
+        // Default web config so views can render even when the database-backed
+        // config is unavailable (e.g. console/testing context).
+        $defaultWebConfig = [
+            'primary_color' => '',
+            'secondary_color' => '',
+            'primary_color_light' => '',
+            'panel_sidebar_color' => '',
+            'name' => '',
+            'company_name' => '',
+            'phone' => '',
+            'web_logo' => ['path' => '', 'status' => 0],
+            'mob_logo' => ['path' => '', 'status' => 0],
+            'fav_icon' => ['path' => '', 'status' => 0],
+            'email' => '',
+            'about' => '',
+            'footer_logo' => ['path' => '', 'status' => 0],
+            'copyright_text' => '',
+            'decimal_point_settings' => 0,
+            'seller_registration' => 0,
+            'wallet_status' => 0,
+            'loyalty_point_status' => 0,
+            'guest_checkout_status' => 0,
+            'digital_product_setting' => 0,
+            'language' => [],
+            'publishing_houses' => null,
+            'digital_product_authors' => null,
+            'firebase_otp_verification' => [],
+            'firebase_otp_verification_status' => 0,
+            'meta_description' => '',
+            'default_meta_content' => null,
+            'social_media' => collect(),
+            'business_pages' => collect(),
+            // Additional keys accessed directly by theme views.
+            'android' => ['status' => 0, 'link' => ''],
+            'ios' => ['status' => 0, 'link' => ''],
+            'brand_setting' => 0,
+            'cookie_setting' => null,
+            'customer_login_options' => [],
+            'customer_social_login_options' => [],
+            'flash_deals' => null,
+            'flash_deals_products' => [],
+            'popup_banner' => null,
+            'ref_earning_status' => 0,
+            'social_login_text' => '',
+        ];
+
         if (!App::runningInConsole()) {
             Paginator::useBootstrap();
 
@@ -303,37 +349,7 @@ class AppServiceProvider extends ServiceProvider
             Config::set('get_payment_publish_status', $this->getPaymentPublishStatus());
             Config::set('get_theme_routes', $this->getThemeRoutesArray());
 
-            $web_config = [
-                'primary_color' => '',
-                'secondary_color' => '',
-                'primary_color_light' => '',
-                'panel_sidebar_color' => '',
-                'name' => '',
-                'company_name' => '',
-                'phone' => '',
-                'web_logo' => ['path' => ''],
-                'mob_logo' => ['path' => ''],
-                'fav_icon' => ['path' => ''],
-                'email' => '',
-                'about' => '',
-                'footer_logo' => ['path' => ''],
-                'copyright_text' => '',
-                'decimal_point_settings' => 0,
-                'seller_registration' => 0,
-                'wallet_status' => 0,
-                'loyalty_point_status' => 0,
-                'guest_checkout_status' => 0,
-                'digital_product_setting' => 0,
-                'language' => [],
-                'publishing_houses' => null,
-                'digital_product_authors' => null,
-                'firebase_otp_verification' => [],
-                'firebase_otp_verification_status' => 0,
-                'meta_description' => '',
-                'default_meta_content' => null,
-                'social_media' => collect(),
-                'business_pages' => collect(),
-            ];
+            $web_config = $defaultWebConfig;
             $language = [];
 
             try {
@@ -357,12 +373,12 @@ class AppServiceProvider extends ServiceProvider
                         'name' => Helpers::get_settings($web, 'company_name'),
                         'company_name' => getWebConfig(name: 'company_name'),
                         'phone' => getWebConfig(name: 'company_phone'),
-                        'web_logo' => getWebConfig(name: 'company_web_logo') ?? ['path' => ''],
+                        'web_logo' => getWebConfig(name: 'company_web_logo') ?? ['path' => '', 'status' => 0],
                         'mob_logo' => getWebConfig(name:'company_mobile_logo') ?? ['path' => ''],
-                        'fav_icon' => getWebConfig(name: 'company_fav_icon') ?? ['path' => ''],
+                        'fav_icon' => getWebConfig(name: 'company_fav_icon') ?? ['path' => '', 'status' => 0],
                         'email' => getWebConfig(name: 'company_email'),
                         'about' => Helpers::get_settings($web, 'about_us'),
-                        'footer_logo' => getWebConfig(name: 'company_footer_logo') ?? ['path' => ''],
+                        'footer_logo' => getWebConfig(name: 'company_footer_logo') ?? ['path' => '', 'status' => 0],
                         'copyright_text' => getWebConfig(name: 'company_copyright_text'),
                         'decimal_point_settings' => !empty(getWebConfig(name: 'decimal_point_settings')) ? getWebConfig(name: 'decimal_point_settings') : 0,
                         'seller_registration' => getWebConfig(name: 'seller_registration') ?? 0,
@@ -491,6 +507,10 @@ class AppServiceProvider extends ServiceProvider
             }
 
             View::share(['web_config' => $web_config, 'language' => $language]);
+        } else {
+            // Console context (tests, queue workers, artisan): share safe
+            // defaults so views that depend on $web_config can still render.
+            View::share(['web_config' => $defaultWebConfig, 'language' => []]);
         }
 
 

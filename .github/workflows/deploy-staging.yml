@@ -1,0 +1,229 @@
+name: Deploy staging
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      import_db:
+        description: "Import DB dump already uploaded to the server"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      remote_db_dump:
+        description: "Remote SQL dump path, used only when import_db=true"
+        required: false
+        default: "~/finxcart_stage.sql"
+
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.1
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: curl, dom, fileinfo, gd, intl, json, libxml, mysqli, openssl, pdo_mysql, zip
+          tools: composer:v2
+
+      - name: Setup Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: NODE_OPTIONS=--openssl-legacy-provider npm run prod
+
+      - name: Create deploy archive
+        run: |
+          tar \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.env' \
+            --exclude='node_modules' \
+            --exclude='storage/app/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/*' \
+            --exclude='public/storage' \
+            --exclude='_db_backups' \
+            --exclude='*.sql' \
+            -czf /tmp/finxcart-staging.tar.gz .
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/cpanel_key
+          chmod 600 ~/.ssh/cpanel_key
+          ssh-keyscan -p "${{ secrets.CPANEL_PORT }}" "${{ secrets.CPANEL_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload archive
+        run: |
+          scp -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
+            -i ~/.ssh/cpanel_key -P "${{ secrets.CPANEL_PORT }}" \
+            /tmp/finxcart-staging.tar.gz \
+            "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:${{ secrets.STAGING_PATH }}/finxcart-staging.tar.gz"
+
+      - name: Deploy on cPanel
+        env:
+          IMPORT_DB: ${{ github.event_name == 'workflow_dispatch' && inputs.import_db == 'true' }}
+          REMOTE_DB_DUMP: ${{ inputs.remote_db_dump }}
+          CPANEL_PHP_BIN_SECRET: ${{ secrets.CPANEL_PHP_BIN }}
+          STAGING_PATH_SECRET: ${{ secrets.STAGING_PATH }}
+          STAGING_DB_HOST_SECRET: ${{ secrets.STAGING_DB_HOST }}
+          STAGING_DB_USER_SECRET: ${{ secrets.STAGING_DB_USER }}
+          STAGING_DB_PASSWORD_SECRET: ${{ secrets.STAGING_DB_PASSWORD }}
+          STAGING_DB_DATABASE_SECRET: ${{ secrets.STAGING_DB_DATABASE }}
+        run: |
+          STAGING_PATH_B64="$(printf '%s' "$STAGING_PATH_SECRET" | base64 -w 0)"
+          PHP_BIN_B64="$(printf '%s' "$CPANEL_PHP_BIN_SECRET" | base64 -w 0)"
+          REMOTE_DB_DUMP_B64="$(printf '%s' "$REMOTE_DB_DUMP" | base64 -w 0)"
+          STAGING_DB_HOST_B64="$(printf '%s' "$STAGING_DB_HOST_SECRET" | base64 -w 0)"
+          STAGING_DB_USER_B64="$(printf '%s' "$STAGING_DB_USER_SECRET" | base64 -w 0)"
+          STAGING_DB_PASSWORD_B64="$(printf '%s' "$STAGING_DB_PASSWORD_SECRET" | base64 -w 0)"
+          STAGING_DB_DATABASE_B64="$(printf '%s' "$STAGING_DB_DATABASE_SECRET" | base64 -w 0)"
+
+          for attempt in 1 2 3; do
+            echo "Starting cPanel deploy SSH attempt $attempt..."
+            ssh -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
+            -i ~/.ssh/cpanel_key -p "${{ secrets.CPANEL_PORT }}" \
+            "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" \
+            "STAGING_PATH_B64='$STAGING_PATH_B64' PHP_BIN_B64='$PHP_BIN_B64' IMPORT_DB='$IMPORT_DB' REMOTE_DB_DUMP_B64='$REMOTE_DB_DUMP_B64' STAGING_DB_HOST_B64='$STAGING_DB_HOST_B64' STAGING_DB_USER_B64='$STAGING_DB_USER_B64' STAGING_DB_PASSWORD_B64='$STAGING_DB_PASSWORD_B64' STAGING_DB_DATABASE_B64='$STAGING_DB_DATABASE_B64' bash -s" << 'EOF'
+          set -e
+          decode_b64() {
+            printf '%s' "$1" | base64 -d
+          }
+          STAGING_PATH="$(decode_b64 "$STAGING_PATH_B64")"
+          PHP_BIN="$(decode_b64 "$PHP_BIN_B64")"
+          REMOTE_DB_DUMP="$(decode_b64 "$REMOTE_DB_DUMP_B64")"
+          STAGING_DB_HOST="$(decode_b64 "$STAGING_DB_HOST_B64")"
+          STAGING_DB_USER="$(decode_b64 "$STAGING_DB_USER_B64")"
+          STAGING_DB_PASSWORD="$(decode_b64 "$STAGING_DB_PASSWORD_B64")"
+          STAGING_DB_DATABASE="$(decode_b64 "$STAGING_DB_DATABASE_B64")"
+          export STAGING_DB_HOST STAGING_DB_USER STAGING_DB_PASSWORD STAGING_DB_DATABASE
+
+          cd "$STAGING_PATH"
+          if [ -n "$PHP_BIN" ] && [ ! -x "$PHP_BIN" ]; then
+            echo "Configured CPANEL_PHP_BIN is not executable. Trying auto-detect..."
+            PHP_BIN=""
+          fi
+          if [ -z "$PHP_BIN" ]; then
+            if [ -x "/opt/cpanel/ea-php81/root/usr/bin/php" ]; then
+              PHP_BIN="/opt/cpanel/ea-php81/root/usr/bin/php"
+            elif [ -x "/usr/local/bin/ea-php81" ]; then
+              PHP_BIN="/usr/local/bin/ea-php81"
+            elif command -v php >/dev/null 2>&1; then
+              PHP_BIN="$(command -v php)"
+            else
+              echo "No PHP CLI binary found on cPanel."
+              exit 1
+            fi
+          fi
+          "$PHP_BIN" -v
+          cleanup() {
+            "$PHP_BIN" artisan up || true
+          }
+          trap cleanup EXIT
+
+          if [ ! -f .env ] || ! grep -q '^APP_KEY=' .env; then
+            cp .env.example .env
+          fi
+          cat > /tmp/finxcart-update-env.php <<'PHP'
+          <?php
+          $path = ".env";
+          $quote = function ($value) {
+              $value = (string) $value;
+              if (preg_match("/^[A-Za-z0-9_.,:\/@+\-]*$/", $value)) {
+                  return $value;
+              }
+              return "\"" . str_replace(["\\", "\"", "\n", "\r"], ["\\\\", "\\\"", "", ""], $value) . "\"";
+          };
+          $updates = [
+              "APP_ENV" => "production",
+              "APP_DEBUG" => "false",
+              "APP_URL" => "https://staging.finxcart.com",
+              "DB_CONNECTION" => "mysql",
+              "DB_HOST" => getenv("STAGING_DB_HOST"),
+              "DB_PORT" => "3306",
+              "DB_DATABASE" => getenv("STAGING_DB_DATABASE"),
+              "DB_USERNAME" => getenv("STAGING_DB_USER"),
+              "DB_PASSWORD" => getenv("STAGING_DB_PASSWORD"),
+          ];
+          $lines = file_exists($path) ? file($path, FILE_IGNORE_NEW_LINES) : [];
+          $seen = [];
+          foreach ($lines as &$line) {
+              if (preg_match("/^([A-Z0-9_]+)=/", $line, $matches) && array_key_exists($matches[1], $updates)) {
+                  $line = $matches[1] . "=" . $quote($updates[$matches[1]]);
+                  $seen[$matches[1]] = true;
+              }
+          }
+          unset($line);
+          foreach ($updates as $key => $value) {
+              if (!isset($seen[$key])) {
+                  $lines[] = $key . "=" . $quote($value);
+              }
+          }
+          file_put_contents($path, implode(PHP_EOL, $lines) . PHP_EOL);
+          PHP
+          "$PHP_BIN" /tmp/finxcart-update-env.php
+          rm -f /tmp/finxcart-update-env.php
+          rm -f bootstrap/cache/config.php
+
+          if ! grep -q '^APP_KEY=base64:' .env; then
+            "$PHP_BIN" artisan key:generate --force
+          fi
+
+          echo "Testing MySQL connection for staging database..."
+          mysql -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" -e "SELECT 1;"
+
+          "$PHP_BIN" artisan down || true
+
+          tar -xzf finxcart-staging.tar.gz
+          rm -f finxcart-staging.tar.gz
+
+          mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views storage/logs
+          "$PHP_BIN" artisan storage:link || true
+
+          if [ "$IMPORT_DB" = "true" ]; then
+            mysql -h"$STAGING_DB_HOST" -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" "$STAGING_DB_DATABASE" < "$REMOTE_DB_DUMP"
+          fi
+
+          "$PHP_BIN" artisan migrate --force
+          "$PHP_BIN" artisan optimize:clear
+          "$PHP_BIN" artisan config:cache
+          "$PHP_BIN" artisan route:cache
+          "$PHP_BIN" artisan view:cache
+
+          "$PHP_BIN" artisan up || true
+          trap - EXIT
+          EOF
+            status=$?
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+            echo "cPanel deploy SSH attempt $attempt failed with $status. Retrying in 20 seconds..."
+            sleep 20
+          done

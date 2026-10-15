@@ -80,7 +80,7 @@ class ProductDetailsController extends Controller
             );
 
             $firstVariationQuantity = $product['current_stock'];
-            if (count(json_decode($product['variation'], true)) > 0) {
+            if (count(json_decode($product['variation'] ?? '[]', true) ?? []) > 0) {
                 $firstVariationQuantity = json_decode($product['variation'], true)[0]['qty'];
             }
             $firstVariationQuantity = $product['product_type'] == 'physical' ? $firstVariationQuantity : 999;
@@ -133,10 +133,10 @@ class ProductDetailsController extends Controller
 
             $temporaryClose = getWebConfig('temporary_close');
             $inHouseVacation = getWebConfig('vacation_add');
-            $inHouseVacationStartDate = $product['added_by'] == 'admin' ? $inHouseVacation['vacation_start_date'] : null;
-            $inHouseVacationEndDate = $product['added_by'] == 'admin' ? $inHouseVacation['vacation_end_date'] : null;
-            $inHouseVacationStatus = $product['added_by'] == 'admin' ? $inHouseVacation['status'] : false;
-            $inHouseTemporaryClose = $product['added_by'] == 'admin' ? $temporaryClose['status'] : false;
+            $inHouseVacationStartDate = $product['added_by'] == 'admin' ? ($inHouseVacation['vacation_start_date'] ?? null) : null;
+            $inHouseVacationEndDate = $product['added_by'] == 'admin' ? ($inHouseVacation['vacation_end_date'] ?? null) : null;
+            $inHouseVacationStatus = $product['added_by'] == 'admin' ? ($inHouseVacation['status'] ?? false) : false;
+            $inHouseTemporaryClose = $product['added_by'] == 'admin' ? ($temporaryClose['status'] ?? false) : false;
 
             $previewFileInfo = getFileInfoFromURL(url: $product?->preview_file_full_url['path']);
 
@@ -203,10 +203,10 @@ class ProductDetailsController extends Controller
 
             $temporaryClose = getWebConfig('temporary_close');
             $inHouseVacation = getWebConfig('vacation_add');
-            $inHouseVacationStartDate = $product['added_by'] == 'admin' ? $inHouseVacation['vacation_start_date'] : null;
-            $inHouseVacationEndDate = $product['added_by'] == 'admin' ? $inHouseVacation['vacation_end_date'] : null;
-            $inHouseVacationStatus = $product['added_by'] == 'admin' ? $inHouseVacation['status'] : false;
-            $inHouseTemporaryClose = $product['added_by'] == 'admin' ? $temporaryClose['status'] : false;
+            $inHouseVacationStartDate = $product['added_by'] == 'admin' ? ($inHouseVacation['vacation_start_date'] ?? null) : null;
+            $inHouseVacationEndDate = $product['added_by'] == 'admin' ? ($inHouseVacation['vacation_end_date'] ?? null) : null;
+            $inHouseVacationStatus = $product['added_by'] == 'admin' ? ($inHouseVacation['status'] ?? false) : false;
+            $inHouseTemporaryClose = $product['added_by'] == 'admin' ? ($temporaryClose['status'] ?? false) : false;
 
             $overallRating = getOverallRating($product['reviews']);
 
@@ -219,7 +219,7 @@ class ProductDetailsController extends Controller
             );
 
             $firstVariationQuantity = $product['current_stock'];
-            if (count(json_decode($product['variation'], true)) > 0) {
+            if (count(json_decode($product['variation'] ?? '[]', true) ?? []) > 0) {
                 $firstVariationQuantity = json_decode($product['variation'], true)[0]['qty'];
             }
             $firstVariationQuantity = $product['product_type'] == 'physical' ? $firstVariationQuantity : 999;
@@ -312,10 +312,10 @@ class ProductDetailsController extends Controller
 
             $temporaryClose = getWebConfig(name: 'temporary_close');
             $inHouseVacation = getWebConfig(name: 'vacation_add');
-            $inHouseVacationStartDate = $product['added_by'] == 'admin' ? $inHouseVacation['vacation_start_date'] : null;
-            $inHouseVacationEndDate = $product['added_by'] == 'admin' ? $inHouseVacation['vacation_end_date'] : null;
-            $inHouseVacationStatus = $product['added_by'] == 'admin' ? $inHouseVacation['status'] : false;
-            $inHouseTemporaryClose = $product['added_by'] == 'admin' ? $temporaryClose['status'] : false;
+            $inHouseVacationStartDate = $product['added_by'] == 'admin' ? ($inHouseVacation['vacation_start_date'] ?? null) : null;
+            $inHouseVacationEndDate = $product['added_by'] == 'admin' ? ($inHouseVacation['vacation_end_date'] ?? null) : null;
+            $inHouseVacationStatus = $product['added_by'] == 'admin' ? ($inHouseVacation['status'] ?? false) : false;
+            $inHouseTemporaryClose = $product['added_by'] == 'admin' ? ($temporaryClose['status'] ?? false) : false;
 
             $overallRating = getOverallRating($product['reviews']);
             $productReviewsCount = $product->reviews->count();
@@ -340,7 +340,7 @@ class ProductDetailsController extends Controller
             );
 
             $firstVariationQuantity = $product['current_stock'];
-            if (count(json_decode($product['variation'], true)) > 0) {
+            if (count(json_decode($product['variation'] ?? '[]', true) ?? []) > 0) {
                 $firstVariationQuantity = json_decode($product['variation'], true)[0]['qty'];
             }
             $firstVariationQuantity = $product['product_type'] == 'physical' ? $firstVariationQuantity : 999;

@@ -14,6 +14,14 @@ class AddCascadeForeignKeysToProductCategoryColumns extends Migration
      */
     public function up()
     {
+        // The data cleanup and column changes below use MySQL-specific SQL
+        // (multi-table DELETE, CAST AS UNSIGNED, ALTER ... MODIFY). On other
+        // drivers (e.g. SQLite) run portable equivalents instead.
+        if (DB::getDriverName() === 'sqlite') {
+            $this->sqliteUp();
+            return;
+        }
+
         DB::statement("
             DELETE p
             FROM products p
@@ -48,12 +56,41 @@ class AddCascadeForeignKeysToProductCategoryColumns extends Migration
     }
 
     /**
+     * Portable equivalent of up() for SQLite, which supports neither
+     * multi-table DELETE syntax nor ALTER TABLE ... MODIFY / ADD FOREIGN KEY.
+     */
+    private function sqliteUp(): void
+    {
+        DB::statement("
+            DELETE FROM products WHERE id IN (
+                SELECT p.id FROM products p
+                LEFT JOIN categories c1 ON c1.id = p.category_id
+                LEFT JOIN categories c2 ON c2.id = p.sub_category_id
+                LEFT JOIN categories c3 ON c3.id = p.sub_sub_category_id
+                WHERE (p.category_id IS NOT NULL AND p.category_id <> '' AND p.category_id <> '0' AND c1.id IS NULL)
+                   OR (p.sub_category_id IS NOT NULL AND p.sub_category_id <> '' AND p.sub_category_id <> '0' AND c2.id IS NULL)
+                   OR (p.sub_sub_category_id IS NOT NULL AND p.sub_sub_category_id <> '' AND p.sub_sub_category_id <> '0' AND c3.id IS NULL)
+            )
+        ");
+
+        DB::statement("UPDATE products SET category_id = NULL WHERE category_id IN ('', '0')");
+        DB::statement("UPDATE products SET sub_category_id = NULL WHERE sub_category_id IN ('', '0')");
+        DB::statement("UPDATE products SET sub_sub_category_id = NULL WHERE sub_sub_category_id IN ('', '0')");
+        // Columns stay as-is: SQLite is dynamically typed and the columns are
+        // already nullable; foreign keys cannot be added via ALTER TABLE.
+    }
+
+    /**
      * Reverse the migrations.
      *
      * @return void
      */
     public function down()
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         $this->dropForeignIfExists('products', 'products_category_id_foreign');
         $this->dropForeignIfExists('products', 'products_sub_category_id_foreign');
         $this->dropForeignIfExists('products', 'products_sub_sub_category_id_foreign');
