@@ -667,6 +667,9 @@ class ShopViewController extends Controller
             return response()->json(['status' => 'inactive']);
         } else {
             $product_data = Product::find($request['id']);
+            if (!$product_data) {
+                return response()->json(['status' => 0, 'message' => translate('product_not_found')]);
+            }
 
             unset($request['added_by']);
             $request['quantity'] = $product_data->minimum_order_qty;

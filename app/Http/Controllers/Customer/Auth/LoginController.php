@@ -287,6 +287,11 @@ class LoginController extends Controller
 
     public function getLoginModalView(Request $request): JsonResponse
     {
+        // Only some themes define these modal views
+        if (!isset(VIEW_FILE_NAMES['get_login_modal_data'], VIEW_FILE_NAMES['get_register_modal_data'])) {
+            return response()->json(['status' => 0, 'message' => translate('login_popup_is_not_available_please_use_the_login_page')]);
+        }
+
         return response()->json([
             'login_modal' => view(VIEW_FILE_NAMES['get_login_modal_data'])->render(),
             'register_modal' => view(VIEW_FILE_NAMES['get_register_modal_data'])->render(),

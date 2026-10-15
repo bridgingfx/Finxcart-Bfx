@@ -839,7 +839,15 @@ public function track_order_result(Request $request)
 
     public function track_last_order()
     {
-        $orderDetails = OrderManager::track_order(Order::where('customer_id', auth('customer')->id())->latest()->first()->id);
+        $lastOrder = auth('customer')->check()
+            ? Order::where('customer_id', auth('customer')->id())->latest()->first()
+            : null;
+        if (!$lastOrder) {
+            Toastr::error(translate('you_have_no_orders_to_track_yet'));
+            return redirect()->back();
+        }
+
+        $orderDetails = OrderManager::track_order($lastOrder->id);
 
         if ($orderDetails != null) {
             return view('web-views.order.tracking', compact('orderDetails'));

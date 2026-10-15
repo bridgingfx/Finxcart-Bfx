@@ -29,6 +29,10 @@ class SystemController extends Controller
 
     public function setShippingMethod(Request $request): JsonResponse
     {
+        if (!ShippingMethod::find($request['id'])) {
+            return response()->json(['status' => 0, 'message' => translate('shipping_method_not_found')]);
+        }
+
         if ($request['cart_group_id'] == 'all_cart_group') {
             foreach (CartManager::get_cart_group_ids() as $groupId) {
                 $request['cart_group_id'] = $groupId;
@@ -48,7 +52,7 @@ class SystemController extends Controller
         }
         $shipping['cart_group_id'] = $request['cart_group_id'];
         $shipping['shipping_method_id'] = $request['id'];
-        $shipping['shipping_cost'] = ShippingMethod::find($request['id'])->cost;
+        $shipping['shipping_cost'] = ShippingMethod::findOrFail($request['id'])->cost;
         $shipping->save();
     }
 

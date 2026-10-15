@@ -123,7 +123,11 @@ function setShippingId(id, cartGroupId) {
         beforeSend: function () {
             $('#loading').show();
         },
-        success: function () {
+        success: function (data) {
+            if (data.status === 0) {
+                toastr.error(data.message);
+                return;
+            }
             location.reload();
         },
         complete: function () {
@@ -156,6 +160,10 @@ function setShippingIdFunctionCartDetails() {
                 $('#loading').addClass('d-grid');
             },
             success: function (data) {
+                if (data.status === 0) {
+                    toastr.error(data.message);
+                    return;
+                }
                 location.reload();
             },
             complete: function () {
