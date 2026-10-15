@@ -55,7 +55,7 @@
 body.fx main.main-content { margin-top: 0 !important; }
 
 .fx .fxh-bar-inner { display: flex; align-items: center; gap: var(--fx-s3); padding-top: var(--fx-s3); padding-bottom: var(--fx-s3); }
-.fx .fxh-logo { display: inline-flex; align-items: center; flex-shrink: 0; background: transparent; padding: 6px 4px; line-height: 0; }
+.fx .fxh-logo { display: inline-flex; align-items: center; flex-shrink: 0; background: #fff; border-radius: 12px; padding: 6px 14px; line-height: 0; }
 .fx .fxh-logo img { display: block; height: 34px; width: auto; max-width: 180px; object-fit: contain; }
 
 /* desktop search (flexes between logo and actions) */
