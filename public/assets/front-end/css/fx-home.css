@@ -444,3 +444,30 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
   /* Bottom nav: ensure labels fit */
   .fx-tabbar__label { font-size: 10px; }
 }
+
+/* ============ Mobile hero wall fix (2026-10-15) ============ */
+@media (max-width: 640px) {
+  .fx-hero6__wall {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding: 0 16px;
+    overflow: visible;
+  }
+  .fx-wcard {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 0 !important;
+    transform: none !important;
+  }
+  .fx-hero6__inner {
+    overflow: hidden;
+    padding-bottom: 40px;
+  }
+  /* Prevent bottom nav overlap */
+  .fx-hero6 { padding-bottom: 20px; }
+  /* Fix empty space: ensure sections have content */
+  .fx-home__section { padding: 32px 0; }
+}
