@@ -471,3 +471,16 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
   /* Fix empty space: ensure sections have content */
   .fx-home__section { padding: 32px 0; }
 }
+
+/* ============ Mobile header emergency fix (2026-10-15) ============ */
+@media (max-width: 480px) {
+  .fx .fxh-bar-inner { gap: 6px !important; padding-left: 8px !important; padding-right: 8px !important; }
+  .fx .fxh-logo { padding: 4px 8px !important; border-radius: 8px !important; }
+  .fx .fxh-logo img { max-width: 90px !important; height: 24px !important; }
+  .fx .fxh-burger { width: 36px !important; height: 36px !important; }
+  .fx .fxh-action { min-width: 36px !important; min-height: 36px !important; padding: 2px !important; }
+  .fx .fxh-acct .fx-btn { padding: 8px 12px !important; font-size: 12px !important; }
+  /* Hide wishlist on tiny screens to save space */
+  .fx .fxh-actions .fxh-action[aria-label*="saved" i],
+  .fx .fxh-actions a[href*="wishlist"] { display: none !important; }
+}
