@@ -69,10 +69,12 @@
         @include('web-views.partials._fx-home-hero', ['heroChips' => $tileCategories->take(6), 'fxStats' => isset($fxStats) ? $fxStats : null, 'populatedCategoryCount' => $populatedCategoryCount])
 
         @if($hasInventory)
+            @include('web-views.partials._fx-home-mini-banners')
             @include('web-views.partials._fx-home-categories', ['tileCategories' => $tileCategories])
             @include('web-views.partials._fx-home-recommended', ['recommended' => $recommended])
             @include('web-views.partials._fx-home-promos', ['promoTiles' => $promoTiles])
             @include('web-views.partials._fx-home-showcase')
+            @include('web-views.partials._fx-home-wide-banner')
             @include('web-views.partials._fx-home-new', ['newArrivals' => $newArrivals])
             @include('web-views.partials._fx-home-brands', ['brandList' => $brandList])
             @include('web-views.partials._fx-home-providers')

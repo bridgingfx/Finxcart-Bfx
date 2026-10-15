@@ -507,3 +507,34 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
 .fx-showcase__delivery { font-size: 12px; color: #0d8a5f; margin-top: 4px; font-weight: 600; }
 @media (max-width: 1024px) { .fx-showcase__grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 640px) { .fx-showcase__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .fx-showcase { padding: 32px 0; } }
+/* FinXCart mini promo banners — e-commerce style */
+.fx-mini-banners { padding: 24px 0 8px; }
+.fx-mini-banners__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.fx-mini-banner { position: relative; display: block; border-radius: 16px; overflow: hidden; aspect-ratio: 16/7; text-decoration: none; }
+.fx-mini-banner img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+.fx-mini-banner:hover img { transform: scale(1.04); }
+.fx-mini-banner__overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 20px 24px; background: linear-gradient(90deg, rgba(10,18,40,.72) 0%, rgba(10,18,40,.25) 55%, transparent 100%); }
+.fx-mini-banner__tag { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #ffd166; margin-bottom: 6px; }
+.fx-mini-banner__title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.fx-mini-banner__cta { display: inline-block; align-self: flex-start; font-size: 13px; font-weight: 700; color: #0f1b3d; background: #fff; padding: 7px 16px; border-radius: 999px; }
+@media (max-width: 768px) {
+    .fx-mini-banners__row { grid-template-columns: 1fr; gap: 12px; }
+    .fx-mini-banner { aspect-ratio: 16/6; }
+    .fx-mini-banner__title { font-size: 19px; }
+}
+
+/* FinXCart wide promo banner */
+.fx-wide-banner { padding: 8px 0 24px; }
+.fx-wide-banner__link { position: relative; display: block; border-radius: 20px; overflow: hidden; aspect-ratio: 21/6; text-decoration: none; }
+.fx-wide-banner__link img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+.fx-wide-banner__link:hover img { transform: scale(1.02); }
+.fx-wide-banner__overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 24px 48px; background: linear-gradient(90deg, rgba(10,18,40,.78) 0%, rgba(10,18,40,.35) 55%, transparent 100%); }
+.fx-wide-banner__tag { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #ffd166; margin-bottom: 8px; }
+.fx-wide-banner__title { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.fx-wide-banner__sub { font-size: 15px; color: rgba(255,255,255,.85); margin-bottom: 14px; }
+@media (max-width: 768px) {
+    .fx-wide-banner__link { aspect-ratio: 16/9; }
+    .fx-wide-banner__overlay { padding: 20px; }
+    .fx-wide-banner__title { font-size: 22px; }
+    .fx-wide-banner__sub { font-size: 13px; }
+}
