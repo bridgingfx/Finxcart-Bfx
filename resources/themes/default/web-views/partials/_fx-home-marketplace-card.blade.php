@@ -10,6 +10,19 @@
     $fxDetailUrl = route('product', $product->slug);
     $discountVal = 0;
     try { $discountVal = getProductPriceByType(product: $product, type: 'discount', result: 'value'); } catch (\Throwable $e) {}
+    // Discount percent for the badge (computed from real data, no fake discounts)
+    $discountPct = 0;
+    try {
+        $unit = (float) ($product->unit_price ?? 0);
+        if ($unit > 0 && $discountVal > 0) { $discountPct = (int) round(($discountVal / $unit) * 100); }
+    } catch (\Throwable $e) {}
+    // Star rating — only when real review data is loaded on the product
+    $ratingAvg = null; $ratingCount = 0;
+    try {
+        $r = $product->rating;
+        if ($r && $r->count()) { $ratingAvg = (float) $r->first()->average; }
+        $ratingCount = (int) ($product->reviews_count ?? $product->review_count ?? 0);
+    } catch (\Throwable $e) {}
     $formId = 'fxmp-form-' . $product->id;
 @endphp
 <article class="fxmp-card" data-product-id="{{ $product->id }}">
@@ -18,8 +31,8 @@
             <img src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'product') }}"
                  alt="{{ $product->name }}" loading="lazy" width="400" height="300">
         </a>
-        @if($discountVal > 0)
-            <span class="fxmp-card__badge">-{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}</span>
+        @if($discountPct > 0)
+            <span class="fxmp-card__badge fxmp-card__badge--sale">-{{ $discountPct }}%</span>
         @endif
         <button type="button" class="fxmp-card__icon fxmp-wishlist{{ $fxSaved ? ' is-saved' : '' }}"
                 data-product-id="{{ $product->id }}" aria-pressed="{{ $fxSaved ? 'true' : 'false' }}"
@@ -36,6 +49,12 @@
     </div>
     <div class="fxmp-card__body">
         <h3 class="fxmp-card__title"><a href="{{ $fxDetailUrl }}">{{ $product->name }}</a></h3>
+        @if($ratingAvg !== null && $ratingAvg > 0)
+            <div class="fxmp-card__rating" aria-label="{{ translate('rated') }} {{ number_format($ratingAvg, 1) }} {{ translate('out_of_5') }}">
+                <span class="fxmp-card__stars" aria-hidden="true">{{ str_repeat('★', (int) round($ratingAvg)) }}{{ str_repeat('☆', 5 - (int) round($ratingAvg)) }}</span>
+                <span class="fxmp-card__rcount">{{ number_format($ratingAvg, 1) }}{{ $ratingCount > 0 ? ' (' . number_format($ratingCount) . ')' : '' }}</span>
+            </div>
+        @endif
         <p class="fxmp-card__tag">{{ $fx['tag'] }}</p>
         <div class="fxmp-card__price">
             @if($fx['key'] === 'custom_service')

@@ -706,3 +706,100 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
     .fxmp-cta__btn { text-align: center; }
     .fxmp-card__quick { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* ---------- Marketplace v2: trust strip, deals, refined cards ---------- */
+.fxmp-trust { background: #fff; border-top: 1px solid #e8ecf3; border-bottom: 1px solid #e8ecf3; }
+.fxmp-trust__row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding-top: 14px; padding-bottom: 14px; }
+.fxmp-trust__item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: #0f1b3d; }
+.fxmp-trust__item i { font-style: normal; font-size: 22px; }
+
+/* Deals of the day */
+.fxmp-deals { padding: 30px 0 6px; }
+.fxmp-deals__box { background: linear-gradient(120deg, #7c0f2e, #c21844); border-radius: 18px; padding: 28px 32px; color: #fff; }
+.fxmp-deals__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.fxmp-deals__title { font-size: 22px; font-weight: 800; margin: 0; }
+.fxmp-deals__sub { font-size: 13px; opacity: .85; margin: 4px 0 0; }
+.fxmp-deals__box .fxmp-card { border: none; }
+.fxmp-countdown { display: flex; gap: 8px; align-items: center; font-size: 12.5px; font-weight: 700; }
+.fxmp-countdown__label { opacity: .85; }
+.fxmp-countdown__cell { background: rgba(255,255,255,.16); border-radius: 8px; padding: 6px 10px; text-align: center; min-width: 52px; }
+.fxmp-countdown__cell b { display: block; font-size: 17px; }
+
+/* New arrivals */
+.fxmp-newarr { padding: 30px 0 6px; }
+.fx-sec-sub { font-size: 13px; color: #6b7a99; margin: 4px 0 0; }
+
+/* Refined card: smaller badges, star rating, 2-line clamp */
+.fxmp-card__badge { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; top: 8px; left: 8px; }
+.fxmp-card__badge--sale { background: #e11d48; }
+.fxmp-card__title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fxmp-card__rating { display: flex; align-items: center; gap: 6px; }
+.fxmp-card__stars { color: #F3A329; font-size: 12px; letter-spacing: 1px; }
+.fxmp-card__rcount { font-size: 11.5px; color: #6b7a99; font-weight: 600; }
+
+/* ---------- Marketplace mobile rework (<767px) ---------- */
+@media (max-width: 767px) {
+    /* Trust strip: 2-col */
+    .fxmp-trust__row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .fxmp-trust__item { font-size: 12px; }
+    .fxmp-trust__item i { font-size: 19px; }
+    /* Deals */
+    .fxmp-deals__box { padding: 20px 14px; border-radius: 14px; }
+    .fxmp-deals__title { font-size: 18px; }
+    .fxmp-countdown__cell { min-width: 44px; padding: 5px 8px; }
+    .fxmp-countdown__cell b { font-size: 15px; }
+    /* Tabs: horizontal scroll */
+    .fxmp-tabs { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 16px; padding: 0 14px 6px; scrollbar-width: none; gap: 8px; }
+    .fxmp-tabs::-webkit-scrollbar { display: none; }
+    .fxmp-tab { flex-shrink: 0; font-size: 12.5px; padding: 8px 18px; }
+    /* Hero promos: snap carousel */
+    .fxmp-hero__promos { display: flex; flex-direction: row; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+        margin: 0 -14px; padding: 4px 14px 10px; scrollbar-width: none; }
+    .fxmp-hero__promos::-webkit-scrollbar { display: none; }
+    .fxmp-promo { flex: 0 0 82%; scroll-snap-align: start; min-height: 130px; }
+    .fxmp-promo__title { font-size: 17px; }
+    /* Solutions chips: horizontal scroll */
+    .fxmp-solutions__chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px; padding: 0 14px 6px; scrollbar-width: none; }
+    .fxmp-solutions__chips::-webkit-scrollbar { display: none; }
+    .fxmp-chip { flex-shrink: 0; font-size: 12.5px; padding: 9px 18px; }
+    /* Categories: horizontal snap scroll */
+    .fxmp-cats__row { display: flex; overflow-x: auto; gap: 10px; margin: 0 -14px; padding: 4px 14px 10px;
+        scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .fxmp-cats__row::-webkit-scrollbar { display: none; }
+    .fxmp-cat { flex: 0 0 104px; scroll-snap-align: start; padding: 14px 8px; }
+    .fxmp-cat__tile { width: 44px; height: 44px; font-size: 19px; border-radius: 12px; }
+    /* API cards stack */
+    .fxmp-api__row { grid-template-columns: 1fr; gap: 12px; }
+    /* Card refinements */
+    .fxmp-card { border-radius: 12px; }
+    .fxmp-card__body { padding: 10px 10px 12px; gap: 4px; }
+    .fxmp-card__title { font-size: 12.5px; }
+    .fxmp-card__tag { font-size: 10.5px; }
+    .fxmp-card__stars { font-size: 11px; }
+    .fxmp-card__rcount { font-size: 10.5px; }
+    .fxmp-card__badge { font-size: 9px; padding: 3px 8px; top: 6px; left: 6px; }
+    .fxmp-card__icon { width: 28px; height: 28px; font-size: 14px; top: 6px; right: 6px; }
+    .fxmp-card__quick { display: none; }
+    .fxmp-card__add { font-size: 12px; padding: 9px 12px; }
+    /* CTA */
+    .fxmp-cta__box { padding: 26px 20px; border-radius: 14px; }
+    .fxmp-cta__title { font-size: 19px; }
+    .fxmp-cta__sub { font-size: 13px; }
+    .fxmp-cta__btn { padding: 11px 20px; font-size: 13px; }
+    /* Pre-built web */
+    .fxmp-web__banner { min-height: 220px; border-radius: 14px; }
+    .fxmp-web__title { font-size: 21px; }
+    /* Bottom padding for fixed bottom nav */
+    .fx-market { padding-bottom: 64px; }
+}
+
+/* Fixed mobile bottom nav — marketplace homepage only */
+.fxmp-mnav { display: none; }
+@media (max-width: 767px) {
+    .fxmp-mnav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+        border-top: 1px solid #e8ecf3; z-index: 70; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); }
+    .fxmp-mnav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+        font-size: 10.5px; font-weight: 700; color: #6b7a99; padding: 4px 0; text-decoration: none; }
+    .fxmp-mnav a.is-active { color: #F3A329; }
+    .fxmp-mnav .fxmp-mnav__ic { font-size: 20px; line-height: 1; }
+}

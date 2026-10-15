@@ -93,6 +93,46 @@
     </div>
 </section>
 
+{{-- ============ 1b. Trust strip ============ --}}
+<section class="fxmp-trust" aria-label="{{ translate('Why shop with us') }}">
+    <div class="fx-container">
+        <div class="fxmp-trust__row">
+            <span class="fxmp-trust__item"><i aria-hidden="true">⚡</i> {{ translate('Instant digital delivery') }}</span>
+            <span class="fxmp-trust__item"><i aria-hidden="true">🔒</i> {{ translate('Secure checkout') }}</span>
+            <span class="fxmp-trust__item"><i aria-hidden="true">🎧</i> {{ translate('24/7 live support') }}</span>
+            <span class="fxmp-trust__item"><i aria-hidden="true">⭐</i> {{ translate('Verified providers') }}</span>
+        </div>
+    </div>
+</section>
+
+{{-- ============ 1c. Deals of the day ============ --}}
+@if($mpHalfOff->isNotEmpty() || $mpSale->isNotEmpty())
+@php $dealsProducts = $mpHalfOff->isNotEmpty() ? $mpHalfOff->take(4) : $mpSale->take(4); @endphp
+<section class="fxmp-deals" aria-labelledby="fxmp-deals-title">
+    <div class="fx-container">
+        <div class="fxmp-deals__box">
+            <div class="fxmp-deals__top">
+                <div>
+                    <h2 class="fxmp-deals__title" id="fxmp-deals-title">⚡ {{ translate('Deals of the day') }}</h2>
+                    <p class="fxmp-deals__sub">{{ translate('Big discounts — ends soon') }}</p>
+                </div>
+                <div class="fxmp-countdown" aria-label="{{ translate('Deal ends in') }}">
+                    <span class="fxmp-countdown__label">{{ translate('Ends in') }}</span>
+                    <span class="fxmp-countdown__cell"><b data-fxmp-cd="h">00</b>{{ translate('hrs') }}</span>
+                    <span class="fxmp-countdown__cell"><b data-fxmp-cd="m">00</b>{{ translate('min') }}</span>
+                    <span class="fxmp-countdown__cell"><b data-fxmp-cd="s">00</b>{{ translate('sec') }}</span>
+                </div>
+            </div>
+            <div class="fxmp-grid">
+                @foreach($dealsProducts as $product)
+                    @include('web-views.partials._fx-home-marketplace-card', ['product' => $product])
+                @endforeach
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- ============ 2. Product grid with tabs ============ --}}
 @if($mpAll->isNotEmpty())
 <section class="fxmp-products" aria-labelledby="fxmp-products-title">
@@ -143,6 +183,26 @@
                 </div>
             </div>
         @endif
+    </div>
+</section>
+@endif
+
+{{-- ============ 2b. New arrivals ============ --}}
+@if($mpNew->isNotEmpty())
+<section class="fxmp-newarr" aria-labelledby="fxmp-newarr-title">
+    <div class="fx-container">
+        <div class="fx-sec-head">
+            <div>
+                <h2 class="fx-sec-title" id="fxmp-newarr-title">{{ translate('New arrivals') }}</h2>
+                <p class="fx-sec-sub">{{ translate('Fresh listings this week') }}</p>
+            </div>
+            <a class="fx-sec-link fx-sec-link--pill" href="{{ route('products') }}">{{ translate('View all') }}</a>
+        </div>
+        <div class="fxmp-grid">
+            @foreach($mpNew->take(4) as $product)
+                @include('web-views.partials._fx-home-marketplace-card', ['product' => $product])
+            @endforeach
+        </div>
     </div>
 </section>
 @endif
@@ -268,6 +328,14 @@
 
 @include('web-views.partials._fx-drawers')
 
+{{-- Mobile bottom nav (marketplace homepage only) --}}
+<nav class="fxmp-mnav" aria-label="{{ translate('Mobile navigation') }}">
+    <a href="{{ route('home') }}" class="is-active"><span class="fxmp-mnav__ic" aria-hidden="true">🏠</span>{{ translate('home') }}</a>
+    <a href="{{ route('products') }}"><span class="fxmp-mnav__ic" aria-hidden="true">🗂</span>{{ translate('categories') }}</a>
+    <a href="{{ route('shop-cart') }}"><span class="fxmp-mnav__ic" aria-hidden="true">🛒</span>{{ translate('cart') }}</a>
+    <a href="{{ route('customer.auth.login') }}"><span class="fxmp-mnav__ic" aria-hidden="true">👤</span>{{ translate('account') }}</a>
+</nav>
+
 <script>
 (function () {
     var root = document.currentScript ? document.currentScript.parentElement : document;
@@ -345,6 +413,21 @@
                     .catch(function (err) { if (err && err.name === 'AbortError') return; body.innerHTML = '<p>Preview could not be loaded.</p>'; });
             });
         });
+    }
+    /* Deals countdown to midnight */
+    var cdH = document.querySelector('[data-fxmp-cd="h"]');
+    if (cdH) {
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function tick() {
+            var now = new Date(), end = new Date();
+            end.setHours(23, 59, 59, 999);
+            var d = Math.max(0, end - now);
+            var h = Math.floor(d / 36e5), m = Math.floor(d % 36e5 / 6e4), s = Math.floor(d % 6e4 / 1e3);
+            document.querySelector('[data-fxmp-cd="h"]').textContent = pad(h);
+            document.querySelector('[data-fxmp-cd="m"]').textContent = pad(m);
+            document.querySelector('[data-fxmp-cd="s"]').textContent = pad(s);
+        }
+        tick(); setInterval(tick, 1000);
     }
 })();
 </script>
