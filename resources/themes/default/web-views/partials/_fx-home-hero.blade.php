@@ -45,15 +45,19 @@
         <div class="fx-hero6__wall" id="fxHeroWall" aria-hidden="true">
             <div class="fx-wcard fx-wcard--img fx-wcard--t1" data-depth="14">
                 <img src="{{ asset('storage/company/hero-terminal.webp') }}" alt="Trading terminal" loading="lazy">
+                <div class="fx-wcard__label"><span>Pro Trading Terminal</span><em>$299</em></div>
             </div>
             <div class="fx-wcard fx-wcard--img fx-wcard--t2" data-depth="22">
                 <img src="{{ asset('storage/company/hero-copier.webp') }}" alt="Trade copier" loading="lazy">
+                <div class="fx-wcard__label"><span>Smart Trade Copier</span><em>$149</em></div>
             </div>
             <div class="fx-wcard fx-wcard--img fx-wcard--t3" data-depth="18">
                 <img src="{{ asset('storage/company/hero-crm.webp') }}" alt="Broker CRM" loading="lazy">
+                <div class="fx-wcard__label"><span>Broker CRM Suite</span><em>$499</em></div>
             </div>
             <div class="fx-wcard fx-wcard--img fx-wcard--t4" data-depth="26">
                 <img src="{{ asset('storage/company/hero-payments.webp') }}" alt="Payments API" loading="lazy">
+                <div class="fx-wcard__label"><span>Payments API</span><em>$199</em></div>
             </div>
         </div>
 
