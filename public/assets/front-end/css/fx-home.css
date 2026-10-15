@@ -424,3 +424,23 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
 @media (prefers-reduced-motion: reduce) {
   .fx-hero6__wash, .fx-wcard, .fx-hero6__dot, .fx-hero6__ticker-track { animation: none !important; }
 }
+
+/* ============ Mobile UI polish (2026-10-15) ============ */
+@media (max-width: 640px) {
+  /* Header: tighter logo, icon-only actions */
+  .fx .fxh-logo img { max-width: 120px; height: 28px; }
+  .fx .fxh-bar-inner { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .fx .fxh-action { min-width: 40px; min-height: 40px; padding: 4px; }
+  .fx .fxh-action span[aria-hidden="true"] { display: none; }
+  .fx .fxh-action svg { width: 22px; height: 22px; }
+  .fx .fxh-burger { width: 40px; height: 40px; }
+  /* Sign in button: compact on mobile */
+  .fx .fxh-acct .fx-btn { padding: 10px 16px; font-size: 13px; white-space: nowrap; }
+  /* Hero: tighter spacing */
+  .fx-hero__copy { padding: 32px 16px 64px; }
+  .fx-hero__title { font-size: 26px; line-height: 1.15; }
+  .fx-hero__chips { gap: 6px; margin-top: 20px; }
+  .fx-hero__chip { font-size: 11px; padding: 6px 12px; }
+  /* Bottom nav: ensure labels fit */
+  .fx-tabbar__label { font-size: 10px; }
+}
