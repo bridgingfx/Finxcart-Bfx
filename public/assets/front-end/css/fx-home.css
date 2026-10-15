@@ -570,3 +570,73 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
 @media (prefers-reduced-motion: reduce) {
   .fx-hero6__wash, .fx-wcard, .fx-hero6__dot, .fx-hero6__ticker-track { animation: none !important; }
 }
+
+/* ============ FINXCART HERO v7 — Buffer-style floating icon cloud ============ */
+.fx-hero7 { position: relative; overflow: hidden; background: #faf9f7; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+.fx-hero7__bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.fx-hero7__grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(26,26,26,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(26,26,26,.035) 1px, transparent 1px); background-size: 44px 44px; -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 20%, black 20%, transparent 72%); mask-image: radial-gradient(ellipse 85% 75% at 50% 20%, black 20%, transparent 72%); }
+
+/* Floating icon clusters */
+.fx-hero7__cluster { position: absolute; top: 0; bottom: 0; width: 340px; pointer-events: none; }
+.fx-hero7__cluster--left { left: max(12px, calc(50% - 660px)); }
+.fx-hero7__cluster--right { right: max(12px, calc(50% - 660px)); }
+.fx-hero7__tile { position: absolute; left: 50%; top: var(--ty, 100px); width: 58px; height: 58px; margin-left: -29px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid rgba(26,26,26,.09); border-radius: 16px; box-shadow: 0 10px 28px rgba(16,24,40,.10), 0 2px 6px rgba(16,24,40,.06), inset 0 1px 0 #fff; color: #3d4a6e; animation: fxTileFloat 6s ease-in-out infinite; animation-delay: var(--td, 0s); will-change: transform; }
+.fx-hero7__tile svg { width: 27px; height: 27px; }
+.fx-hero7__tile:nth-child(odd) svg { color: #b97a1a; }
+.fx-hero7__tile:nth-child(even) svg { color: #4056b2; }
+@keyframes fxTileFloat { 0%, 100% { transform: translateY(-7px); } 50% { transform: translateY(7px); } }
+
+.fx-hero7__inner { position: relative; z-index: 2; max-width: 860px; margin: 0 auto; padding: 110px 24px 90px; text-align: center; }
+.fx-hero7__title { font-size: clamp(46px, 6.4vw, 76px); line-height: 1.04; font-weight: 800; letter-spacing: -0.035em; margin: 0 0 22px; color: #141414; text-wrap: balance; }
+.fx-hero7__grad { background: linear-gradient(100deg, #d97e06 0%, #F3A329 55%, #ffab2e 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fx-hero7__sub { font-size: 18px; line-height: 1.65; color: #5c5c5c; max-width: 580px; margin: 0 auto 38px; letter-spacing: -0.01em; }
+
+.fx-hero7__search { display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid rgba(26,26,26,.1); border-radius: 999px; padding: 7px 7px 7px 22px; max-width: 600px; margin: 0 auto; box-shadow: 0 20px 50px rgba(16,24,40,.10); transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease; text-align: left; }
+.fx-hero7__search:hover { transform: translateY(-1px); box-shadow: 0 26px 60px rgba(16,24,40,.13); }
+.fx-hero7__search:focus-within { border-color: rgba(243,163,41,.6); box-shadow: 0 20px 50px rgba(16,24,40,.10), 0 0 0 5px rgba(243,163,41,.13); }
+.fx-hero7__search svg { width: 21px; height: 21px; color: #9a9a9a; flex-shrink: 0; }
+.fx-hero7__search input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #1a1a1a; font-size: 15.5px; padding: 13px 8px; font-family: inherit; }
+.fx-hero7__search input::placeholder { color: #a3a3a3; }
+.fx-hero7__search button { background: linear-gradient(135deg, #ffcf6b, #F3A329 60%, #e8930c); color: #1a1405; font-weight: 800; font-size: 15px; border: 0; border-radius: 999px; padding: 14px 34px; cursor: pointer; font-family: inherit; box-shadow: 0 8px 20px rgba(243,163,41,.32); transition: transform .15s ease, filter .15s ease; }
+.fx-hero7__search button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.fx-hero7__search button:active { transform: scale(.97); }
+
+.fx-hero7__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
+.fx-hero7__chip { font-size: 13.5px; font-weight: 600; color: #3d3d3d; background: #fff; border: 1px solid rgba(26,26,26,.1); padding: 10px 19px; border-radius: 999px; text-decoration: none; box-shadow: 0 3px 10px rgba(16,24,40,.05); transition: all .18s ease; }
+.fx-hero7__chip:hover { border-color: rgba(243,163,41,.6); color: #b97a1a; transform: translateY(-2px); }
+.fx-hero7__chip:active { transform: scale(.97); }
+
+.fx-hero7__stats { display: flex; justify-content: center; gap: 0; margin: 46px 0 0; padding: 0; }
+.fx-hero7__stat { display: flex; flex-direction: column; gap: 6px; padding: 0 48px; }
+.fx-hero7__stat + .fx-hero7__stat { border-left: 1px solid rgba(26,26,26,.1); }
+.fx-hero7__stat dd { margin: 0; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; color: #141414; font-variant-numeric: tabular-nums; }
+.fx-hero7__stat dt { font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: #9a9a9a; }
+
+.fx-hero7__vendor { display: inline-flex; align-items: center; gap: 10px; margin-top: 48px; color: #141414; font-weight: 700; font-size: 15px; text-decoration: none; background: #fff; border: 1px solid rgba(26,26,26,.12); padding: 14px 30px; border-radius: 999px; box-shadow: 0 8px 22px rgba(16,24,40,.08); transition: all .2s ease; }
+.fx-hero7__vendor svg { width: 18px; height: 18px; transition: transform .2s ease; }
+.fx-hero7__vendor:hover { border-color: rgba(243,163,41,.6); color: #b97a1a; transform: translateY(-2px); box-shadow: 0 12px 30px rgba(243,163,41,.16); }
+.fx-hero7__vendor:hover svg { transform: translateX(5px); }
+.fx-hero7__vendor:active { transform: scale(.97); }
+
+.fx-hero7__ticker { position: relative; z-index: 2; border-top: 1px solid rgba(26,26,26,.08); background: rgba(255,255,255,.65); backdrop-filter: blur(8px); overflow: hidden; }
+.fx-hero7__ticker-track { display: flex; width: max-content; animation: fxTick 30s linear infinite; }
+.fx-hero7__ticker:hover .fx-hero7__ticker-track { animation-play-state: paused; }
+.fx-hero7__tick { display: inline-flex; align-items: center; gap: 30px; padding: 15px 30px 15px 0; color: #9a9a9a; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+a.fx-hero7__tick:hover { color: #b97a1a; }
+.fx-hero7__tick i { font-style: normal; color: #F3A329; font-size: 11px; }
+
+@media (max-width: 1100px) {
+  .fx-hero7__cluster { display: none; }
+}
+@media (max-width: 640px) {
+  .fx-hero7__inner { padding: 76px 20px 64px; }
+  .fx-hero7__title { font-size: clamp(38px, 10.5vw, 54px); }
+  .fx-hero7__sub { font-size: 16px; }
+  .fx-hero7__search { border-radius: 20px; }
+  .fx-hero7__search button { padding: 13px 22px; font-size: 14px; }
+  .fx-hero7__stat { padding: 0 20px; }
+  .fx-hero7__stat dd { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-hero7__tile, .fx-hero7__ticker-track { animation: none !important; }
+}
