@@ -538,3 +538,171 @@ a.fx-hero6__tick:hover { color: #b97a1a; }
     .fx-wide-banner__title { font-size: 22px; }
     .fx-wide-banner__sub { font-size: 13px; }
 }
+
+/* ============================================================
+ * fxmp — FinXCart marketplace homepage (mirrors finxcart.com layout)
+ * Dark navy #0f1b3d headers, amber #F3A329 accents. Responsive.
+ * ============================================================ */
+
+/* ---------- 1. Hero carousel + promo cards ---------- */
+.fxmp-hero { padding: 20px 0 28px; }
+.fxmp-hero__grid { display: grid; grid-template-columns: 1.9fr 1fr; gap: 16px; }
+.fxmp-hero__carousel { position: relative; border-radius: 20px; overflow: hidden; min-height: 400px; display: flex;
+    background: linear-gradient(115deg, #0f1b3d 0%, #16205e 58%, #1d2a7a 100%); }
+.fxmp-hero__carousel::before { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(560px 300px at 12% 18%, rgba(243,163,41,.14), transparent 60%),
+                radial-gradient(680px 400px at 88% 85%, rgba(64,110,255,.22), transparent 62%); }
+.fxmp-hero__slides { position: relative; z-index: 1; width: 100%; display: flex; align-items: center; }
+.fxmp-hero__slide { padding: 52px 56px; max-width: 620px; }
+.fxmp-hero__eyebrow { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em;
+    color: #F3A329; background: rgba(243,163,41,.14); border: 1px solid rgba(243,163,41,.35);
+    padding: 7px 14px; border-radius: 999px; margin-bottom: 18px; }
+.fxmp-hero__title { font-size: 40px; line-height: 1.1; letter-spacing: -.02em; font-weight: 800; color: #fff; margin: 0 0 14px; }
+.fxmp-hero__sub { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.74); margin: 0 0 28px; }
+.fxmp-hero__cta { display: inline-flex; align-items: center; background: #F3A329; color: #1a1405; font-size: 15px;
+    font-weight: 800; padding: 14px 32px; border-radius: 999px; text-decoration: none; box-shadow: 0 8px 24px rgba(243,163,41,.35); }
+.fxmp-hero__cta:hover { background: #ffb63e; color: #1a1405; }
+.fxmp-hero__dots { position: absolute; z-index: 2; bottom: 22px; left: 56px; display: flex; gap: 8px; }
+.fxmp-hero__dot { width: 8px; height: 8px; border: 0; border-radius: 999px; background: rgba(255,255,255,.3); cursor: pointer; padding: 0; transition: width 160ms, background 160ms; }
+.fxmp-hero__dot.is-active { width: 28px; background: #F3A329; }
+.fxmp-hero__promos { display: grid; grid-template-rows: repeat(3, 1fr); gap: 12px; }
+.fxmp-promo { position: relative; display: block; border-radius: 16px; overflow: hidden; min-height: 120px; text-decoration: none; }
+.fxmp-promo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+.fxmp-promo:hover img { transform: scale(1.05); }
+.fxmp-promo__overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+    padding: 16px 20px; background: linear-gradient(90deg, rgba(10,18,40,.78) 0%, rgba(10,18,40,.28) 60%, transparent 100%); }
+.fxmp-promo__kicker { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #F3A329; margin-bottom: 4px; }
+.fxmp-promo__title { font-size: 18px; font-weight: 800; color: #fff; }
+
+/* ---------- 2. Product tabs + grid ---------- */
+.fxmp-products { padding: 30px 0; }
+.fxmp-tabs { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+.fxmp-tab { border: 1px solid #dfe4f0; background: #fff; color: #1d2a7a; font-size: 14px; font-weight: 700;
+    padding: 10px 22px; border-radius: 999px; cursor: pointer; transition: all 160ms ease; }
+.fxmp-tab:hover { border-color: #1d2a7a; }
+.fxmp-tab.is-active { background: #0f1b3d; border-color: #0f1b3d; color: #fff; }
+.fxmp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.fxmp-grid--2 { grid-template-columns: repeat(2, 1fr); }
+
+/* Marketplace card */
+.fxmp-card { background: #fff; border: 1px solid #e8ecf3; border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column; transition: transform 160ms ease, box-shadow 160ms ease; }
+.fxmp-card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(16,24,40,.12); }
+.fxmp-card__media { position: relative; aspect-ratio: 4/3; background: #f4f6fb; overflow: hidden; }
+.fxmp-card__imglink img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fxmp-card__badge { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 800; color: #fff;
+    background: #e0342b; padding: 5px 10px; border-radius: 999px; }
+.fxmp-card__icon { position: absolute; top: 8px; right: 8px; width: 36px; height: 36px; border-radius: 50%;
+    border: 0; background: rgba(255,255,255,.94); color: #1d2a7a; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16,24,40,.14); }
+.fxmp-card__icon.is-saved { color: #e0342b; }
+.fxmp-card__quick { position: absolute; left: 50%; bottom: 10px; transform: translate(-50%, 8px); display: inline-flex;
+    align-items: center; gap: 6px; border: 0; border-radius: 999px; background: rgba(15,27,61,.92); color: #fff;
+    font-size: 12.5px; font-weight: 700; padding: 9px 18px; cursor: pointer; opacity: 0; transition: opacity 160ms, transform 160ms; }
+.fxmp-card:hover .fxmp-card__quick { opacity: 1; transform: translate(-50%, 0); }
+.fxmp-card__quick svg { width: 15px; height: 15px; }
+.fxmp-card__body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.fxmp-card__title { font-size: 15px; font-weight: 700; margin: 0; line-height: 1.4; }
+.fxmp-card__title a { color: #0f1b3d; text-decoration: none; }
+.fxmp-card__title a:hover { color: #1d2a7a; }
+.fxmp-card__tag { font-size: 11px; font-weight: 700; color: #1d2a7a; background: rgba(29,42,122,.08);
+    padding: 4px 10px; border-radius: 999px; align-self: flex-start; }
+.fxmp-card__price { display: flex; align-items: baseline; gap: 8px; }
+.fx-price-old { font-size: 13px; color: #98a2b3; text-decoration: line-through; }
+.fxmp-card__add { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: #F3A329; color: #1a1405; font-size: 13.5px; font-weight: 800; border: 0; border-radius: 10px;
+    padding: 11px 16px; cursor: pointer; text-decoration: none; transition: background 160ms; }
+.fxmp-card__add:hover { background: #ffb63e; color: #1a1405; }
+.fxmp-card__add svg { width: 16px; height: 16px; }
+.fxmp-card__add--link { background: #eef1f9; color: #1d2a7a; }
+
+/* ---------- 3. CTA banner ---------- */
+.fxmp-cta { padding: 6px 0 26px; }
+.fxmp-cta__box { border-radius: 20px; padding: 40px 44px; display: flex; align-items: center; justify-content: space-between; gap: 28px;
+    background: linear-gradient(115deg, #0f1b3d 0%, #1d2a7a 100%); position: relative; overflow: hidden; }
+.fxmp-cta__box::before { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(520px 260px at 85% 20%, rgba(243,163,41,.18), transparent 60%); }
+.fxmp-cta__copy, .fxmp-cta__actions { position: relative; z-index: 1; }
+.fxmp-cta__title { font-size: 26px; font-weight: 800; color: #fff; margin: 0 0 8px; }
+.fxmp-cta__sub { font-size: 14.5px; color: rgba(255,255,255,.72); margin: 0; }
+.fxmp-cta__actions { display: flex; gap: 12px; flex-shrink: 0; }
+.fxmp-cta__btn { font-size: 14px; font-weight: 800; padding: 13px 28px; border-radius: 999px; text-decoration: none; white-space: nowrap; }
+.fxmp-cta__btn--amber { background: #F3A329; color: #1a1405; }
+.fxmp-cta__btn--amber:hover { background: #ffb63e; color: #1a1405; }
+.fxmp-cta__btn--ghost { border: 1.5px solid rgba(255,255,255,.4); color: #fff; }
+.fxmp-cta__btn--ghost:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+/* ---------- 4. Solutions chips ---------- */
+.fxmp-solutions { padding: 6px 0 26px; }
+.fxmp-solutions__chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.fxmp-chip { display: inline-flex; align-items: center; background: #fff; border: 1px solid #e2e7f2; color: #0f1b3d;
+    font-size: 13.5px; font-weight: 600; padding: 11px 20px; border-radius: 999px; text-decoration: none; transition: all 160ms; }
+.fxmp-chip:hover { border-color: #F3A329; background: #fff8ec; color: #0f1b3d; }
+
+/* ---------- 5. Pre-built websites ---------- */
+.fxmp-web { padding: 6px 0 26px; }
+.fxmp-web__grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 18px; align-items: start; }
+.fxmp-web__banner { position: relative; display: block; border-radius: 18px; overflow: hidden; min-height: 420px; text-decoration: none; }
+.fxmp-web__banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fxmp-web__overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 28px; background: linear-gradient(0deg, rgba(10,18,40,.82) 0%, transparent 55%); }
+.fxmp-web__title { font-size: 28px; font-weight: 800; color: #fff; margin: 4px 0 12px; }
+.fxmp-web__cta { align-self: flex-start; font-size: 13px; font-weight: 800; color: #1a1405; background: #F3A329;
+    padding: 10px 22px; border-radius: 999px; }
+
+/* ---------- 6. Top categories ---------- */
+.fxmp-cats { padding: 6px 0 26px; }
+.fxmp-cats__row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
+.fxmp-cat { display: flex; flex-direction: column; align-items: center; text-align: center; text-decoration: none;
+    background: #fff; border: 1px solid #e8ecf3; border-radius: 16px; padding: 18px 8px; transition: transform 160ms, box-shadow 160ms; }
+.fxmp-cat:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(16,24,40,.1); }
+.fxmp-cat__tile { width: 58px; height: 58px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; color: #fff; background: linear-gradient(145deg, #1d2a7a, #0f1b3d); margin-bottom: 10px; }
+.fxmp-cat:nth-child(2n) .fxmp-cat__tile { background: linear-gradient(145deg, #F3A329, #d98a14); color: #1a1405; }
+.fxmp-cat:nth-child(3n) .fxmp-cat__tile { background: linear-gradient(145deg, #0d8a5f, #0a6b4a); }
+.fxmp-cat__name { font-size: 12.5px; font-weight: 700; color: #0f1b3d; line-height: 1.35; }
+.fxmp-cat__count { font-size: 11px; color: #98a2b3; margin-top: 2px; }
+
+/* ---------- 7. API integrations ---------- */
+.fxmp-api { padding: 6px 0 26px; }
+.fxmp-api__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.fxmp-api__card { display: flex; flex-direction: column; background: #fff; border: 1px solid #e8ecf3; border-radius: 16px;
+    padding: 26px; text-decoration: none; transition: transform 160ms, box-shadow 160ms; }
+.fxmp-api__card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(16,24,40,.12); }
+.fxmp-api__icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(29,42,122,.08); color: #1d2a7a;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.fxmp-api__icon svg { width: 24px; height: 24px; }
+.fxmp-api__title { font-size: 17px; font-weight: 800; color: #0f1b3d; margin-bottom: 6px; }
+.fxmp-api__body { font-size: 13.5px; color: #667085; line-height: 1.55; margin-bottom: 12px; flex: 1; }
+.fxmp-api__link { font-size: 13.5px; font-weight: 800; color: #1d2a7a; }
+
+/* ---------- 8. Add-ons ---------- */
+.fxmp-addons { padding: 6px 0 40px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+    .fxmp-grid { grid-template-columns: repeat(3, 1fr); }
+    .fxmp-cats__row { grid-template-columns: repeat(4, 1fr); }
+    .fxmp-web__grid { grid-template-columns: 1fr; }
+    .fxmp-web__banner { min-height: 240px; }
+}
+@media (max-width: 768px) {
+    .fxmp-hero__grid { grid-template-columns: 1fr; }
+    .fxmp-hero__carousel { min-height: 320px; }
+    .fxmp-hero__slide { padding: 36px 28px; }
+    .fxmp-hero__title { font-size: 28px; }
+    .fxmp-hero__dots { left: 28px; }
+    .fxmp-hero__promos { grid-template-rows: none; grid-template-columns: 1fr; }
+    .fxmp-promo { min-height: 110px; }
+    .fxmp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .fxmp-grid--2 { grid-template-columns: repeat(2, 1fr); }
+    .fxmp-cta__box { flex-direction: column; align-items: flex-start; padding: 30px 26px; }
+    .fxmp-api__row { grid-template-columns: 1fr; }
+    .fxmp-cats__row { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+}
+@media (max-width: 480px) {
+    .fxmp-hero__title { font-size: 24px; }
+    .fxmp-cta__actions { flex-direction: column; width: 100%; }
+    .fxmp-cta__btn { text-align: center; }
+    .fxmp-card__quick { opacity: 1; transform: translate(-50%, 0); }
+}

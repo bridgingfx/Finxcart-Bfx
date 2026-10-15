@@ -69,6 +69,8 @@
         @include('web-views.partials._fx-home-hero', ['heroChips' => $tileCategories->take(6), 'fxStats' => isset($fxStats) ? $fxStats : null, 'populatedCategoryCount' => $populatedCategoryCount])
 
         @if($hasInventory)
+            {{-- Marketplace layout mirroring finxcart.com (user picks sections later) --}}
+            @include('web-views.partials._fx-home-marketplace', ['recommended' => $recommended, 'newArrivals' => $newArrivals, 'tileCategories' => $tileCategories])
             @include('web-views.partials._fx-home-mini-banners')
             @include('web-views.partials._fx-home-categories', ['tileCategories' => $tileCategories])
             @include('web-views.partials._fx-home-recommended', ['recommended' => $recommended])
