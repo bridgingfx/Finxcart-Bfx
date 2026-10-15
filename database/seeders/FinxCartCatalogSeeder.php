@@ -117,5 +117,22 @@ class FinxCartCatalogSeeder extends Seeder
         }
 
         $this->command->info('FinXCart catalog mirror seeded.');
+
+        // Official logo (from finxcart.com) — white FX mark for dark headers.
+        $logoFile = 'finxcart-logo-official.webp';
+        foreach (['company_web_logo', 'company_footer_logo', 'company_mobile_logo'] as $logoKey) {
+            $exists = DB::table('business_settings')->where('key_name', $logoKey)->exists();
+            if ($exists) {
+                DB::table('business_settings')->where('key_name', $logoKey)->update([
+                    'value' => $logoFile, 'updated_at' => $now,
+                ]);
+            } else {
+                DB::table('business_settings')->insert([
+                    'key_name' => $logoKey, 'value' => $logoFile,
+                    'created_at' => $now, 'updated_at' => $now,
+                ]);
+            }
+        }
+        $this->command->info('Official logo set.');
     }
 }
