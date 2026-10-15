@@ -1,50 +1,14 @@
-{{-- FinXCart hero v7: Buffer-style floating fintech icon cloud. Centered premium
-     layout, real search, real stats, scattered icon tiles around headline. --}}
+{{-- FinXCart hero v7: Clean centered premium layout, real search, real stats. --}}
 @php
     $chips = isset($heroChips) ? $heroChips : collect();
     $stats = isset($fxStats) && is_array($fxStats) ? $fxStats : null;
     $catCount = isset($populatedCategoryCount) ? (int) $populatedCategoryCount : 0;
     $tickerCats = $chips->count() ? $chips : collect();
 
-    // Fintech icon tiles (left cluster, right cluster) — Buffer-style floating cloud
-    $iconTilesLeft = [
-        ['x' => -110, 'y' => 10,  'd' => 0,    'svg' => '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>', 'label' => 'Trading'],
-        ['x' => -40,  'y' => 70, 'd' => -2.5, 'svg' => '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/>', 'label' => 'Wallet'],
-        ['x' => -120, 'y' => 45, 'd' => -5,   'svg' => '<path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/>', 'label' => 'Security'],
-        ['x' => 30,   'y' => 40,  'd' => 5,    'svg' => '<path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/>', 'label' => 'API'],
-        ['x' => -70,  'y' => 160, 'd' => 2.5,  'svg' => '<circle cx="12" cy="12" r="9"/><path d="M9 9.5v5M9 9.5h2.5a2 2 0 010 4H9"/>', 'label' => 'Crypto'],
-        ['x' => 60,   'y' => 105, 'd' => -1,   'svg' => '<path d="M3 12V7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-1"/><path d="M3 12h18"/>', 'label' => 'Banking'],
-        ['x' => -20,  'y' => 125, 'd' => -4,   'svg' => '<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>', 'label' => 'Fast'],
-    ];
-    $iconTilesRight = [
-        ['x' => 110,  'y' => 15,  'd' => 4,    'svg' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>', 'label' => 'Signals'],
-        ['x' => 40,   'y' => 45, 'd' => -3,   'svg' => '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>', 'label' => 'CRM'],
-        ['x' => 120,  'y' => 125, 'd' => 5,    'svg' => '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>', 'label' => 'Mobile'],
-        ['x' => -30,  'y' => 45,  'd' => -5,   'svg' => '<path d="M18 20V10M12 20V4M6 20v-6"/>', 'label' => 'Analytics'],
-        ['x' => 70,   'y' => 165, 'd' => 3,    'svg' => '<circle cx="12" cy="12" r="9"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>', 'label' => 'Global'],
-        ['x' => -60,  'y' => 110, 'd' => -2,   'svg' => '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/>', 'label' => 'Secure'],
-        ['x' => 20,   'y' => 205, 'd' => 2,    'svg' => '<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>', 'label' => 'Growth'],
-    ];
 @endphp
 <section class="fx-hero7" aria-label="{{ translate('Featured') }}">
     <div class="fx-hero7__bg" aria-hidden="true">
         <span class="fx-hero7__grid"></span>
-        {{-- Left floating icon cluster --}}
-        <div class="fx-hero7__cluster fx-hero7__cluster--left" aria-hidden="true">
-            @foreach($iconTilesLeft as $i => $tile)
-                <span class="fx-hero7__tile" style="--tx: {{ $tile['x'] }}px; --ty: {{ $tile['y'] }}px; --td: {{ $tile['d'] }}s;" title="{{ $tile['label'] }}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $tile['svg'] !!}</svg>
-                </span>
-            @endforeach
-        </div>
-        {{-- Right floating icon cluster --}}
-        <div class="fx-hero7__cluster fx-hero7__cluster--right" aria-hidden="true">
-            @foreach($iconTilesRight as $i => $tile)
-                <span class="fx-hero7__tile" style="--tx: {{ $tile['x'] }}px; --ty: {{ $tile['y'] }}px; --td: {{ $tile['d'] }}s;" title="{{ $tile['label'] }}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $tile['svg'] !!}</svg>
-                </span>
-            @endforeach
-        </div>
     </div>
 
     <div class="fx-hero7__inner">
@@ -93,31 +57,3 @@
         </div>
     @endif
 </section>
-
-<script>
-(function () {
-    // Gentle parallax on floating tiles (desktop only)
-    var hero = document.querySelector('.fx-hero7');
-    if (hero && window.matchMedia('(pointer: fine)').matches) {
-        var tiles = hero.querySelectorAll('.fx-hero7__tile');
-        var raf = null, tx = 0, ty = 0;
-        hero.addEventListener('mousemove', function (e) {
-            var r = hero.getBoundingClientRect();
-            tx = (e.clientX - r.left) / r.width - 0.5;
-            ty = (e.clientY - r.top) / r.height - 0.5;
-            if (!raf) raf = requestAnimationFrame(apply);
-        });
-        function apply() {
-            raf = null;
-            tiles.forEach(function (el, i) {
-                var depth = 6 + (i % 4) * 4;
-                el.style.translate = (-tx * depth) + 'px ' + (-ty * depth) + 'px';
-            });
-        }
-        hero.addEventListener('mouseleave', function () {
-            tx = 0; ty = 0;
-            if (!raf) raf = requestAnimationFrame(apply);
-        });
-    }
-})();
-</script>
