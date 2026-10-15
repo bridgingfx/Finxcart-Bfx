@@ -72,6 +72,7 @@
             @include('web-views.partials._fx-home-categories', ['tileCategories' => $tileCategories])
             @include('web-views.partials._fx-home-recommended', ['recommended' => $recommended])
             @include('web-views.partials._fx-home-promos', ['promoTiles' => $promoTiles])
+            @include('web-views.partials._fx-home-showcase')
             @include('web-views.partials._fx-home-new', ['newArrivals' => $newArrivals])
             @include('web-views.partials._fx-home-brands', ['brandList' => $brandList])
             @include('web-views.partials._fx-home-providers')
