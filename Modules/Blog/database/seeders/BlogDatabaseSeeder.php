@@ -23,6 +23,7 @@ class BlogDatabaseSeeder extends Seeder
             AiShoppingAgentsSeeder::class,
             PeakFeeSeasonSeeder::class,
             HolidayShippingSurchargesSeeder::class,
+            AsinFeeCategoryReassignmentSeeder::class,
         ]);
     }
 }
